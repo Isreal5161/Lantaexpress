@@ -156,7 +156,7 @@ export const ShopPage = ({ className, children, variant, contentKey, ...props })
   {/* Product 1 */}
   <div className="group">
     <Link className="block" href="product.html">
-      <div className="w-full aspect-w-1 aspect-h-1 bg-gray-200 overflow-hidden relative">
+    <div className="w-full aspect-w-3 aspect-h-4 bg-gray-200 overflow-hidden relative">
         <Image
           variant="cover"
           className="w-full h-full object-center object-cover group-hover:opacity-75 transition-opacity"
@@ -177,7 +177,7 @@ export const ShopPage = ({ className, children, variant, contentKey, ...props })
   {/* Product 2 */}
   <div className="group">
     <Link className="block" href="product.html">
-      <div className="w-full aspect-w-1 aspect-h-1 bg-gray-200 overflow-hidden relative">
+     <div className="w-full aspect-w-3 aspect-h-4 bg-gray-200 overflow-hidden relative">
         <Image
           variant="cover"
           className="w-full h-full object-center object-cover group-hover:opacity-75 transition-opacity"
@@ -193,7 +193,7 @@ export const ShopPage = ({ className, children, variant, contentKey, ...props })
                 {/* Product 3 */}
                 <div className="group">
                   <Link className="block" href="product.html">
-                  <div className="w-full aspect-w-1 aspect-h-1 bg-gray-200 overflow-hidden relative">
+                 <div className="w-full aspect-w-3 aspect-h-4 bg-gray-200 overflow-hidden relative">
                     <Image variant="cover" 
                     className="w-full h-full object-center object-cover group-hover:opacity-75 transition-opacity"
                     src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80"
