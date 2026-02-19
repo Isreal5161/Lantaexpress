@@ -152,7 +152,7 @@ export const ShopPage = ({ className, children, variant, contentKey, ...props })
                 </select>
               </div>
             {/* Grid */}
-<div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+<div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
   {/* Product 1 */}
   <div className="group">
     <Link className="block" href="product.html">
