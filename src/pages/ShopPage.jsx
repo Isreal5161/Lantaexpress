@@ -151,77 +151,98 @@ export const ShopPage = ({ className, children, variant, contentKey, ...props })
                   <option> Newest Arrivals </option>
                 </select>
               </div>
-              {/* Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {/* Product 1 */}
-                <div className="group">
-                  <Link className="block" href="product.html"><div className="w-full aspect-w-1 aspect-h-1 bg-gray-200 rounded-lg overflow-hidden relative">
-                    <Image variant="cover" className="w-full h-full object-center object-cover group-hover:opacity-75 transition-opacity" src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=500&q=80" alt="Headphones" />
-                    <Text variant="bold" className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded"> SALE </Text>
-                  </div>
-                  <h3 className="mt-4 text-sm text-slate-700 font-medium group-hover:text-green-600"> Premium Noise-Cancelling Headphones </h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <p className="text-lg font-bold text-slate-900"> $299.00 </p>
-                    <p className="text-sm text-slate-400 line-through"> $350.00 </p>
-                  </div></Link>
-                  <Button contentKey="cta_15" className="mt-3 w-full bg-slate-900 text-white py-2 rounded-md text-sm font-medium hover:bg-slate-800 transition-colors"> Add to Cart </Button>
-                </div>
-                {/* Product 2 */}
-                <div className="group">
-                  <Link className="block" href="product.html"><div className="w-full aspect-w-1 aspect-h-1 bg-gray-200 rounded-lg overflow-hidden relative">
-                    <Image variant="cover" className="w-full h-full object-center object-cover group-hover:opacity-75 transition-opacity" src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80" alt="Watch" />
-                  </div>
-                  <h3 className="mt-4 text-sm text-slate-700 font-medium group-hover:text-green-600"> Minimalist Analog Watch </h3>
-                  <p className="mt-1 text-lg font-bold text-slate-900"> $149.00 </p></Link>
-                  <Button contentKey="cta_16" className="mt-3 w-full bg-slate-900 text-white py-2 rounded-md text-sm font-medium hover:bg-slate-800 transition-colors"> Add to Cart </Button>
-                </div>
+            {/* Grid */}
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+  {/* Product 1 */}
+  <div className="group">
+    <Link className="block" href="product.html">
+      <div className="w-full aspect-w-1 aspect-h-1 bg-gray-200 overflow-hidden relative">
+        <Image
+          variant="cover"
+          className="w-full h-full object-center object-cover group-hover:opacity-75 transition-opacity"
+          src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=500&q=80"
+          alt="Headphones"
+        />
+        <Text variant="bold" className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1"> SALE </Text>
+      </div>
+      <h3 className="mt-4 text-sm text-slate-700 font-medium group-hover:text-green-600"> Premium Noise-Cancelling Headphones </h3>
+      <div className="flex items-center gap-2 mt-1">
+        <p className="text-lg font-bold text-slate-900"> $299.00 </p>
+        <p className="text-sm text-slate-400 line-through"> $350.00 </p>
+      </div>
+    </Link>
+    <Button contentKey="cta_15" className="mt-3 w-full bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-800 transition-colors"> Add to Cart </Button>
+  </div>
+
+  {/* Product 2 */}
+  <div className="group">
+    <Link className="block" href="product.html">
+      <div className="w-full aspect-w-1 aspect-h-1 bg-gray-200 overflow-hidden relative">
+        <Image
+          variant="cover"
+          className="w-full h-full object-center object-cover group-hover:opacity-75 transition-opacity"
+          src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80"
+          alt="Watch"
+        />
+      </div>
+      <h3 className="mt-4 text-sm text-slate-700 font-medium group-hover:text-green-600"> Minimalist Analog Watch </h3>
+      <p className="mt-1 text-lg font-bold text-slate-900"> $149.00 </p>
+    </Link>
+    <Button contentKey="cta_16" className="mt-3 w-full bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-800 transition-colors"> Add to Cart </Button>
+  </div>
                 {/* Product 3 */}
                 <div className="group">
-                  <Link className="block" href="product.html"><div className="w-full aspect-w-1 aspect-h-1 bg-gray-200 rounded-lg overflow-hidden relative">
-                    <Image variant="cover" className="w-full h-full object-center object-cover group-hover:opacity-75 transition-opacity" src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80" alt="Sneakers" />
+                  <Link className="block" href="product.html">
+                  <div className="w-full aspect-w-1 aspect-h-1 bg-gray-200 overflow-hidden relative">
+                    <Image variant="cover" 
+                    className="w-full h-full object-center object-cover group-hover:opacity-75 transition-opacity"
+                    src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80"
+                     alt="Sneakers"
+                     />
                   </div>
                   <h3 className="mt-4 text-sm text-slate-700 font-medium group-hover:text-green-600"> Urban Runner Sneakers </h3>
-                  <p className="mt-1 text-lg font-bold text-slate-900"> $129.00 </p></Link>
-                  <Button contentKey="cta_17" className="mt-3 w-full bg-slate-900 text-white py-2 rounded-md text-sm font-medium hover:bg-slate-800 transition-colors"> Add to Cart </Button>
+                  <p className="mt-1 text-lg font-bold text-slate-900"> $129.00 </p>
+                  </Link>
+                  <Button contentKey="cta_17" className="mt-3 w-full bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-800 transition-colors"> Add to Cart </Button>
                 </div>
                 {/* Product 4 */}
                 <div className="group">
-                  <Link className="block" href="product.html"><div className="w-full aspect-w-1 aspect-h-1 bg-gray-200 rounded-lg overflow-hidden relative">
+                  <Link className="block" href="product.html"><div className="w-full aspect-w-1 aspect-h-1 bg-gray-200 overflow-hidden relative">
                     <Image variant="cover" className="w-full h-full object-center object-cover group-hover:opacity-75 transition-opacity" src="https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=500&q=80" alt="Bag" />
                   </div>
                   <h3 className="mt-4 text-sm text-slate-700 font-medium group-hover:text-green-600"> Leather Crossbody Bag </h3>
                   <p className="mt-1 text-lg font-bold text-slate-900"> $89.00 </p></Link>
-                  <Button contentKey="cta_18" className="mt-3 w-full bg-slate-900 text-white py-2 rounded-md text-sm font-medium hover:bg-slate-800 transition-colors"> Add to Cart </Button>
+                  <Button contentKey="cta_18" className="mt-3 w-full bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-800 transition-colors"> Add to Cart </Button>
                 </div>
                 {/* Product 5 */}
                 <div className="group">
-                  <Link className="block" href="product.html"><div className="w-full aspect-w-1 aspect-h-1 bg-gray-200 rounded-lg overflow-hidden relative">
+                  <Link className="block" href="product.html"><div className="w-full aspect-w-1 aspect-h-1 bg-gray-200overflow-hidden relative">
                     <Image variant="cover" className="w-full h-full object-center object-cover group-hover:opacity-75 transition-opacity" src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=500&q=80" alt="Camera" />
                   </div>
                   <h3 className="mt-4 text-sm text-slate-700 font-medium group-hover:text-green-600"> Polaroid Instant Camera </h3>
                   <p className="mt-1 text-lg font-bold text-slate-900"> $99.00 </p></Link>
-                  <Button contentKey="cta_19" className="mt-3 w-full bg-slate-900 text-white py-2 rounded-md text-sm font-medium hover:bg-slate-800 transition-colors"> Add to Cart </Button>
+                  <Button contentKey="cta_19" className="mt-3 w-full bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-800 transition-colors"> Add to Cart </Button>
                 </div>
                 {/* Product 6 */}
                 <div className="group">
-                  <Link className="block" href="product.html"><div className="w-full aspect-w-1 aspect-h-1 bg-gray-200 rounded-lg overflow-hidden relative">
+                  <Link className="block" href="product.html"><div className="w-full aspect-w-1 aspect-h-1 bg-gray-200 overflow-hidden relative">
                     <Image variant="cover" className="w-full h-full object-center object-cover group-hover:opacity-75 transition-opacity" src="https://images.unsplash.com/photo-1585386959984-a4155224a1ad?auto=format&fit=crop&w=500&q=80" alt="Plant" />
                   </div>
                   <h3 className="mt-4 text-sm text-slate-700 font-medium group-hover:text-green-600"> Ceramic Plant Pot </h3>
                   <p className="mt-1 text-lg font-bold text-slate-900"> $35.00 </p></Link>
-                  <Button contentKey="cta_20" className="mt-3 w-full bg-slate-900 text-white py-2 rounded-md text-sm font-medium hover:bg-slate-800 transition-colors"> Add to Cart </Button>
+                  <Button contentKey="cta_20" className="mt-3 w-full bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-800 transition-colors"> Add to Cart </Button>
                 </div>
               </div>
               {/* Pagination */}
               <div className="mt-12 flex justify-center">
                 <nav className="flex items-center gap-2">
-                  <Link contentKey="cta_21" className="w-10 h-10 flex items-center justify-center rounded-md border border-slate-300 text-slate-500 hover:bg-slate-50" href="#"> ← </Link>
-                  <Link contentKey="cta_22" className="w-10 h-10 flex items-center justify-center rounded-md bg-green-600 text-white font-bold" href="#"> 1 </Link>
-                  <Link contentKey="cta_23" className="w-10 h-10 flex items-center justify-center rounded-md border border-slate-300 text-slate-700 hover:bg-slate-50" href="#"> 2 </Link>
-                  <Link contentKey="cta_24" className="w-10 h-10 flex items-center justify-center rounded-md border border-slate-300 text-slate-700 hover:bg-slate-50" href="#"> 3 </Link>
+                  <Link contentKey="cta_21" className="w-10 h-10 flex items-center justify-center  border border-slate-300 text-slate-500 hover:bg-slate-50" href="#"> ← </Link>
+                  <Link contentKey="cta_22" className="w-10 h-10 flex items-center justify-center  border bg-orange-600 text-white font-bold" href="#"> 1 </Link>
+                  <Link contentKey="cta_23" className="w-10 h-10 flex items-center justify-center  border border-slate-300 text-slate-700 hover:bg-slate-50" href="#"> 2 </Link>
+                  <Link contentKey="cta_24" className="w-10 h-10 flex items-center justify-center  border border-slate-300 text-slate-700 hover:bg-slate-50" href="#"> 3 </Link>
                   <Text className="text-slate-400"> ... </Text>
-                  <Link contentKey="cta_25" className="w-10 h-10 flex items-center justify-center rounded-md border border-slate-300 text-slate-700 hover:bg-slate-50" href="#"> 8 </Link>
-                  <Link contentKey="cta_26" className="w-10 h-10 flex items-center justify-center rounded-md border border-slate-300 text-slate-500 hover:bg-slate-50" href="#"> → </Link>
+                  <Link contentKey="cta_25" className="w-10 h-10 flex items-center justify-center  border border-slate-300 text-slate-700 hover:bg-slate-50" href="#"> 8 </Link>
+                  <Link contentKey="cta_26" className="w-10 h-10 flex items-center justify-center  border border-slate-300 text-slate-500 hover:bg-slate-50" href="#"> → </Link>
                 </nav>
               </div>
             </div>
