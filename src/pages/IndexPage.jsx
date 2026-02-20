@@ -152,135 +152,176 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
   </div>
 </section>
       
-    {/* Trending now Product Section */}
-        <section id="trending_now" className="py-16 bg-slate-50">
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div className="flex justify-between items-end mb-8">
-      <h2 className="text-2xl font-heading font-bold text-slate-900">Trending Now</h2>
-      <Link className="text-green-600 font-medium hover:text-green-700 flex items-center gap-1" href="shop.html">
-        View all <Text>→</Text>
+{/* Trending Now Product Section */}
+<section id="trending_now" className="py-12 bg-slate-50">
+  <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+    
+    <div className="flex justify-between items-end mb-6">
+      <h2 className="text-xl sm:text-2xl font-heading font-bold text-slate-900">
+        Trending Now
+      </h2>
+      <Link
+        className="text-green-600 font-medium hover:text-green-700 flex items-center gap-1 text-sm"
+        href="shop.html"
+      >
+        View all <span>→</span>
       </Link>
     </div>
 
-    {/* Updated Grid */}
-    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      
+    {/* Product Grid */}
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+
       {/* Product 1 */}
-      <div data-aos="fade-up" data-aos-delay="0" className="group">
-        <div className="w-full aspect-w-1 aspect-h-1 bg-gray-200 overflow-hidden xl:aspect-w-7 xl:aspect-h-8 relative">
-          <Image
-            variant="cover"
-            className="w-full h-full object-center object-cover group-hover:opacity-75 transition-opacity"
-            src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=500&q=80"
-            alt="Headphones"
-          />
-          <div className="absolute top-2 right-2 bg-white p-1.5 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:text-red-500">
+      <div className="group">
+        <div className="relative w-full border border-gray-200 overflow-hidden">
+          <div className="w-full aspect-[2/3] bg-gray-100 overflow-hidden">
+            <Image
+              variant="cover"
+              className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
+              src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=500&q=80"
+              alt="Headphones"
+            />
+          </div>
+
+          <div className="absolute top-2 right-2 bg-white p-1.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:text-red-500">
             <Icon className="h-5 w-5" viewBox="0 0 24 24" fill="none">
               <path
                 d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                stroke="currentColor"
+                strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth="2"
-              ></path>
+              />
             </Icon>
           </div>
         </div>
-        <h3 className="mt-4 text-sm text-slate-700 font-medium">Premium Noise-Cancelling Headphones</h3>
-        <p className="mt-1 text-lg font-bold text-slate-900">$299.00</p>
-        <Button
-          contentKey="cta_21"
-          className="mt-3 w-full bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-800 transition-colors opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 duration-300"
-        >
+
+        <h3 className="mt-2 text-xs text-slate-700 font-medium px-1">
+          Premium Noise-Cancelling Headphones
+        </h3>
+
+        <p className="mt-1 text-base font-semibold text-slate-900 px-1">
+          $299.00
+        </p>
+
+        <Button className="w-full bg-white text-black border-t text-sm py-2 mt-2">
           Add to Cart
         </Button>
       </div>
+
 
       {/* Product 2 */}
-      <div data-aos="fade-up" data-aos-delay="100" className="group">
-        <div className="w-full aspect-w-1 aspect-h-1 bg-gray-200 overflow-hidden xl:aspect-w-7 xl:aspect-h-8 relative">
-          <Image
-            variant="cover"
-            className="w-full h-full object-center object-cover group-hover:opacity-75 transition-opacity"
-            src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80"
-            alt="Watch"
-          />
-          <div className="absolute top-2 right-2 bg-white p-1.5 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:text-red-500">
+      <div className="group">
+        <div className="relative w-full border border-gray-200 overflow-hidden">
+          <div className="w-full aspect-[2/3] bg-gray-100 overflow-hidden">
+            <Image
+              variant="cover"
+              className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
+              src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80"
+              alt="Watch"
+            />
+          </div>
+
+          <div className="absolute top-2 right-2 bg-white p-1.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:text-red-500">
             <Icon className="h-5 w-5" viewBox="0 0 24 24" fill="none">
               <path
                 d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                stroke="currentColor"
+                strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth="2"
-              ></path>
+              />
             </Icon>
           </div>
         </div>
-        <h3 className="mt-4 text-sm text-slate-700 font-medium">Minimalist Analog Watch</h3>
-        <p className="mt-1 text-lg font-bold text-slate-900">$149.00</p>
-        <Button
-          contentKey="cta_22"
-          className="mt-3 w-full bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-800 transition-colors opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 duration-300"
-        >
+
+        <h3 className="mt-2 text-xs text-slate-700 font-medium px-1">
+          Minimalist Analog Watch
+        </h3>
+
+        <p className="mt-1 text-base font-semibold text-slate-900 px-1">
+          $149.00
+        </p>
+
+        <Button className="w-full bg-white text-black border-t text-sm py-2 mt-2">
           Add to Cart
         </Button>
       </div>
+
 
       {/* Product 3 */}
-      <div data-aos="fade-up" data-aos-delay="200" className="group">
-        <div className="w-full aspect-w-1 aspect-h-1 bg-gray-200 overflow-hidden xl:aspect-w-7 xl:aspect-h-8 relative">
-          <Image
-            variant="cover"
-            className="w-full h-full object-center object-cover group-hover:opacity-75 transition-opacity"
-            src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80"
-            alt="Sneakers"
-          />
-          <div className="absolute top-2 right-2 bg-white p-1.5 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:text-red-500">
+      <div className="group">
+        <div className="relative w-full border border-gray-200 overflow-hidden">
+          <div className="w-full aspect-[2/3] bg-gray-100 overflow-hidden">
+            <Image
+              variant="cover"
+              className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
+              src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80"
+              alt="Sneakers"
+            />
+          </div>
+
+          <div className="absolute top-2 right-2 bg-white p-1.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:text-red-500">
             <Icon className="h-5 w-5" viewBox="0 0 24 24" fill="none">
               <path
                 d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                stroke="currentColor"
+                strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth="2"
-              ></path>
+              />
             </Icon>
           </div>
         </div>
-        <h3 className="mt-4 text-sm text-slate-700 font-medium">Urban Runner Sneakers</h3>
-        <p className="mt-1 text-lg font-bold text-slate-900">$129.00</p>
-        <Button
-          contentKey="cta_23"
-          className="mt-3 w-full bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-800 transition-colors opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 duration-300"
-        >
+
+        <h3 className="mt-2 text-xs text-slate-700 font-medium px-1">
+          Urban Runner Sneakers
+        </h3>
+
+        <p className="mt-1 text-base font-semibold text-slate-900 px-1">
+          $129.00
+        </p>
+
+        <Button className="w-full bg-white text-black border-t text-sm py-2 mt-2">
           Add to Cart
         </Button>
       </div>
 
+
       {/* Product 4 */}
-      <div data-aos="fade-up" data-aos-delay="300" className="group">
-        <div className="w-full aspect-w-1 aspect-h-1 bg-gray-200 overflow-hidden xl:aspect-w-7 xl:aspect-h-8 relative">
-          <Image
-            variant="cover"
-            className="w-full h-full object-center object-cover group-hover:opacity-75 transition-opacity"
-            src="https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=500&q=80"
-            alt="Bag"
-          />
-          <div className="absolute top-2 right-2 bg-white p-1.5 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:text-red-500">
+      <div className="group">
+        <div className="relative w-full border border-gray-200 overflow-hidden">
+          <div className="w-full aspect-[2/3] bg-gray-100 overflow-hidden">
+            <Image
+              variant="cover"
+              className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
+              src="https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=500&q=80"
+              alt="Bag"
+            />
+          </div>
+
+          <div className="absolute top-2 right-2 bg-white p-1.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:text-red-500">
             <Icon className="h-5 w-5" viewBox="0 0 24 24" fill="none">
               <path
                 d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                stroke="currentColor"
+                strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth="2"
-              ></path>
+              />
             </Icon>
           </div>
         </div>
-        <h3 className="mt-4 text-sm text-slate-700 font-medium">Leather Crossbody Bag</h3>
-        <p className="mt-1 text-lg font-bold text-slate-900">$89.00</p>
-        <Button
-          contentKey="cta_24"
-          className="mt-3 w-full bg-slate-900 text-white py-2 text-sm font-medium hover:bg-slate-800 transition-colors opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 duration-300"
-        >
+
+        <h3 className="mt-2 text-xs text-slate-700 font-medium px-1">
+          Leather Crossbody Bag
+        </h3>
+
+        <p className="mt-1 text-base font-semibold text-slate-900 px-1">
+          $89.00
+        </p>
+
+        <Button className="w-full bg-white text-black border-t text-sm py-2 mt-2">
           Add to Cart
         </Button>
       </div>
