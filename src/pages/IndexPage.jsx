@@ -5,6 +5,7 @@ import { Image } from '../components/Image';
 import { Link } from '../components/Link';
 import { Text } from '../components/Text';
 
+
 export const IndexPage = ({ className, children, variant, contentKey, ...props }) => {
   return (
     <div className="font-body text-slate-600 antialiased bg-white">
@@ -76,10 +77,10 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
                   </p>
                   <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
                     <div className="rounded-md shadow">
-                      <Link contentKey="cta_19" className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700 md:py-4 md:text-lg transition-colors" href="shop.html"> Shop Collection </Link>
+                      <Link contentKey="cta_19" className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium text-white bg-green-600 hover:bg-green-700 md:py-4 md:text-lg transition-colors" href="shop.html"> Shop Collection </Link>
                     </div>
                     <div className="mt-3 sm:mt-0 sm:ml-3">
-                      <Link contentKey="cta_20" className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-green-700 bg-primary-100 hover:bg-primary-200 md:py-4 md:text-lg transition-colors" href="#"> Book a Pickup </Link>
+                      <Link contentKey="cta_20" className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium  text-green-700 bg-primary-100 hover:bg-primary-200 md:py-4 md:text-lg transition-colors" href="#"> Book a Pickup </Link>
                     </div>
                   </div>
                 </div>
@@ -339,7 +340,7 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
                  Upgrade your wardrobe without the extra cost. Limited time offer. 
               </p>
             </div>
-            <Link contentKey="cta_25" className="bg-white text-green-600 px-8 py-3 rounded-md font-bold hover:bg-slate-100 transition-colors shadow-lg" href="shop.html"> Start Shopping </Link>
+            <Link contentKey="cta_25" className="bg-white text-green-600 px-8 py-3 font-bold hover:bg-slate-100 transition-colors shadow-lg" href="shop.html"> Start Shopping </Link>
           </div>
         </section>
         </main>
@@ -402,18 +403,21 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
       </>
       {/* Mobile Bottom Navigation */}
 <div className="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 flex justify-around items-center py-2 z-50">
-
-  <Link href="index.html" className="flex flex-col items-center text-xs text-slate-600">
-    <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
-      <path d="M3 12l9-9 9 9M4 10v10h16V10"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Icon>
-    Home
-  </Link>
+<Link href="logistics.html" className="flex flex-col items-center text-xs text-slate-600">
+  <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
+    <path
+      d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5z"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <circle cx="7.5" cy="17.5" r="1.5" stroke="currentColor" strokeWidth="2" />
+    <circle cx="17.5" cy="17.5" r="1.5" stroke="currentColor" strokeWidth="2" />
+  </Icon>
+  Logistics
+</Link>
+  
 
   <Link href="shop.html" className="flex flex-col items-center text-xs text-slate-600">
     <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
@@ -424,7 +428,18 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
     </Icon>
     Shop
   </Link>
-
+ 
+<Link href="index.html" className="flex flex-col items-center text-xs text-slate-600">
+    <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
+      <path d="M3 12l9-9 9 9M4 10v10h16V10"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Icon>
+    Home
+  </Link>
   <Link href="cart.html" className="flex flex-col items-center text-xs text-slate-600">
     <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
       <path d="M6 6h15l-1.5 9h-13z"

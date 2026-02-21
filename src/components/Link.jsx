@@ -1,7 +1,14 @@
 import React from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 
-export const Link = ({ className, children, variant, contentKey, ...props }) => {
+export const Link = ({ href, className, children, ...props }) => {
+  // Determine if external link
+  const isExternal =
+    href?.startsWith('http') ||
+    href?.startsWith('mailto:') ||
+    href?.startsWith('#');
+
+  // Convert .html to React Router paths
   const getTo = (href) => {
     if (!href) return '#';
     if (href.endsWith('.html')) {
@@ -11,14 +18,17 @@ export const Link = ({ className, children, variant, contentKey, ...props }) => 
     return href;
   };
 
+  if (isExternal) {
+    return (
+      <a className={className} href={href} {...props}>
+        {children}
+      </a>
+    );
+  }
+
   return (
-    <>
-          {props.href && (props.href.startsWith('http') || props.href.startsWith('mailto:') || props.href.startsWith('#')) ? (
-            <a className={className} {...props}>{children}</a>
-          ) : (
-            <RouterLink className={className} to={getTo(props.href)} {...props}>{children}</RouterLink>
-          )}
-        </>
+    <RouterLink className={className} to={getTo(href)} {...props}>
+      {children}
+    </RouterLink>
   );
 };
-

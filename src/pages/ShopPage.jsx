@@ -6,6 +6,7 @@ import { Input } from '../components/Input';
 import { Link } from '../components/Link';
 import { Text } from '../components/Text';
 
+
 export const ShopPage = ({ className, children, variant, contentKey, ...props }) => {
   return (
     <div className="font-body text-slate-600 antialiased bg-white">
@@ -353,48 +354,63 @@ export const ShopPage = ({ className, children, variant, contentKey, ...props })
       {/* Mobile Bottom Navigation */}
 <div className="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 flex justify-around items-center py-2 z-50">
 
-  <Link href="index.html" className="flex flex-col items-center text-xs text-slate-600">
-    <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
-      <path d="M3 12l9-9 9 9M4 10v10h16V10"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Icon>
-    Home
-  </Link>
-
-  <Link href="shop.html" className="flex flex-col items-center text-xs text-slate-600">
-    <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
-      <path d="M4 4h16v16H4z"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-    </Icon>
-    Shop
-  </Link>
-
-  <Link href="cart.html" className="flex flex-col items-center text-xs text-slate-600">
-    <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
-      <path d="M6 6h15l-1.5 9h-13z"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-    </Icon>
-    Cart
-  </Link>
-
-  <Link href="#" className="flex flex-col items-center text-xs text-slate-600">
-    <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
-      <path d="M12 12c2.7 0 5-2.3 5-5S14.7 2 12 2 7 4.3 7 7s2.3 5 5 5zM2 22c0-5 4-8 10-8s10 3 10 8"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-    </Icon>
-    Account
-  </Link>
-
+ <Link href="logistics.html" className="flex flex-col items-center text-xs text-slate-600">
+   <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
+     <path
+       d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5z"
+       stroke="currentColor"
+       strokeWidth="2"
+       strokeLinecap="round"
+       strokeLinejoin="round"
+     />
+     <circle cx="7.5" cy="17.5" r="1.5" stroke="currentColor" strokeWidth="2" />
+     <circle cx="17.5" cy="17.5" r="1.5" stroke="currentColor" strokeWidth="2" />
+   </Icon>
+   Logistics
+ </Link>
+   
+ 
+   <Link href="shop.html" className="flex flex-col items-center text-xs text-slate-600">
+     <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
+       <path d="M4 4h16v16H4z"
+         stroke="currentColor"
+         strokeWidth="2"
+       />
+     </Icon>
+     Shop
+   </Link>
+  
+ <Link href="index.html" className="flex flex-col items-center text-xs text-slate-600">
+     <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
+       <path d="M3 12l9-9 9 9M4 10v10h16V10"
+         stroke="currentColor"
+         strokeWidth="2"
+         strokeLinecap="round"
+         strokeLinejoin="round"
+       />
+     </Icon>
+     Home
+   </Link>
+   <Link href="cart.html" className="flex flex-col items-center text-xs text-slate-600">
+     <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
+       <path d="M6 6h15l-1.5 9h-13z"
+         stroke="currentColor"
+         strokeWidth="2"
+       />
+     </Icon>
+     Cart
+   </Link>
+ 
+   <Link href="#" className="flex flex-col items-center text-xs text-slate-600">
+     <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
+       <path d="M12 12c2.7 0 5-2.3 5-5S14.7 2 12 2 7 4.3 7 7s2.3 5 5 5zM2 22c0-5 4-8 10-8s10 3 10 8"
+         stroke="currentColor"
+         strokeWidth="2"
+       />
+     </Icon>
+     Account
+   </Link>
+ 
 </div>
 
     </div>
