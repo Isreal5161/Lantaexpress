@@ -7,10 +7,9 @@ export const CartProvider = ({ children }) => {
 
   // Add to cart (handle duplicates)
   const addToCart = (product) => {
-    // Check if product already in cart
     const existing = cartItems.find((item) => item.id === product.id);
+
     if (existing) {
-      // If already in cart, increase quantity
       setCartItems((prevItems) =>
         prevItems.map((item) =>
           item.id === product.id
@@ -19,27 +18,56 @@ export const CartProvider = ({ children }) => {
         )
       );
     } else {
-      // First time adding, set quantity = 1
       setCartItems((prevItems) => [...prevItems, { ...product, quantity: 1 }]);
     }
   };
 
-  // Remove from cart
+  // Remove from cart completely
   const removeFromCart = (id) => {
     setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
   };
 
-  // Cart count
-  const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0);
+  // Increase quantity
+  const increaseQuantity = (id) => {
+    setCartItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
+      )
+    );
+  };
+
+  // Decrease quantity
+  const decreaseQuantity = (id) => {
+    setCartItems((prevItems) =>
+      prevItems
+        .map((item) =>
+          item.id === id ? { ...item, quantity: item.quantity - 1 } : item
+        )
+        .filter((item) => item.quantity > 0)
+    );
+  };
+
+  // Cart count for badge
+  const cartCount = cartItems.reduce(
+    (total, item) => total + item.quantity,
+    0
+  );
 
   return (
     <CartContext.Provider
-      value={{ cartItems, addToCart, removeFromCart, cartCount }}
+      value={{
+        cartItems,
+        addToCart,
+        removeFromCart,
+        increaseQuantity,
+        decreaseQuantity,
+        cartCount,
+      }}
     >
       {children}
     </CartContext.Provider>
   );
 };
 
-// Custom hook
+// Custom hook to use cart
 export const useCart = () => useContext(CartContext);

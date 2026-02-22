@@ -1,5 +1,5 @@
 import React from 'react';
-import { CartContext } from "../context/CartContextTemp";
+import { useCart } from '../context/CartContextTemp';
 import { Button } from '../components/Button';
 import { Icon } from '../components/Icon';
 import { Image } from '../components/Image';
@@ -12,6 +12,7 @@ import "swiper/css";
 import "swiper/css/pagination";
 
 export const IndexPage = ({ className, children, variant, contentKey, ...props }) => {
+  const { cartItems, addToCart } = useCart();
   return (
     <div className="font-body text-slate-600 antialiased bg-white">
       <>
@@ -196,9 +197,19 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
           $299.00
         </p>
 
-        <Button className="w-full bg-white text-black border-t text-sm py-2 mt-2">
-          Add to Cart
-        </Button>
+       <Button
+  onClick={() =>
+    addToCart({
+      id: 1,
+      name: "Headphones",
+      price: 229.00,
+      image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=500&q=80"
+    })
+  }
+  className="w-full bg-white text-black border-t text-sm py-2"
+>
+  Add to Cart
+</Button>
       </div>
 
 
@@ -234,10 +245,19 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
         <p className="mt-1 text-base font-semibold text-slate-900 px-1">
           $149.00
         </p>
-
-        <Button className="w-full bg-white text-black border-t text-sm py-2 mt-2">
-          Add to Cart
-        </Button>
+  <Button
+  onClick={() =>
+    addToCart({
+      id:2,
+      name: "Minimalist Analog Watch",
+      price: 149.00,
+      image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80"
+    })
+  }
+  className="w-full bg-white text-black border-t text-sm py-2"
+>
+  Add to Cart
+</Button>
       </div>
 
 
@@ -274,9 +294,19 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
           $129.00
         </p>
 
-        <Button className="w-full bg-white text-black border-t text-sm py-2 mt-2">
-          Add to Cart
-        </Button>
+         <Button
+  onClick={() =>
+    addToCart({
+      id: 3,
+      name: "Urban Runner Sneakers",
+      price: 129.00,
+      image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80"
+    })
+  }
+  className="w-full bg-white text-black border-t text-sm py-2"
+>
+  Add to Cart
+</Button>
       </div>
 
 
@@ -313,9 +343,19 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
           $89.00
         </p>
 
-        <Button className="w-full bg-white text-black border-t text-sm py-2 mt-2">
-          Add to Cart
-        </Button>
+          <Button
+  onClick={() =>
+    addToCart({
+      id: 4,
+      name: "Leather Crossbody Bag",
+      price: 89.00,
+      image: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=500&q=80"
+    })
+  }
+  className="w-full bg-white text-black border-t text-sm py-2"
+>
+  Add to Cart
+</Button>
       </div>
 
     </div>
