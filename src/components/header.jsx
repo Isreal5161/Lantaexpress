@@ -1,12 +1,14 @@
 // src/components/Header.jsx
-
 import React from "react";
+import { useCart } from "../context/CartContextTemp";
 import { Button } from "./Button";
 import { Icon } from "./Icon";
 import { Link } from "./Link";
 import { Text } from "./Text";
 
 export const Header = () => {
+  const { cartCount } = useCart(); // <-- using cartCount instead of cartItems.length
+
   return (
     <>
       {/* Announcement Bar */}
@@ -71,9 +73,13 @@ export const Header = () => {
                       strokeLinejoin="round"
                     />
                   </Icon>
-                  <Text className="absolute -top-1 -right-1 bg-green-800 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-                    2
-                  </Text>
+
+                  {/* Cart count badge */}
+                  {cartCount > 0 && (
+                    <Text className="absolute -top-1 -right-1 bg-green-800 text-xs font-semibold text-white w-4 h-4 rounded-full flex items-center justify-center">
+                      {cartCount}
+                    </Text>
+                  )}
                 </Link>
               </div>
 

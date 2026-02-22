@@ -1,65 +1,21 @@
-import React from 'react';
+import { useContext } from "react";
+import { useCart } from '../context/CartContextTemp';
 import { Button } from '../components/Button';
 import { Icon } from '../components/Icon';
 import { Image } from '../components/Image';
 import { Input } from '../components/Input';
 import { Link } from '../components/Link';
 import { Text } from '../components/Text';
+import { Header } from '../components/header';
 
 
 export const ShopPage = ({ className, children, variant, contentKey, ...props }) => {
+ const { cartItems, addToCart } = useCart();
   return (
     <div className="font-body text-slate-600 antialiased bg-white">
       <>
-        {/* Navigation (Same as Index) */}
-        <header>
-          <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex justify-between items-center h-16">
-                {/* Logo */}
-                 <div className="flex-shrink-0 flex items-center">
-                 <Link className="flex items-center gap-2 font-heading font-bold text-2xl text-slate-900 tracking-tight" href="index.html">
-                 <img src="/lantalogo1.jpg" alt="Lanta Logo" className="h-12 w-auto" />Lanta Express
-                 <Text className="text-green-600">.</Text>
-                 </Link>
-                 </div>
-                {/* Desktop Menu */}
-                <div className="hidden md:flex space-x-8">
-                  <Link className="text-slate-900 font-medium hover:text-green-600 transition-colors" href="index.html"> Home </Link>
-                  <Link className="text-slate-500 font-medium hover:text-green-600 transition-colors" href="shop.html"> Shop </Link>
-                  <Link className="text-slate-500 font-medium hover:text-green-600 transition-colors" href="#"> New Arrivals </Link>
-                  <Link className="text-slate-500 font-medium hover:text-green-600 transition-colors" href="#"> About </Link>
-                </div>
-                {/* Icons */}
-                <div className="flex items-center space-x-6">
-                  {/* Mobile Toggle */}
-                  <Button className="text-slate-400 hover:text-slate-900 transition-colors"><Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor"strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path></Icon></Button>
-                  <Link className="text-slate-400 hover:text-slate-900 transition-colors relative" href="cart.html"><Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke="currentColor"strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path></Icon>
-                  <Text variant="bold" className="absolute -top-1 -right-1 bg-green-600 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center"> 2 </Text></Link>
-                </div>            
-              </div>
-            </div>
-           </nav>
-        </header>
-         {/* Mobile Search Bar */}
-        <div className="md:hidden px-4 py-3 bg-white border-b border-slate-200">
-          <div className="flex items-center bg-slate-100 rounded-md px-3 py-2">
-            <Icon className="h-5 w-5 text-slate-400" viewBox="0 0 24 24" fill="none">
-              <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </Icon>
-            <input
-              type="text"
-              placeholder="Search products..."
-              className="bg-transparent outline-none text-sm ml-2 w-full"
-            />
-          </div>
-        </div>
-{/* Breadcrumb with banner starting after some space */}
+      <Header />
+         {/* Breadcrumb with banner starting after some space */}
 <div className="bg-slate-50 border-b border-slate-200">
   <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center">
     
@@ -152,7 +108,7 @@ export const ShopPage = ({ className, children, variant, contentKey, ...props })
                   <option> Newest Arrivals </option>
                 </select>
               </div>
-            {/* Product Grid */}
+{/* Product Grid */}
 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 px-1">
   {/* Product 1 */}
   <div className="group w-full flex flex-col border border-gray-200 overflow-hidden">
@@ -163,120 +119,181 @@ export const ShopPage = ({ className, children, variant, contentKey, ...props })
           alt="Headphones"
           className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
         />
-        <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1">SALE</span>
+        <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1">
+          SALE
+        </span>
       </div>
+
       <h3 className="mt-2 text-xs text-slate-700 font-medium group-hover:text-green-600 px-2">
         Premium Noise-Cancelling Headphones
       </h3>
+
       <div className="flex items-center gap-2 mt-1 px-2">
         <p className="text-text-base font-semibold text-slate-900">$299.00</p>
         <p className="text-xs text-slate-400 line-through">$350.00</p>
       </div>
     </Link>
+
     <Button className="w-full bg-white text-black border-t text-sm py-2">
       Add to Cart
     </Button>
   </div>
 
-  {/* Product 2 */}
-  <div className="group w-full flex flex-col border border-gray-200 overflow-hidden">
-    <Link className="block flex-1" href="product.html">
-     <div className="w-full aspect-[3/4] bg-gray-100 relative overflow-hidden">
-        <Image
-          src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80"
-          alt="Watch"
-          className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
-        />
-      </div>
-      <h3 className="mt-2 text-xs text-slate-700 font-medium group-hover:text-green-600 px-2">
-        Minimalist Analog Watch
-      </h3>
-      <p className="mt-1 text-base font-semibold text-slate-900 px-2">$149.00</p>
-    </Link>
-    <Button className="w-full bg-white text-black border-t text-sm py-2">
-      Add to Cart
-    </Button>
-  </div>
+ {/* Product 2 */}
+<div className="group w-full flex flex-col border border-gray-200 overflow-hidden">
+  <Link className="block flex-1" href="product.html">
+    <div className="w-full aspect-[3/4] bg-gray-100 relative overflow-hidden">
+      <Image
+        src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80"
+        alt="Minimalist Analog Watch"
+        className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
+      />
+      {/* Optional SALE badge */}
+      {/* <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1">
+        SALE
+      </span> */}
+    </div>
+
+    <h3 className="mt-2 text-xs text-slate-700 font-medium group-hover:text-green-600 px-2">
+      Minimalist Analog Watch
+    </h3>
+
+    <div className="flex items-center gap-2 mt-1 px-2">
+      <p className="text-text-base font-semibold text-slate-900">$149.00</p>
+      {/* If you have an old price, you can uncomment */}
+      {/* <p className="text-xs text-slate-400 line-through">$199.00</p> */}
+    </div>
+  </Link>
+
+  <Button className="w-full bg-white text-black border-t text-sm py-2">
+    Add to Cart
+  </Button>
+</div>
 
   {/* Product 3 */}
-  <div className="group w-full flex flex-col border border-gray-200 overflow-hidden">
-    <Link className="block flex-1" href="product.html">
-      <div className="w-full aspect-[3/4] bg-gray-100 relative overflow-hidden">
-        <Image
-          src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80"
-          alt="Sneakers"
-          className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
-        />
-      </div>
-      <h3 className="mt-2 text-xs text-slate-700 font-medium group-hover:text-green-600 px-2">
-        Urban Runner Sneakers
-      </h3>
-      <p className="mt-1 text-base font-semibold text-slate-900 px-2">$129.00</p>
-    </Link>
-    <Button className="w-full bg-white text-black border-t text-sm py-2">
-      Add to Cart
-    </Button>
-  </div>
+<div className="group w-full flex flex-col border border-gray-200 overflow-hidden">
+  <Link className="block flex-1" href="product.html">
+    <div className="w-full aspect-[3/4] bg-gray-100 relative overflow-hidden">
+      <Image
+        src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80"
+        alt="Urban Runner Sneakers"
+        className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
+      />
+      {/* Optional SALE badge */}
+      {/* <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1">
+        SALE
+      </span> */}
+    </div>
 
-  {/* Product 4 */}
-  <div className="group w-full flex flex-col border border-gray-200 overflow-hidden">
-    <Link className="block flex-1" href="product.html">
-      <div className="w-full aspect-[3/4] bg-gray-100 relative overflow-hidden">
-        <Image
-          src="https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=500&q=80"
-          alt="Bag"
-          className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
-        />
-      </div>
-      <h3 className="mt-2 text-xs text-slate-700 font-medium group-hover:text-green-600 px-2">
-        Leather Crossbody Bag
-      </h3>
-      <p className="mt-1 text-base font-semibold text-slate-900 px-2">$89.00</p>
-    </Link>
-    <Button className="w-full bg-white text-black border-t text-sm py-2">
-      Add to Cart
-    </Button>
-  </div>
+    <h3 className="mt-2 text-xs text-slate-700 font-medium group-hover:text-green-600 px-2">
+      Urban Runner Sneakers
+    </h3>
+
+    <div className="flex items-center gap-2 mt-1 px-2">
+      <p className="text-text-base font-semibold text-slate-900">$129.00</p>
+      {/* Optional old price */}
+      {/* <p className="text-xs text-slate-400 line-through">$149.00</p> */}
+    </div>
+  </Link>
+
+  <Button className="w-full bg-white text-black border-t text-sm py-2">
+    Add to Cart
+  </Button>
+</div>
+
+{/* Product 4 */}
+<div className="group w-full flex flex-col border border-gray-200 overflow-hidden">
+  <Link className="block flex-1" href="product.html">
+    <div className="w-full aspect-[3/4] bg-gray-100 relative overflow-hidden">
+      <Image
+        src="https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=500&q=80"
+        alt="Leather Crossbody Bag"
+        className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
+      />
+      {/* Optional SALE badge */}
+      {/* <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1">
+        SALE
+      </span> */}
+    </div>
+
+    <h3 className="mt-2 text-xs text-slate-700 font-medium group-hover:text-green-600 px-2">
+      Leather Crossbody Bag
+    </h3>
+
+    <div className="flex items-center gap-2 mt-1 px-2">
+      <p className="text-text-base font-semibold text-slate-900">$89.00</p>
+      {/* Optional old price */}
+      {/* <p className="text-xs text-slate-400 line-through">$119.00</p> */}
+    </div>
+  </Link>
+
+  <Button className="w-full bg-white text-black border-t text-sm py-2">
+    Add to Cart
+  </Button>
+</div>
 
   {/* Product 5 */}
-  <div className="group w-full flex flex-col border border-gray-200 overflow-hidden">
-    <Link className="block flex-1" href="product.html">
-      <div className="w-full aspect-[3/4] bg-gray-100 relative overflow-hidden">
-        <Image
-          src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=500&q=80"
-          alt="Camera"
-          className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
-        />
-      </div>
-      <h3 className="mt-2 text-xs text-slate-700 font-medium group-hover:text-green-600 px-2">
-        Polaroid Instant Camera
-      </h3>
-      <p className="mt-1 text-base font-semibold text-slate-900 px-2">$99.00</p>
-    </Link>
-    <Button className="w-full bg-white text-black border-t text-sm py-2">
-      Add to Cart
-    </Button>
-  </div>
+<div className="group w-full flex flex-col border border-gray-200 overflow-hidden">
+  <Link className="block flex-1" href="product.html">
+    <div className="w-full aspect-[3/4] bg-gray-100 relative overflow-hidden">
+      <Image
+        src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=500&q=80"
+        alt="Polaroid Instant Camera"
+        className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
+      />
+      {/* Optional SALE badge */}
+      {/* <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1">
+        SALE
+      </span> */}
+    </div>
 
-  {/* Product 6 */}
-  <div className="group w-full flex flex-col border border-gray-200 overflow-hidden">
-    <Link className="block flex-1" href="product.html">
-     <div className="w-full aspect-[3/4] bg-gray-100 relative overflow-hidden">
-        <Image
-          src="https://images.unsplash.com/photo-1585386959984-a4155224a1ad?auto=format&fit=crop&w=500&q=80"
-          alt="Plant"
-          className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
-        />
-      </div>
-      <h3 className="mt-2 text-xs text-slate-700 font-medium group-hover:text-green-600 px-2">
-        Ceramic Plant Pot
-      </h3>
-      <p className="mt-1 text-base font-semibold text-slate-900 px-2">$35.00</p>
-    </Link>
-    <Button className="w-full bg-white text-black border-t text-sm py-2">
-      Add to Cart
-    </Button>
-  </div>
+    <h3 className="mt-2 text-xs text-slate-700 font-medium group-hover:text-green-600 px-2">
+      Polaroid Instant Camera
+    </h3>
+
+    <div className="flex items-center gap-2 mt-1 px-2">
+      <p className="text-text-base font-semibold text-slate-900">$99.00</p>
+      {/* Optional old price */}
+      {/* <p className="text-xs text-slate-400 line-through">$129.00</p> */}
+    </div>
+  </Link>
+
+  <Button className="w-full bg-white text-black border-t text-sm py-2">
+    Add to Cart
+  </Button>
+</div>
+
+{/* Product 6 */}
+<div className="group w-full flex flex-col border border-gray-200 overflow-hidden">
+  <Link className="block flex-1" href="product.html">
+    <div className="w-full aspect-[3/4] bg-gray-100 relative overflow-hidden">
+      <Image
+        src="https://images.unsplash.com/photo-1585386959984-a4155224a1ad?auto=format&fit=crop&w=500&q=80"
+        alt="Ceramic Plant Pot"
+        className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
+      />
+      {/* Optional SALE badge */}
+      {/* <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1">
+        SALE
+      </span> */}
+    </div>
+
+    <h3 className="mt-2 text-xs text-slate-700 font-medium group-hover:text-green-600 px-2">
+      Ceramic Plant Pot
+    </h3>
+
+    <div className="flex items-center gap-2 mt-1 px-2">
+      <p className="text-text-base font-semibold text-slate-900">$35.00</p>
+      {/* Optional old price */}
+      {/* <p className="text-xs text-slate-400 line-through">$50.00</p> */}
+    </div>
+  </Link>
+
+  <Button className="w-full bg-white text-black border-t text-sm py-2">
+    Add to Cart
+  </Button>
+</div>
+</div>
 </div>
   {/* Pagination */}
               <div className="mt-12 flex justify-center">
@@ -292,7 +309,6 @@ export const ShopPage = ({ className, children, variant, contentKey, ...props })
               </div>
             </div>
           </div>
-        </div>
         </main>
 {/* Footer */}
        <footer className="hidden md:block bg-slate-900 text-slate-300 py-12">

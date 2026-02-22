@@ -1,66 +1,21 @@
 import React from 'react';
+import { CartContext } from "../context/CartContextTemp";
 import { Button } from '../components/Button';
 import { Icon } from '../components/Icon';
 import { Image } from '../components/Image';
+import { Header } from '../components/header';
 import { Link } from '../components/Link';
 import { Text } from '../components/Text';
-
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/pagination";
 
 export const IndexPage = ({ className, children, variant, contentKey, ...props }) => {
   return (
     <div className="font-body text-slate-600 antialiased bg-white">
       <>
-        {/* Announcement Bar */}
-        <div className="bg-green-900 text-white text-xs font-medium py-2 text-center tracking-wide"> FREE SHIPPING ON ALL ORDERS OVER $50 </div>
-        {/* Navigation */}
-        <header>
-          <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex justify-between items-center h-16">
-                {/* Logo */}
-               <div className="flex-shrink-0 flex items-center">
-               <Link className="flex items-center gap-2 font-heading font-bold text-2xl text-slate-900 tracking-tight" href="index.html">
-               <img src="/lantalogo1.jpg" alt="Lanta Logo" className="h-12 w-auto" />Lanta Express
-               <Text className="text-green-700">.</Text>
-               </Link>
-               </div>
-
-                {/* Desktop Menu */}
-                <div className="hidden md:flex space-x-8">
-                  <Link className="text-slate-900 font-medium hover:text-green-700 transition-colors" href="index.html"> Home </Link>
-                  <Link className="text-slate-500 font-medium hover:text-green-700 transition-colors" href="shop.html"> Shop </Link>
-                  <Link className="text-slate-500 font-medium hover:text-green-700 transition-colors" href="#"> New Arrivals </Link>
-                  <Link className="text-slate-500 font-medium hover:text-green-700 transition-colors" href="#"> About </Link>
-                </div>
-                {/* Icons */}
-                <div className="flex items-center space-x-6">
-                  {/* Mobile Toggle */}
-                  <Button className="text-slate-400 hover:text-slate-900 transition-colors"><Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path></Icon></Button>
-                  <Link className="text-slate-400 hover:text-slate-900 transition-colors relative" href="cart.html"><Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke="currentColor"strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path></Icon>
-                  <Text variant="bold" className="absolute -top-1 -right-1 bg-green-800 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center"> 2 </Text></Link>
-                </div>
-               </div>
-            </div>
-            </nav>
-        </header>
-        {/* Mobile Search Bar */}
-<div className="md:hidden px-4 py-3 bg-white border-b border-slate-200">
-  <div className="flex items-center bg-slate-100 rounded-md px-3 py-2">
-    <Icon className="h-5 w-5 text-slate-400" viewBox="0 0 24 24" fill="none">
-      <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Icon>
-    <input
-      type="text"
-      placeholder="Search products..."
-      className="bg-transparent outline-none text-sm ml-2 w-full"
-    />
-  </div>
-</div>
+      < Header /> 
 <main className="pb-20 md:pb-0">
         {/* Hero Section */}
         <section id="hero" className="relative bg-slate-50 overflow-hidden">
@@ -80,7 +35,7 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
                       <Link contentKey="cta_19" className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium text-white bg-green-600 hover:bg-green-700 md:py-4 md:text-lg transition-colors" href="shop.html"> Shop Collection </Link>
                     </div>
                     <div className="mt-3 sm:mt-0 sm:ml-3">
-                      <Link contentKey="cta_20" className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium  text-green-700 bg-primary-100 hover:bg-primary-200 md:py-4 md:text-lg transition-colors" href="#"> Book a Pickup </Link>
+                      <Link contentKey="cta_20" className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium  text-green-700 bg-primary-100 hover:bg-primary-200 md:py-4 md:text-lg transition-colors" href="/logistics"> Book a Pickup </Link>
                     </div>
                   </div>
                 </div>
@@ -88,8 +43,44 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
             </div>
           </div>
           <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
-            <Image variant="cover" className="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full" src="https://images.unsplash.com/photo-1483985988355-763728e1935b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Woman shopping" />
-          </div>
+  <Swiper
+    modules={[Autoplay, Pagination]}
+    slidesPerView={1}
+    spaceBetween={0}
+    autoplay={{
+      delay: 3000,
+      disableOnInteraction: false,
+    }}
+    pagination={{ clickable: true }}
+    loop={true}
+    grabCursor={true}
+    className="h-56 sm:h-72 md:h-96 lg:h-full"
+  >
+    <SwiperSlide>
+      <img
+        src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1350&q=80"
+        alt="Slide 1"
+        className="w-full h-full object-cover"
+      />
+    </SwiperSlide>
+
+    <SwiperSlide>
+      <img
+        src="/lantaexpressimage1.jpg"
+        alt="Slide 2"
+        className="w-full h-full object-cover"
+      />
+    </SwiperSlide>
+
+    <SwiperSlide>
+      <img
+        src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1350&q=80"
+        alt="Slide 3"
+        className="w-full h-full object-cover"
+      />
+    </SwiperSlide>
+  </Swiper>
+</div>
         </section>
         {/* Shop By Category */}
 <section id="shop_by_category" className="py-16 bg-white">
