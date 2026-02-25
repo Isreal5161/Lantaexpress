@@ -126,16 +126,10 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
                 >
                   Shop Collection
                 </Link>
-                <Link
-                  className="px-8 py-3 bg-primary-100 text-green-700 font-medium hover:bg-primary-200 transition-colors"
-                  href="/logistics"
-                >
-                  Book a Pickup
-                </Link>
-              </div>
+                          </div>
             </div>
            
-          </div>
+          </div> 
         </SwiperSlide>
 
         {/* Slide 2 - Image Only */}
