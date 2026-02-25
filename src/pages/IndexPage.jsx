@@ -137,7 +137,7 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
   >
     <SwiperSlide>
       <img
-        src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1350&q=80"
+        src="/BANNER4.jpg"
         alt="Slide 1"
         className="w-full h-full object-cover"
       />
@@ -145,7 +145,7 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
 
     <SwiperSlide>
       <img
-        src="/lantaexpressimage1.jpg"
+        src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1350&q=80.jpg"
         alt="Slide 2"
         className="w-full h-full object-cover"
       />
@@ -153,7 +153,7 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
 
     <SwiperSlide>
       <img
-        src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1350&q=80"
+        src="/lantaexpressimage1.jpg"
         alt="Slide 3"
         className="w-full h-full object-cover"
       />
