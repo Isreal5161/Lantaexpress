@@ -9,7 +9,7 @@ export const ProductCard = ({ product, addToCart }) => {
 
   return (
     <div
-      className="relative border border-gray-200 overflow-hidden rounded-md group"
+      className="relative border border-gray-200 overflow-hidden group"
       onMouseEnter={() => setShowButton(true)}
       onMouseLeave={() => setShowButton(false)}
       onClick={() => setShowButton(!showButton)}
@@ -30,7 +30,7 @@ export const ProductCard = ({ product, addToCart }) => {
               e.preventDefault(); // prevent link navigation
               addToCart(product);
             }}
-            className={`absolute bottom-0 left-0 w-full py-2 text-white bg-black rounded-none text-sm font-bold transition-transform duration-300 ${
+            className={`absolute bottom-0 left-0 w-full py-2 text-white bg-green-600 rounded-none text-sm font-bold transition-transform duration-300 ${
               showButton ? "translate-y-0" : "translate-y-full"
             }`}
           >

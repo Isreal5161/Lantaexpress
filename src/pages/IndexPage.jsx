@@ -140,74 +140,116 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
         {/* Shop By Category */}
 <section id="shop_by_category" className="py-16 bg-white">
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <h2 className="text-2xl font-heading font-bold text-slate-900 mb-8">Shop by Category</h2>
+    <div className="w-full p-[1px] bg-gradient-to-r from-black to-green-500 mb-8">
+  <h2 className="text-lg sm:text-xl font-heading font-semibold bg-green text-white px-4 py-1.5 text-left">
+    Shop by Category
+  </h2>
+</div>
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      
-      {/* Category 1 */}
-      <Link className="group relative overflow-hidden h-64" href="shop.html">
-        <Image
-          variant="cover"
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80"
-          alt="Electronics"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
-          <h3 className="text-white font-bold text-xl">Electronics</h3>
-        </div>
-      </Link>
+       {/* Swiper */}
+    <Swiper
+      modules={[Autoplay, Pagination]}
+      slidesPerView={1}            // Each slide shows 1 "row" of 2 categories
+      spaceBetween={20}
+      autoplay={{ delay: 3000, disableOnInteraction: false }}
+      pagination={{ clickable: true }}
+      loop={true}
+      className="w-full"
+    >
+      {/* Slide 1 */}
+      <SwiperSlide>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Category 1 */}
+          <Link className="group relative overflow-hidden h-64" href="shop.html">
+            <Image
+              variant="cover"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80"
+              alt="Electronics"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
+              <h3 className="text-white font-bold text-xl">Electronics</h3>
+            </div>
+          </Link>
 
-      {/* Category 2 */}
-      <Link className="group relative overflow-hidden h-64" href="shop.html">
-        <Image
-          variant="cover"
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          src="https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=500&q=80"
-          alt="Fashion"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
-          <h3 className="text-white font-bold text-xl">Fashion</h3>
+          {/* Category 2 */}
+          <Link className="group relative overflow-hidden h-64" href="shop.html">
+            <Image
+              variant="cover"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              src="https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=500&q=80"
+              alt="Fashion"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
+              <h3 className="text-white font-bold text-xl">Fashion</h3>
+            </div>
+          </Link>
         </div>
-      </Link>
+      </SwiperSlide>
 
-      {/* Category 3 */}
-      <Link className="group relative overflow-hidden h-64" href="shop.html">
-        <Image
-          variant="cover"
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=500&q=80"
-          alt="Home"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
-          <h3 className="text-white font-bold text-xl">Home</h3>
+      {/* Slide 2 */}
+      <SwiperSlide>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Category 3 */}
+          <Link className="group relative overflow-hidden h-64" href="shop.html">
+            <Image
+              variant="cover"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=500&q=80"
+              alt="Home"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
+              <h3 className="text-white font-bold text-xl">Home</h3>
+            </div>
+          </Link>
+
+          {/* Category 4 */}
+          <Link className="group relative overflow-hidden h-64" href="shop.html">
+            <Image
+              variant="cover"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80"
+              alt="Beauty"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
+              <h3 className="text-white font-bold text-xl">Beauty</h3>
+            </div>
+          </Link>
         </div>
-      </Link>
+      </SwiperSlide>
 
-      {/* Category 4 */}
-      <Link className="group relative overflow-hidden h-64" href="shop.html">
-        <Image
-          variant="cover"
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80"
-          alt="Beauty"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
-          <h3 className="text-white font-bold text-xl">Beauty</h3>
-        </div>
-      </Link>
-
-    </div>
+    </Swiper>
+  </div>
   </div>
 </section>
       
   {/* Trending Now Section */}
-        <section id="trending_now" className="py-12 bg-slate-50">
+        <section id="Hot-deal" className="py-12 bg-white-50">
           <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-end mb-6">
-              <h2 className="text-xl sm:text-2xl font-heading font-bold text-slate-900">
-                Trending Now
-              </h2>
+  <div className="w-full p-[1px] bg-gradient-to-r from-black to-green-500 mb-6">
+  <h2 className="text-lg sm:text-xl font-heading font-semibold bg-green text-white px-4 py-1.5 text-left">
+    Hot Deals
+  </h2>
+</div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+              {products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  addToCart={addToCart}
+                />
+              ))}
             </div>
-
+          </div>
+        </section>
+        {/* Trending Now Section */}
+        <section id="trending_now" className="py-12 bg-white-50">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+  <div className="w-full p-[1px] bg-gradient-to-r from-black to-green-500 mb-6">
+  <h2 className="text-lg sm:text-xl font-heading font-semibold bg-green text-white px-4 py-1.5 text-left">
+    Trending Now
+  </h2>
+</div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
               {products.map((product) => (
                 <ProductCard
