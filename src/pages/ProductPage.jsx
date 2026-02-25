@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom'; // <-- get product ID from URL
+import { useParams, Link as RouterLink } from 'react-router-dom';
 import { useCart } from "../context/CartContextTemp";
 import { getProductById, getProducts } from "../service/ProductService";
 import { Button } from '../components/Button';
 import { Icon } from '../components/Icon';
 import { Image } from '../components/Image';
-import { Link } from '../components/Link';
 import { Text } from '../components/Text';
 import { Header } from '../components/header';
 import { Footer } from '../components/footer';
@@ -13,11 +12,11 @@ import { ProductCard } from '../components/ProductCard';
 
 export const ProductPage = () => {
   const { addToCart } = useCart();
-  const { id } = useParams(); // <-- dynamic product ID
+  const { id } = useParams(); 
   const [product, setProduct] = useState(null);
   const [exploreProducts, setExploreProducts] = useState([]);
 
-  // Fetch main product by ID
+  // Fetch main product
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -25,12 +24,20 @@ export const ProductPage = () => {
         if (data) {
           setProduct(data);
         } else {
-          // fallback default if not found
+          // fallback default
           setProduct({
             id: 1,
             name: "Premium Noise-Cancelling Headphones",
             price: 299,
-            image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=500&q=80"
+            image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1000&q=80",
+            description: "Experience pure sound with our industry-leading noise cancelling technology.",
+            rating: 5,
+            features: [
+              "Active Noise Cancellation",
+              "30-hour battery life",
+              "Premium leather ear cushions",
+              "2-year warranty included"
+            ]
           });
         }
       } catch (err) {
@@ -40,20 +47,22 @@ export const ProductPage = () => {
     fetchProduct();
   }, [id]);
 
-  // Fetch products for "Explore More"
+  // Fetch Explore More products
   useEffect(() => {
     const fetchExplore = async () => {
       try {
         const data = await getProducts();
-        setExploreProducts(data || []);
+        // exclude current product
+        const filtered = data?.filter(p => p.id.toString() !== id) || [];
+        setExploreProducts(filtered);
       } catch (err) {
         console.error(err);
       }
     };
     fetchExplore();
-  }, []);
+  }, [id]);
 
-  if (!product) return <div>Loading...</div>;
+  if (!product) return <div className="p-8 text-center">Loading...</div>;
 
   return (
     <div className="font-body text-slate-600 antialiased bg-white">
@@ -64,11 +73,11 @@ export const ProductPage = () => {
         <div className="bg-slate-50 border-b border-slate-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <nav className="flex text-sm font-medium text-slate-500">
-              <Link className="hover:text-slate-900" to="/"> Home </Link>
+              <RouterLink className="hover:text-slate-900" to="/"> Home </RouterLink>
               <Text className="mx-2"> / </Text>
-              <Link className="hover:text-slate-900" to="/shop"> Shop </Link>
+              <RouterLink className="hover:text-slate-900" to="/shop"> Shop </RouterLink>
               <Text className="mx-2"> / </Text>
-              <Text className="text-slate-900"> {product.name} </Text>
+              <Text className="text-slate-900">{product.name}</Text>
             </nav>
           </div>
         </div>
@@ -76,7 +85,6 @@ export const ProductPage = () => {
         {/* Product Details */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            
             {/* Image */}
             <div className="space-y-4">
               <div className="aspect-w-4 aspect-h-3 bg-gray-100 overflow-hidden">
@@ -89,9 +97,19 @@ export const ProductPage = () => {
               </div>
             </div>
 
-            {/* Product Info */}
+            {/* Info */}
             <div>
               <h1 className="text-3xl font-heading font-bold text-slate-900 mb-2">{product.name}</h1>
+              <div className="flex items-center mb-4">
+                <div className="flex text-yellow-400">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Icon key={i} className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                    </Icon>
+                  ))}
+                </div>
+                <Text className="ml-2 text-sm text-slate-500">{product.reviews || 0} reviews</Text>
+              </div>
               <p className="text-2xl font-bold text-slate-900 mb-6">${product.price}</p>
 
               {/* Add to Cart */}
@@ -116,7 +134,21 @@ export const ProductPage = () => {
               </Button>
 
               {/* Description */}
-              <p className="text-slate-600 mt-6">{product.description || "This is a great product that delivers quality and style."}</p>
+              <p className="text-slate-600 mt-6">{product.description}</p>
+
+              {/* Features */}
+              {product.features && (
+                <ul className="mt-6 space-y-3 text-sm text-slate-600">
+                  {product.features.map((f, idx) => (
+                    <li key={idx} className="flex items-center gap-2">
+                      <Icon className="w-5 h-5 text-green-500" viewBox="0 0 24 24" fill="none">
+                        <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
+                      </Icon>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
 

@@ -4,6 +4,7 @@ import { Button } from '../components/Button';
 import { Icon } from '../components/Icon';
 import { Image } from '../components/Image';
 import { Input } from '../components/Input';
+import { Link as RouterLink } from 'react-router-dom';
 import { Link } from '../components/Link';
 import { Text } from '../components/Text';
 import { Header } from '../components/header';

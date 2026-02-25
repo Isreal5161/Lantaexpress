@@ -5,6 +5,7 @@ import { Icon } from "../components/Icon";
 import { Image } from "../components/Image";
 import { Header } from "../components/header";
 import { Footer } from "../components/footer";
+import { Link as RouterLink } from 'react-router-dom';
 import { Link } from "../components/Link";
 import { Text } from "../components/Text";
 import { Swiper, SwiperSlide } from "swiper/react";
