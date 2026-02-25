@@ -10,6 +10,7 @@ import { Link } from "../components/Link";
 import { Text } from "../components/Text";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
+import { categories } from "../service/dummyCategories";
 import "swiper/css";
 import "swiper/css/pagination";
 import { ProductCard } from "../components/ProductCard";
@@ -19,6 +20,7 @@ import { getProducts } from "../service/ProductService";
 
 export const IndexPage = ({ className, children, variant, contentKey, ...props }) => {
   const { cartItems, addToCart } = useCart();
+  
 
   // Start with an empty array or dummy array
   const [products, setProducts] = useState([
@@ -66,7 +68,29 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
     };
     fetchProducts();
   }, []);
+{categories.map((category) => (
+  <section key={category.id} className="py-12 bg-white-50">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+      {/* Category Title with Gradient Border */}
+      <div className={`w-full p-[1px] bg-gradient-to-r ${category.gradientFrom} ${category.gradientTo} mb-6`}>
+        <h2 className={`text-lg sm:text-xl font-heading font-semibold ${category.bgColor} ${category.textColor} px-4 py-1.5 text-left`}>
+          {category.title}
+        </h2>
+      </div>
 
+      {/* Products Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+        {category.products.map((product) => (
+          <ProductCard
+            key={product.id}
+            product={product}
+            addToCart={addToCart}
+          />
+        ))}
+      </div>
+    </div>
+  </section>
+))}
     return (
     <div className="font-body text-slate-600 antialiased bg-white">
       <>
@@ -261,6 +285,30 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
             </div>
           </div>
         </section>
+ {/* Dynamic Categories from `categories` array */}
+{categories.map((category) => (
+  <section key={category.id} className="py-12 bg-white-50">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+      {/* Category Title with Gradient Border */}
+      <div className="w-full p-[1px] bg-gradient-to-r from-black to-green-500 mb-6">
+        <h2 className="text-lg sm:text-xl font-heading font-semibold bg-green text-white px-4 py-1.5 text-left">
+          {category.title}
+        </h2>
+      </div>
+
+      {/* Products Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+        {category.products.map((product) => (
+          <ProductCard
+            key={product.id}
+            product={product}
+            addToCart={addToCart}
+          />
+        ))}
+      </div>
+    </div>
+  </section>
+))}
          </main>
        <Footer />
         </>
