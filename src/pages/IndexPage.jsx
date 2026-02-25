@@ -95,51 +95,120 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
     <div className="font-body text-slate-600 antialiased bg-white">
       <>
       < Header /> 
-<main className="pb-20 md:pb-0">
-        {/* Hero Section */}
-        <section id="hero" className="relative bg-slate-50 overflow-hidden">
-          <div className="max-w-7xl mx-auto">
-            <div className="relative z-10 pb-8 bg-slate-50 sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
-              <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
-                <div data-aos="fade-up" className="sm:text-center lg:text-left">
-                  <h1 className="text-4xl tracking-tight font-extrabold text-slate-900 sm:text-5xl md:text-6xl font-heading">
-                    <Text className="block xl:inline"> Your Marketplace, </Text>
-                    <Text className="block text-green-700 xl:inline"> Your Way </Text>
-                  </h1>
-                  <p className="mt-3 text-base text-slate-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
-                     Connect with buyers, sell with ease, and let Lanta Express handle the logistics from pickup to delivery. 
-                  </p>
-                  <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
-                    <div className="rounded-md shadow">
-                      <Link contentKey="cta_19" className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium text-white bg-green-600 hover:bg-green-700 md:py-4 md:text-lg transition-colors" href="shop.html"> Shop Collection </Link>
-                    </div>
-                    <div className="mt-3 sm:mt-0 sm:ml-3">
-                      <Link contentKey="cta_20" className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium  text-green-700 bg-primary-100 hover:bg-primary-200 md:py-4 md:text-lg transition-colors" href="/logistics"> Book a Pickup </Link>
-                    </div>
-                  </div>
-                </div>
-              </main>
+<div className="pb-20 md:pb-0">
+  {/* Hero Section */}
+  <div id="hero" className="relative bg-slate-50 overflow-hidden">
+    <div className="max-w-7xl mx-auto">
+      <Swiper
+        modules={[Autoplay, Pagination]}
+        slidesPerView={1}
+        autoplay={{ delay: 4000, disableOnInteraction: false }}
+        pagination={{ clickable: true }}
+        loop={true}
+        className="w-full"
+      >
+        {/* Slide 1 - Text + Image */}
+        <SwiperSlide>
+          <div className="grid lg:grid-cols-2 items-center min-h-[350px] px-4 sm:px-6 lg:px-8">
+            {/* Text */}
+            <div className="text-center lg:text-left">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-slate-900">
+                <span>Your Marketplace, </span>
+                <span className="text-green-700">Your Way</span>
+              </h1>
+              <p className="mt-4 text-lg text-slate-500">
+                Connect with buyers, sell with ease, and let Lanta Express handle the logistics from pickup to delivery.
+              </p>
+              <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start gap-3">
+                <Link
+                  className="px-8 py-3 bg-green-600 text-white font-medium hover:bg-green-700 transition-colors"
+                  href="shop.html"
+                >
+                  Shop Collection
+                </Link>
+                <Link
+                  className="px-8 py-3 bg-primary-100 text-green-700 font-medium hover:bg-primary-200 transition-colors"
+                  href="/logistics"
+                >
+                  Book a Pickup
+                </Link>
+              </div>
             </div>
+           
           </div>
-          <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
-  <Swiper
-    modules={[Autoplay, Pagination]}
-    slidesPerView={1}
-    spaceBetween={0}
-    autoplay={{
-      delay: 3000,
-      disableOnInteraction: false,
-    }}
-    pagination={{ clickable: true }}
-    loop={true}
-    grabCursor={true}
-    className="h-56 sm:h-72 md:h-96 lg:h-full"
-  >
+        </SwiperSlide>
+
+        {/* Slide 2 - Image Only */}
+        <SwiperSlide>
+          <div className="grid lg:grid-cols-2 items-center min-h-[350px] px-4 sm:px-6 lg:px-8">
+            {/* Text */}
+            <div className="text-center lg:text-left">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-slate-900">
+                <span>Fast Delivery, </span>
+              <span className="text-green-700">All State</span>
+              </h1>
+              <p className="mt-4 text-lg text-slate-500">
+                Reliable logistics from pickup to doorstep. Wherever you are, we deliver your orders safely and on time
+              </p>
+              <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start gap-3">
+                <Link
+                  className="px-8 py-3 bg-primary-100 text-green-700 font-medium hover:bg-primary-200 transition-colors"
+                  href="/track"
+                >
+                  Track Your Order
+                </Link>
+              </div>
+            </div>
+           
+          </div>
+        </SwiperSlide>
+        {/* Slide 3 - Image Only */}
+        <SwiperSlide>
+         <div className="grid lg:grid-cols-2 items-center min-h-[350px] px-4 sm:px-6 lg:px-8">
+            {/* Text */}
+            <div className="text-center lg:text-left">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-slate-900">
+                <span>Shop Smart,, </span>
+                <span className="text-green-700">YLive Better</span>
+              </h1>
+              <p className="mt-4 text-lg text-slate-500">
+                Discover trending products at unbeatable prices. Upgrade your lifestyle with just a few clicks.
+              </p>
+              <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start gap-3">
+                <Link
+                  className="px-8 py-3 bg-green-600 text-white font-medium hover:bg-green-700 transition-colors"
+                  href="shop.html"
+                >
+                 Shop Now
+                </Link>
+                             </div>
+            </div>
+           
+          </div>
+        </SwiperSlide>
+      </Swiper>
+      </div>
+    
+  
+  
+          <div className="relative lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 h-64 sm:h-80 md:h-96 lg:h-full">
+ <Swiper
+  modules={[Autoplay, Pagination]}
+  slidesPerView={1}
+  autoplay={{
+    delay: 3000,
+    disableOnInteraction: false,
+  }}
+  pagination={{ clickable: true }}
+  loop={true}
+  grabCursor={true}
+  className="w-full h-full"
+>
     <SwiperSlide>
       <img
         src="/BANNER4.jpg"
         alt="Slide 1"
-        className="w-full h-full object-cover"
+          className="w-full h-56 sm:h-72 md:h-96 lg:h-[500px] xl:h-[600px] object-cover"
       />
     </SwiperSlide>
 
@@ -160,15 +229,17 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
     </SwiperSlide>
   </Swiper>
 </div>
-        </section>
+        </div>
         {/* Shop By Category */}
+{/* Shop By Category */}
 <section id="shop_by_category" className="py-16 bg-white">
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div className="w-full p-[1px] bg-gradient-to-r from-black to-green-500 mb-8">
-  <h2 className="text-lg sm:text-xl font-heading font-semibold bg-green text-white px-4 py-1.5 text-left">
-    Shop by Category
-  </h2>
-</div>
+    {/* Solid gray border */}
+    <div className="w-full p-[1px] bg-gray-500 mb-8">
+      <h2 className="text-lg sm:text-xl font-heading font-semibold bg-gray-500 text-white px-4 py-1.5 text-left">
+        Shop by Category
+      </h2>
+    </div>
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
        {/* Swiper */}
     <Swiper
@@ -248,13 +319,14 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
 </section>
       
   {/* Trending Now Section */}
-        <section id="Hot-deal" className="py-12 bg-white-50">
-          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-  <div className="w-full p-[1px] bg-gradient-to-r from-black to-green-500 mb-6">
-  <h2 className="text-lg sm:text-xl font-heading font-semibold bg-green text-white px-4 py-1.5 text-left">
-    Hot Deals
-  </h2>
-</div>
+   <section id="Hot-deal" className="py-12 bg-white-50">
+  <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+    {/* Solid gray border */}
+    <div className="w-full p-[1px] bg-gray-500 mb-6">
+      <h2 className="text-lg sm:text-xl font-heading font-semibold bg-gray-500 text-white px-4 py-1.5 text-left">
+        Hot Deals
+      </h2>
+    </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
               {products.map((product) => (
                 <ProductCard
@@ -266,14 +338,15 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
             </div>
           </div>
         </section>
-        {/* Trending Now Section */}
-        <section id="trending_now" className="py-12 bg-white-50">
-          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-  <div className="w-full p-[1px] bg-gradient-to-r from-black to-green-500 mb-6">
-  <h2 className="text-lg sm:text-xl font-heading font-semibold bg-green text-white px-4 py-1.5 text-left">
-    Trending Now
-  </h2>
-</div>
+      {/* Trending Now Section */}
+   <section id="Hot-deal" className="py-12 bg-white-50">
+  <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+    {/* Solid gray border */}
+    <div className="w-full p-[1px] bg-gray-500 mb-6">
+      <h2 className="text-lg sm:text-xl font-heading font-semibold bg-gray-500 text-white px-4 py-1.5 text-left">
+        Trending Now
+      </h2>
+    </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
               {products.map((product) => (
                 <ProductCard
@@ -290,8 +363,8 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
   <section key={category.id} className="py-12 bg-white-50">
     <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
       {/* Category Title with Gradient Border */}
-      <div className="w-full p-[1px] bg-gradient-to-r from-black to-green-500 mb-6">
-        <h2 className="text-lg sm:text-xl font-heading font-semibold bg-green text-white px-4 py-1.5 text-left">
+      <div className="w-full p-[1px]  bg-gray-500 mb-6">
+        <h2 className="text-lg sm:text-xl font-heading font-semibold bg-gray-500 text-white px-4 py-1.5 text-left">
           {category.title}
         </h2>
       </div>
@@ -309,7 +382,9 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
     </div>
   </section>
 ))}
-         </main>
+
+         </div>
+         
        <Footer />
         </>
 

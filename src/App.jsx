@@ -8,6 +8,7 @@ import { ShopPage } from './pages/ShopPage';
 import { ProductPage } from './pages/ProductPage';
 import { CartPage } from './pages/CartPage';
 import { TrackorderPage } from './pages/TrackorderPage';
+import AccountPage from "./pages/AccountPage";
 
 
 const App = () => {
@@ -21,6 +22,7 @@ const App = () => {
         <Route path="/cart" element={<CartPage />} />
         <Route path="/logistics" element={<LogisticsPage />} />
         <Route path="/track" element={<TrackorderPage />} />
+        <Route path="/account" element={<AccountPage />} />
         
       </Routes>
     </Router>

@@ -103,7 +103,7 @@ export const Footer = () => {
           Cart
         </Link>
 
-        <Link href="#" className="flex flex-col items-center text-xs text-slate-600">
+        <Link href="/account" className="flex flex-col items-center text-xs text-slate-600">
           <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
             <path d="M12 12c2.7 0 5-2.3 5-5S14.7 2 12 2 7 4.3 7 7s2.3 5 5 5zM2 22c0-5 4-8 10-8s10 3 10 8" stroke="currentColor" strokeWidth="2" />
           </Icon>
