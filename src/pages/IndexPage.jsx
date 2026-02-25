@@ -1,19 +1,72 @@
-import React from 'react';
-import { useCart } from '../context/CartContextTemp';
-import { Button } from '../components/Button';
-import { Icon } from '../components/Icon';
-import { Image } from '../components/Image';
-import { Header } from '../components/header';
-import { Link } from '../components/Link';
-import { Text } from '../components/Text';
+import React, { useState, useEffect } from "react";
+import { useCart } from "../context/CartContextTemp";
+import { Button } from "../components/Button";
+import { Icon } from "../components/Icon";
+import { Image } from "../components/Image";
+import { Header } from "../components/header";
+import { Footer } from "../components/footer";
+import { Link } from "../components/Link";
+import { Text } from "../components/Text";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
+import { ProductCard } from "../components/ProductCard";
+
+// Import your product service
+import { getProducts } from "../service/ProductService";
 
 export const IndexPage = ({ className, children, variant, contentKey, ...props }) => {
   const { cartItems, addToCart } = useCart();
-  return (
+
+  // Start with an empty array or dummy array
+  const [products, setProducts] = useState([
+    {
+      id: 1,
+      name: "Wireless Headphones",
+      price: 120,
+      image:
+        "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80",
+    },
+    {
+      id: 2,
+      name: "Smart Watch",
+      price: 250,
+      image:
+        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80",
+    },
+    {
+      id: 3,
+      name: "Designer Handbag",
+      price: 180,
+      image:
+        "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=500&q=80",
+    },
+    {
+      id: 4,
+      name: "Gaming Mouse",
+      price: 60,
+      image:
+        "https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=500&q=80",
+    },
+  ]);
+
+  // Fetch products from backend/service on component mount
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const data = await getProducts();
+        if (data && data.length > 0) {
+          setProducts(data); // update products state with fetched data
+        }
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+    return (
     <div className="font-body text-slate-600 antialiased bg-white">
       <>
       < Header /> 
@@ -145,353 +198,29 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
   </div>
 </section>
       
-{/* Trending Now Product Section */}
-<section id="trending_now" className="py-12 bg-slate-50">
-  <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-    
-    <div className="flex justify-between items-end mb-6">
-      <h2 className="text-xl sm:text-2xl font-heading font-bold text-slate-900">
-        Trending Now
-      </h2>
-      <Link
-        className="text-green-600 font-medium hover:text-green-700 flex items-center gap-1 text-sm"
-        href="shop.html"
-      >
-        View all <span>→</span>
-      </Link>
-    </div>
-
-    {/* Product Grid */}
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-
-      {/* Product 1 */}
-      <div className="group">
-        <div className="relative w-full border border-gray-200 overflow-hidden">
-          <div className="w-full aspect-[2/3] bg-gray-100 overflow-hidden">
-            <Image
-              variant="cover"
-              className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
-              src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=500&q=80"
-              alt="Headphones"
-            />
-          </div>
-
-          <div className="absolute top-2 right-2 bg-white p-1.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:text-red-500">
-            <Icon className="h-5 w-5" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </Icon>
-          </div>
-        </div>
-
-        <h3 className="mt-2 text-xs text-slate-700 font-medium px-1">
-          Premium Noise-Cancelling Headphones
-        </h3>
-
-        <p className="mt-1 text-base font-semibold text-slate-900 px-1">
-          $299.00
-        </p>
-
-       <Button
-  onClick={() =>
-    addToCart({
-      id: 1,
-      name: "Headphones",
-      price: 229.00,
-      image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=500&q=80"
-    })
-  }
-  className="w-full bg-white text-black border-t text-sm py-2"
->
-  Add to Cart
-</Button>
-      </div>
-
-
-      {/* Product 2 */}
-      <div className="group">
-        <div className="relative w-full border border-gray-200 overflow-hidden">
-          <div className="w-full aspect-[2/3] bg-gray-100 overflow-hidden">
-            <Image
-              variant="cover"
-              className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
-              src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80"
-              alt="Watch"
-            />
-          </div>
-
-          <div className="absolute top-2 right-2 bg-white p-1.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:text-red-500">
-            <Icon className="h-5 w-5" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </Icon>
-          </div>
-        </div>
-
-        <h3 className="mt-2 text-xs text-slate-700 font-medium px-1">
-          Minimalist Analog Watch
-        </h3>
-
-        <p className="mt-1 text-base font-semibold text-slate-900 px-1">
-          $149.00
-        </p>
-  <Button
-  onClick={() =>
-    addToCart({
-      id:2,
-      name: "Minimalist Analog Watch",
-      price: 149.00,
-      image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80"
-    })
-  }
-  className="w-full bg-white text-black border-t text-sm py-2"
->
-  Add to Cart
-</Button>
-      </div>
-
-
-      {/* Product 3 */}
-      <div className="group">
-        <div className="relative w-full border border-gray-200 overflow-hidden">
-          <div className="w-full aspect-[2/3] bg-gray-100 overflow-hidden">
-            <Image
-              variant="cover"
-              className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
-              src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80"
-              alt="Sneakers"
-            />
-          </div>
-
-          <div className="absolute top-2 right-2 bg-white p-1.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:text-red-500">
-            <Icon className="h-5 w-5" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </Icon>
-          </div>
-        </div>
-
-        <h3 className="mt-2 text-xs text-slate-700 font-medium px-1">
-          Urban Runner Sneakers
-        </h3>
-
-        <p className="mt-1 text-base font-semibold text-slate-900 px-1">
-          $129.00
-        </p>
-
-         <Button
-  onClick={() =>
-    addToCart({
-      id: 3,
-      name: "Urban Runner Sneakers",
-      price: 129.00,
-      image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80"
-    })
-  }
-  className="w-full bg-white text-black border-t text-sm py-2"
->
-  Add to Cart
-</Button>
-      </div>
-
-
-      {/* Product 4 */}
-      <div className="group">
-        <div className="relative w-full border border-gray-200 overflow-hidden">
-          <div className="w-full aspect-[2/3] bg-gray-100 overflow-hidden">
-            <Image
-              variant="cover"
-              className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
-              src="https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=500&q=80"
-              alt="Bag"
-            />
-          </div>
-
-          <div className="absolute top-2 right-2 bg-white p-1.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:text-red-500">
-            <Icon className="h-5 w-5" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </Icon>
-          </div>
-        </div>
-
-        <h3 className="mt-2 text-xs text-slate-700 font-medium px-1">
-          Leather Crossbody Bag
-        </h3>
-
-        <p className="mt-1 text-base font-semibold text-slate-900 px-1">
-          $89.00
-        </p>
-
-          <Button
-  onClick={() =>
-    addToCart({
-      id: 4,
-      name: "Leather Crossbody Bag",
-      price: 89.00,
-      image: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=500&q=80"
-    })
-  }
-  className="w-full bg-white text-black border-t text-sm py-2"
->
-  Add to Cart
-</Button>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-        {/* Free Shipping On Orders Over 50 */}
-        <section id="free_shipping_on_orders_over_50" className="bg-green-600 py-10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between">
-            <div className="text-center md:text-left mb-6 md:mb-0">
-              <h2 className="text-2xl font-heading font-bold text-white mb-2"> Free Shipping on Orders Over $50 </h2>
-              <p className="text-primary-100">
-                 Upgrade your wardrobe without the extra cost. Limited time offer. 
-              </p>
+  {/* Trending Now Section */}
+        <section id="trending_now" className="py-12 bg-slate-50">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-end mb-6">
+              <h2 className="text-xl sm:text-2xl font-heading font-bold text-slate-900">
+                Trending Now
+              </h2>
             </div>
-            <Link contentKey="cta_25" className="bg-white text-green-600 px-8 py-3 font-bold hover:bg-slate-100 transition-colors shadow-lg" href="shop.html"> Start Shopping </Link>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+              {products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  addToCart={addToCart}
+                />
+              ))}
+            </div>
           </div>
         </section>
-        </main>
-        {/* Footer */}
-       <footer className="hidden md:block bg-slate-900 text-slate-300 py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-              <div className="col-span-1 md:col-span-1">
-                <Link className="font-heading font-bold text-2xl text-white tracking-tight mb-4 block" href="#"> Lanta Express 
-                <Text className="text-green-500"> . </Text></Link>
-                <p className="text-sm text-slate-400">
-                   Your destination for modern lifestyle essentials. Quality, style, and sustainability in every product. 
-                </p>
-              </div>
-              <div>
-                <h4 className="text-white font-bold mb-4"> Shop </h4>
-                <ul className="space-y-2 text-sm">
-                  <li>
-                    <Link className="hover:text-white transition-colors" href="#"> New Arrivals </Link>
-                  </li>
-                  <li>
-                    <Link className="hover:text-white transition-colors" href="#"> Best Sellers </Link>
-                  </li>
-                  <li>
-                    <Link className="hover:text-white transition-colors" href="#"> Sale </Link>
-                  </li>
-                  <li>
-                    <Link className="hover:text-white transition-colors" href="#"> Logistics </Link>
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="text-white font-bold mb-4"> Support </h4>
-                <ul className="space-y-2 text-sm">
-                  <li>
-                    <Link className="hover:text-white transition-colors" href="#"> Help Center </Link>
-                  </li>
-                  <li>
-                    <Link className="hover:text-white transition-colors" href="#"> Shipping & Returns </Link>
-                  </li>
-                  <li>
-                    <Link className="hover:text-white transition-colors" href="#"> Size Guide </Link>
-                  </li>
-                  <li>
-                    <Link className="hover:text-white transition-colors" href="#"> Contact Us </Link>
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="text-white font-bold mb-4"> Stay in the loop </h4>
-                <form className="flex gap-2">
-                  <input placeholder="Enter your email" type="email" className="bg-slate-800 border-none rounded-md px-4 py-2 text-sm w-full focus:ring-2 focus:ring-green-500" />
-                  <Button variant="primary" contentKey="cta_26" className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-bold hover:bg-green-700 transition-colors"> Subscribe </Button>
-                </form>
-              </div>
-            </div>
-            <div className="border-t border-slate-800 pt-8 text-center text-xs text-slate-500"> © 2026 Lanta Express Store. All rights reserved. </div>
-          </div>
-        </footer>
-      </>
-      {/* Mobile Bottom Navigation */}
-<div className="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 flex justify-around items-center py-2 z-50">
-<Link href="logistics.html" className="flex flex-col items-center text-xs text-slate-600">
-  <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
-    <path
-      d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5z"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <circle cx="7.5" cy="17.5" r="1.5" stroke="currentColor" strokeWidth="2" />
-    <circle cx="17.5" cy="17.5" r="1.5" stroke="currentColor" strokeWidth="2" />
-  </Icon>
-  Logistics
-</Link>
-  
-
-  <Link href="shop.html" className="flex flex-col items-center text-xs text-slate-600">
-    <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
-      <path d="M4 4h16v16H4z"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-    </Icon>
-    Shop
-  </Link>
- 
-<Link href="index.html" className="flex flex-col items-center text-xs text-slate-600">
-    <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
-      <path d="M3 12l9-9 9 9M4 10v10h16V10"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Icon>
-    Home
-  </Link>
-  <Link href="cart.html" className="flex flex-col items-center text-xs text-slate-600">
-    <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
-      <path d="M6 6h15l-1.5 9h-13z"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-    </Icon>
-    Cart
-  </Link>
-
-  <Link href="#" className="flex flex-col items-center text-xs text-slate-600">
-    <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
-      <path d="M12 12c2.7 0 5-2.3 5-5S14.7 2 12 2 7 4.3 7 7s2.3 5 5 5zM2 22c0-5 4-8 10-8s10 3 10 8"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-    </Icon>
-    Account
-  </Link>
-
-</div>
+         </main>
+       <Footer />
+        </>
 
     </div>
   );

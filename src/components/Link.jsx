@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 
-export const Link = ({ href, className, children, ...props }) => {
+export const Link = ({ href, className, contentkey, children, ...props }) => {
   // Determine if external link
   const isExternal =
     href?.startsWith('http') ||
