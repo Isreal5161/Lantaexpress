@@ -14,13 +14,14 @@ import { categories } from "../service/dummyCategories";
 import "swiper/css";
 import "swiper/css/pagination";
 import { ProductCard } from "../components/ProductCard";
+import Modal from "../components/Modal";
 
 // Import your product service
 import { getProducts } from "../service/ProductService";
 
 export const IndexPage = ({ className, children, variant, contentKey, ...props }) => {
   const { cartItems, addToCart } = useCart();
-  
+  const [isModalOpen, setIsModalOpen] = useState(true);
 
   // Start with an empty array or dummy array
   const [products, setProducts] = useState([
@@ -92,7 +93,20 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
   </section>
 ))}
     return (
+      
     <div className="font-body text-slate-600 antialiased bg-white">
+       
+      {/* Modal Pop */}
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <img
+          src="/banner6.jpg" // path from public folder
+          alt="Promotional Flyer"
+          className="w-full rounded-lg"
+        />
+        <p className="mt-4 text-gray-600 text-center">
+          Check out our latest offers!
+        </p>
+      </Modal>
       <>
       < Header /> 
 <div className="pb-20 md:pb-0">
