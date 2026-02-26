@@ -22,6 +22,7 @@ export const CartPage = () => {
       <Header />
 
    {/* Cart Content */}
+    <div className="pb-24">
 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
   {/* Smaller header */}
   <h1 className="text-2xl md:text-3xl font-heading font-bold text-slate-900 mb-8">
@@ -159,5 +160,6 @@ export const CartPage = () => {
 
       <Footer />
     </div>
-  );
+    </div>
+  )
 };

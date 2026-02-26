@@ -3,9 +3,11 @@ import { Link } from "react-router-dom";
 import { Image } from "./Image";
 import { Icon } from "./Icon";
 import { Button } from "./Button";
+import { ShoppingCart } from "lucide-react";
 
 export const ProductCard = ({ product, addToCart }) => {
   const [showButton, setShowButton] = useState(false);
+  const [isAdded, setIsAdded] = useState(false);
 
   return (
     <div
@@ -24,18 +26,21 @@ export const ProductCard = ({ product, addToCart }) => {
             alt={product.name}
           />
 
-          {/* Add to Cart button at bottom */}
-          <Button
-            onClick={(e) => {
-              e.preventDefault(); // prevent link navigation
-              addToCart(product);
-            }}
-            className={`absolute bottom-0 left-0 w-full py-2 text-white bg-green-600 rounded-none text-sm font-bold transition-transform duration-300 ${
-              showButton ? "translate-y-0" : "translate-y-full"
-            }`}
-          >
-            Add to Cart
-          </Button>
+          {/* Add to Cart Icon Button */}
+<button
+  onClick={(e) => {
+    e.preventDefault(); // prevent link navigation
+    addToCart(product);
+    setIsAdded(!isAdded);
+  }}
+  className={`absolute bottom-3 right-3 p-3 rounded-full shadow-md transition-all duration-300 transform hover:scale-110 ${
+    isAdded
+      ? "bg-green-600 text-white"
+      : "bg-white text-slate-700 hover:bg-green-100"
+  } ${showButton ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+>
+  <ShoppingCart size={18} />
+</button>
         </div>
       </Link>
 

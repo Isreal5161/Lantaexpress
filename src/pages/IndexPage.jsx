@@ -162,8 +162,8 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
             {/* Text */}
             <div className="text-center lg:text-left">
               <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-slate-900">
-                <span>Shop Smart,, </span>
-                <span className="text-green-700">YLive Better</span>
+                <span>Shop Smart, </span>
+                <span className="text-green-700">Live Better</span>
               </h1>
               <p className="mt-4 text-lg text-slate-500">
                 Discover trending products at unbeatable prices. Upgrade your lifestyle with just a few clicks.
@@ -202,7 +202,7 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
       <img
         src="/BANNER4.jpg"
         alt="Slide 1"
-          className="w-full h-56 sm:h-72 md:h-96 lg:h-[500px] xl:h-[600px] object-cover"
+          className="w-full h-full object-cover"
       />
     </SwiperSlide>
 
