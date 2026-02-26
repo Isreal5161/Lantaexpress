@@ -229,8 +229,8 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
 <section id="shop_by_category" className="py-16 bg-white">
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     {/* Solid gray border */}
-    <div className="w-full p-[1px] bg-gray-500 mb-8">
-      <h2 className="text-lg sm:text-xl font-heading font-semibold bg-gray-500 text-white px-4 py-1.5 text-left">
+    <div className="w-full p-[1px] bg-green-700 mb-8">
+      <h2 className="text-lg sm:text-xl font-heading font-semibold bg-green-700 text-white px-4 py-1.5 text-left">
         Shop by Category
       </h2>
     </div>
@@ -316,8 +316,8 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
    <section id="Hot-deal" className="py-12 bg-white-50">
   <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
     {/* Solid gray border */}
-    <div className="w-full p-[1px] bg-gray-500 mb-6">
-      <h2 className="text-lg sm:text-xl font-heading font-semibold bg-gray-500 text-white px-4 py-1.5 text-left">
+    <div className="w-full p-[1px] bg-green-700 mb-6">
+      <h2 className="text-lg sm:text-xl font-heading font-semibold bg-green-700 text-white px-4 py-1.5 text-left">
         Hot Deals
       </h2>
     </div>
@@ -333,11 +333,11 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
           </div>
         </section>
       {/* Trending Now Section */}
-   <section id="Hot-deal" className="py-12 bg-white-50">
+   <section id="Trending-Now" className="py-12 bg-white-50">
   <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
     {/* Solid gray border */}
-    <div className="w-full p-[1px] bg-gray-500 mb-6">
-      <h2 className="text-lg sm:text-xl font-heading font-semibold bg-gray-500 text-white px-4 py-1.5 text-left">
+    <div className="w-full p-[1px] bg-green-700 mb-6">
+      <h2 className="text-lg sm:text-xl font-heading font-semibold bg-green-700 text-white px-4 py-1.5 text-left">
         Trending Now
       </h2>
     </div>
@@ -357,8 +357,8 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
   <section key={category.id} className="py-12 bg-white-50">
     <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
       {/* Category Title with Gradient Border */}
-      <div className="w-full p-[1px]  bg-gray-500 mb-6">
-        <h2 className="text-lg sm:text-xl font-heading font-semibold bg-gray-500 text-white px-4 py-1.5 text-left">
+      <div className="w-full p-[1px]  bg-green-700 mb-6">
+        <h2 className="text-lg sm:text-xl font-heading font-semibold bg-green-700 text-white px-4 py-1.5 text-left">
           {category.title}
         </h2>
       </div>
