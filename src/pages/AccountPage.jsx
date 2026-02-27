@@ -15,6 +15,7 @@ const AccountPage = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
       <AccountHeader />
+      <div className="pb-24">
 <div className="pb-20 md:pb-0">
       {/* Main content area */}
       <div className="flex-1 flex">
@@ -55,6 +56,7 @@ const AccountPage = () => {
 
       {/* Footer */}
       <Footer />
+    </div>
     </div>
     </div>
   );

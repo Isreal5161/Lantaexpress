@@ -18,6 +18,7 @@ const handleFileChange = (e) => {
     
     <div className="font-body text-slate-600 bg-white">
        <Header />
+       <div className="pb-24">
       {/* HERO SECTION */}
       <section className="bg-green-700 text-white py-20">
         <div className="max-w-7xl mx-auto px-6 text-center">
@@ -150,9 +151,10 @@ const handleFileChange = (e) => {
 
 </form>
         </div>
+        
       </section>
      <Footer />
     </div>
-    
+    </div>
   );
 };
