@@ -3,14 +3,14 @@
   "name": "LantaXpress Ecommerce",
   "icons": [
     {
-      "src": "mobilelogo2.png",
-      "type": "image/png",
-      "sizes": "192x192"
+      "src": "mobilelogo-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
     },
     {
-      "src": "mobilelogo.png",
-      "type": "image/png",
-      "sizes": "512x512"
+      "src": "mobilelogo-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ],
   "start_url": ".",
