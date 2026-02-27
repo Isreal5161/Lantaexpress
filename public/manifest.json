@@ -1,14 +1,14 @@
 {
   "short_name": "Lanta",
-  "name": "Lanta Express Ecommerce",
+  "name": "LantaXpress Ecommerce",
   "icons": [
     {
-      "src": "/mobilelogo2.png",
+      "src": "mobilelogo2.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "/mobilelogo.png",
+      "src": "mobilelogo.png",
       "type": "image/png",
       "sizes": "512x512"
     }
