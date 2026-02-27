@@ -3,12 +3,12 @@
   "name": "Lanta Express Ecommerce",
   "icons": [
     {
-      "src": "/lantalogo1.jpg",
+      "src": "/mobilelogo2.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "/lantalogo1.jpg",
+      "src": "/mobilelogo.png",
       "type": "image/png",
       "sizes": "512x512"
     }
