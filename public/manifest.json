@@ -3,11 +3,6 @@
   "name": "LantaXpress Ecommerce",
   "icons": [
     {
-      "src": "iconlogo.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
       "src": "homescreenlogo.png",
       "sizes": "512x512",
       "type": "image/png"
@@ -15,6 +10,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#16a34a",
-  "background_color": "#16a34a"
+  "theme_color": "#00A14B",
+  "background_color": "#00A14B"
 }
