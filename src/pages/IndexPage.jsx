@@ -96,7 +96,9 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
       
     <div className="font-body text-slate-600 antialiased bg-white">
        
-      {/* Modal Pop */}
+     
+      < Header /> 
+       {/* Modal Pop */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <img
           src="/banner6.jpg" // path from public folder
@@ -108,7 +110,6 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
         </p>
       </Modal>
       <>
-      < Header /> 
 <div className="pb-20 md:pb-0">
   {/* Hero Section */}
   <div id="hero" className="relative bg-slate-50 overflow-hidden">
