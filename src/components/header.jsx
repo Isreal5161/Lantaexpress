@@ -1,5 +1,5 @@
 // src/components/Header.jsx
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useCart } from "../context/CartContextTemp";
 import { Button } from "./Button";
 import { Icon } from "./Icon";
@@ -7,25 +7,52 @@ import { Link } from "./Link";
 import { Text } from "./Text";
 
 export const Header = () => {
-  const { cartCount } = useCart(); // <-- using cartCount instead of cartItems.length
+  const { cartCount } = useCart();
+
+  const [showAnnouncement, setShowAnnouncement] = useState(true);
+
+  useEffect(() => {
+    // Hide after 3 seconds on first load
+    const initialTimer = setTimeout(() => {
+      setShowAnnouncement(false);
+    }, 3000);
+
+    // Every 5 minutes show again for 3 seconds
+    const interval = setInterval(() => {
+      setShowAnnouncement(true);
+
+      setTimeout(() => {
+        setShowAnnouncement(false);
+      }, 3000);
+
+    }, 300000); // 5 minutes
+
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(interval);
+    };
+  }, []);
 
   return (
-    <>
+    <div className="sticky top-0 z-50 bg-white">
+
       {/* Announcement Bar */}
-      <div className="bg-green-900 text-white text-xs font-medium py-2 text-center tracking-wide">
-        FREE SHIPPING ON ALL ORDERS OVER $50
-      </div>
+      {showAnnouncement && (
+        <div className="bg-green-900 text-white text-xs font-medium py-2 text-center tracking-wide transition-all duration-500">
+          FREE SHIPPING ON ALL ORDERS OVER $50
+        </div>
+      )}
 
       {/* Navigation */}
       <header>
-        <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100">
+        <nav className="bg-white/90 backdrop-blur-md border-b border-slate-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
 
               {/* Logo */}
               <div className="flex-shrink-0 flex items-center">
                 <Link
-                  className="flex items-center gap-2 font-heading font-bold text-2xl text-slate-900 tracking-tight"
+                  className="flex items-center gap-2 font-heading font-semibold text-xl text-slate-900 tracking-tight"
                   href="/"
                 >
                   <img
@@ -33,7 +60,7 @@ export const Header = () => {
                     alt="Lanta Logo"
                     className="h-12 w-auto"
                   />
-                  Lanta Express
+                  LantaXpress
                   <Text className="text-green-700">.</Text>
                 </Link>
               </div>
@@ -50,39 +77,44 @@ export const Header = () => {
                   Logistics
                 </Link>
               </div>
+{/* Icons */}
+<div className="flex items-center space-x-6">
 
-              {/* Icons */}
-              <div className="flex items-center space-x-6">
-                <Button className="text-slate-400 hover:text-slate-900 transition-colors">
-                  <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
-                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </Icon>
-                </Button>
+  {/* Cart */}
+  <Link
+    className="text-slate-400 hover:text-slate-900 transition-colors relative"
+    href="/cart"
+  >
+    <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Icon>
 
-                <Link className="text-slate-400 hover:text-slate-900 transition-colors relative" href="/cart">
-                  <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
-                    <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </Icon>
+    {cartCount > 0 && (
+      <Text className="absolute -top-1 -right-1 bg-green-800 text-xs font-semibold text-white w-4 h-4 rounded-full flex items-center justify-center">
+        {cartCount}
+      </Text>
+    )}
+  </Link>
 
-                  {/* Cart count badge */}
-                  {cartCount > 0 && (
-                    <Text className="absolute -top-1 -right-1 bg-green-800 text-xs font-semibold text-white w-4 h-4 rounded-full flex items-center justify-center">
-                      {cartCount}
-                    </Text>
-                  )}
-                </Link>
-              </div>
-
+  {/* Notification Icon */}
+  <Button className="text-slate-400 hover:text-slate-900 transition-colors">
+    <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 00-3 0v.68C7.64 5.36 6 7.929 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 11-6 0h6z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Icon>
+  </Button>
+</div>
             </div>
           </div>
         </nav>
@@ -107,6 +139,7 @@ export const Header = () => {
           />
         </div>
       </div>
-    </>
+
+    </div>
   );
 };

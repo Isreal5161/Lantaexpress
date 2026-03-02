@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Image } from "./Image";
 import { Icon } from "./Icon";
-import { Button } from "./Button";
 import { ShoppingCart } from "lucide-react";
 
 export const ProductCard = ({ product, addToCart }) => {
@@ -11,10 +10,9 @@ export const ProductCard = ({ product, addToCart }) => {
 
   return (
     <div
-      className="relative border border-gray-200 overflow-hidden group"
+      className="relative border border-gray-200 bg-white overflow-hidden group flex flex-col"
       onMouseEnter={() => setShowButton(true)}
       onMouseLeave={() => setShowButton(false)}
-      onClick={() => setShowButton(!showButton)}
     >
       {/* Clickable Image */}
       <Link to={`/product/${product.id}`} className="block relative">
@@ -27,24 +25,24 @@ export const ProductCard = ({ product, addToCart }) => {
           />
 
           {/* Add to Cart Icon Button */}
-<button
-  onClick={(e) => {
-    e.preventDefault(); // prevent link navigation
-    addToCart(product);
-    setIsAdded(!isAdded);
-  }}
-  className={`absolute bottom-3 right-3 p-3 rounded-full shadow-md transition-all duration-300 transform hover:scale-110 ${
-    isAdded
-      ? "bg-green-600 text-white"
-      : "bg-white text-slate-700 hover:bg-green-100"
-  } ${showButton ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
->
-  <ShoppingCart size={18} />
-</button>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              addToCart(product);
+              setIsAdded(true);
+            }}
+            className={`absolute bottom-3 right-3 p-3 rounded-full shadow-md transition-all duration-300 transform hover:scale-110 ${
+              isAdded
+                ? "bg-green-600 text-white"
+                : "bg-white text-slate-700 hover:bg-green-100"
+            } ${showButton ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+          >
+            <ShoppingCart size={18} />
+          </button>
         </div>
       </Link>
 
-      {/* Favorite Heart Icon */}
+      {/* Favorite Icon */}
       <div className="absolute top-2 right-2 bg-white p-1.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:text-red-500">
         <Icon className="h-5 w-5" viewBox="0 0 24 24" fill="none">
           <path
@@ -58,8 +56,10 @@ export const ProductCard = ({ product, addToCart }) => {
       </div>
 
       {/* Product Info */}
-      <div className="px-1 mt-2">
-        <h3 className="text-xs text-slate-700 font-medium">{product.name}</h3>
+      <div className="px-2 py-3">
+        <h3 className="text-sm text-slate-700 font-medium line-clamp-2">
+          {product.name}
+        </h3>
         <p className="mt-1 text-base font-semibold text-slate-900">
           ${product.price.toFixed(2)}
         </p>
