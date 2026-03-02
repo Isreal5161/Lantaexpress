@@ -1,4 +1,5 @@
-import React from 'react';
+// src/App.jsx
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import ScrollToTop from './components/ScrollToTop';
 import './styles/globals.css';
@@ -18,7 +19,33 @@ import ShippingAddress from "./pages/account/ShippingAddress";
 import Password from "./pages/account/Password";
 import EmailAddress from "./pages/account/EmailAddress";
 
+// Splash Screen Component
+const SplashScreen = ({ onFinish }) => {
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      onFinish();
+    }, 3000); // 3-second delay
+    return () => clearTimeout(timer);
+  }, [onFinish]);
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-green-500 z-50">
+      <img
+        src="/homescreenlogo.png"
+        alt="LantaXpress Logo"
+        className="w-48 h-48"
+      />
+    </div>
+  );
+};
+
 const App = () => {
+  const [showSplash, setShowSplash] = useState(true);
+
+  if (showSplash) {
+    return <SplashScreen onFinish={() => setShowSplash(false)} />;
+  }
+
   return (
     <Router>
       <ScrollToTop />
@@ -39,7 +66,6 @@ const App = () => {
           <Route path="password" element={<Password />} />             {/* /account/password */}
           <Route path="email" element={<EmailAddress />} />           {/* /account/email */}
         </Route>
-
       </Routes>
     </Router>
   );
