@@ -101,7 +101,7 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
         <img
           src="/banner6.jpg" // path from public folder
           alt="Promotional Flyer"
-          className="w-full rounded-lg"
+          className="w-full"
         />
         <p className="mt-4 text-gray-600 text-center">
           Check out our latest offers!

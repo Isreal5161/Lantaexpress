@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import ScrollToTop from './components/ScrollToTop';
+import SplashScreen from './SplashScreen';
 import './styles/globals.css';
 
 import { LogisticsPage } from './pages/LogisticsPage';
@@ -19,6 +20,20 @@ import Password from "./pages/account/Password";
 import EmailAddress from "./pages/account/EmailAddress";
 
 const App = () => {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 2500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return <SplashScreen />;
+  }
+
   return (
     <Router>
       <ScrollToTop />
@@ -32,14 +47,13 @@ const App = () => {
 
         {/* Nested Account Routes */}
         <Route path="/account" element={<AccountPage />}>
-          <Route index element={<AccountDashboard />} />            {/* /account */}
-          <Route path="edit-profile" element={<EditProfile />} />  {/* /account/edit-profile */}
-          <Route path="notifications" element={<Notifications />} />  {/* /account/notifications */}
-          <Route path="shipping" element={<ShippingAddress />} />     {/* /account/shipping */}
-          <Route path="password" element={<Password />} />             {/* /account/password */}
-          <Route path="email" element={<EmailAddress />} />           {/* /account/email */}
+          <Route index element={<AccountDashboard />} />
+          <Route path="edit-profile" element={<EditProfile />} />
+          <Route path="notifications" element={<Notifications />} />
+          <Route path="shipping" element={<ShippingAddress />} />
+          <Route path="password" element={<Password />} />
+          <Route path="email" element={<EmailAddress />} />
         </Route>
-
       </Routes>
     </Router>
   );
