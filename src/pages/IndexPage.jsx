@@ -99,16 +99,13 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
      
       < Header /> 
        {/* Modal Pop */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <img
-          src="/banner6.jpg" // path from public folder
-          alt="Promotional Flyer"
-          className="w-full"
-        />
-        <p className="mt-4 text-gray-600 text-center">
-          Check out our latest offers!
-        </p>
-      </Modal>
+     <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+  <img
+    src="/banner6.jpg"
+    alt="Promotional Flyer"
+    className="w-full shadow-2xl"
+  />
+</Modal>
       <>
 <div className="pb-20 md:pb-0">
   {/* Hero Section */}
