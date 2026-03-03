@@ -7,12 +7,16 @@ import { ShoppingCart } from "lucide-react";
 export const ProductCard = ({ product, addToCart }) => {
   const [showButton, setShowButton] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
 
   return (
     <div
       className="relative border border-gray-200 bg-white overflow-hidden group flex flex-col"
       onMouseEnter={() => setShowButton(true)}
-      onMouseLeave={() => setShowButton(false)}
+      onMouseLeave={() => {
+        setShowButton(false);
+        setShowTooltip(false);
+      }}
     >
       {/* Clickable Image */}
       <Link to={`/product/${product.id}`} className="block relative">
@@ -56,13 +60,31 @@ export const ProductCard = ({ product, addToCart }) => {
       </div>
 
       {/* Product Info */}
-      <div className="px-2 py-3">
+      <div className="px-2 py-3 relative">
         <h3 className="text-sm text-slate-700 font-medium line-clamp-2">
           {product.name}
         </h3>
         <p className="mt-1 text-base font-semibold text-slate-900">
           ${product.price.toFixed(2)}
         </p>
+
+        {/* Product Description (truncated) */}
+        {product.description && (
+          <p
+            className="mt-1 text-xs text-slate-500 line-clamp-1 cursor-pointer"
+            onMouseEnter={() => setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
+          >
+            {product.description}
+          </p>
+        )}
+
+        {/* Tooltip with full description */}
+        {showTooltip && product.description && (
+          <div className="absolute z-10 left-0 top-full mt-1 w-full bg-white border border-gray-200 p-2 text-xs text-slate-700 shadow-lg rounded-md">
+            {product.description}
+          </div>
+        )}
       </div>
     </div>
   );

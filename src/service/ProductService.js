@@ -27,12 +27,15 @@ export const getProductById = async (id) => {
 
 /**
  * Fetch products by category
- * Optional helper for filtering by category
- * @param {string} categoryTitle
+ * @param {string} categoryName - Category name
  */
-export const getProductsByCategory = async (categoryTitle) => {
+export const getProductsByCategory = async (categoryName) => {
   return new Promise((resolve) => {
-    const category = categories.find(cat => cat.title === categoryTitle);
-    resolve(category ? category.products : []);
+    if (categoryName === "All Products") {
+      resolve(allProducts);
+    } else {
+      const filtered = allProducts.filter(p => p.category === categoryName);
+      resolve(filtered);
+    }
   });
 };

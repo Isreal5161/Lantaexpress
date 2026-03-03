@@ -1,6 +1,6 @@
 // src/App.jsx
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import ScrollToTop from './components/ScrollToTop';
 import './styles/globals.css';
 
@@ -19,55 +19,104 @@ import ShippingAddress from "./pages/account/ShippingAddress";
 import Password from "./pages/account/Password";
 import EmailAddress from "./pages/account/EmailAddress";
 
-// Splash Screen Component
-const SplashScreen = ({ onFinish }) => {
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      onFinish();
-    }, 3000); // 3-second delay
-    return () => clearTimeout(timer);
-  }, [onFinish]);
-
-  return (
-    <div className="fixed inset-0 flex items-center justify-center bg-green-500 z-50">
-      <img
-        src="/homescreenlogo.png"
-        alt="LantaXpress Logo"
-        className="w-48 h-48"
-      />
-    </div>
-  );
-};
+import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
 
 const App = () => {
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(false);
 
-  if (showSplash) {
-    return <SplashScreen onFinish={() => setShowSplash(false)} />;
-  }
+  // Track login status in state
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("authToken"));
+
+  useEffect(() => {
+    // Splash screen check
+    const hasVisited = localStorage.getItem("hasVisited");
+    if (!hasVisited) {
+      setShowSplash(true);
+      const timer = setTimeout(() => {
+        setShowSplash(false);
+        localStorage.setItem("hasVisited", "true");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  // Function to update login state when user logs in/out
+  const handleLoginStateChange = (loggedIn) => {
+    setIsLoggedIn(loggedIn);
+  };
 
   return (
-    <Router>
-      <ScrollToTop />
-      <Routes>
-        <Route path="/" element={<IndexPage />} />
-        <Route path="/shop" element={<ShopPage />} />
-        <Route path="/product/:id" element={<ProductPage />} />
-        <Route path="/cart" element={<CartPage />} />
-        <Route path="/logistics" element={<LogisticsPage />} />
-        <Route path="/track" element={<TrackorderPage />} />
+    <>
+      {showSplash && (
+        <div className="fixed inset-0 flex items-center justify-center bg-green-700 z-50">
+          <img
+            src="/homescreenlogo.png"
+            alt="LantaXpress Logo"
+            className="w-48 h-48"
+          />
+        </div>
+      )}
 
-        {/* Nested Account Routes */}
-        <Route path="/account" element={<AccountPage />}>
-          <Route index element={<AccountDashboard />} />            {/* /account */}
-          <Route path="edit-profile" element={<EditProfile />} />  {/* /account/edit-profile */}
-          <Route path="notifications" element={<Notifications />} />  {/* /account/notifications */}
-          <Route path="shipping" element={<ShippingAddress />} />     {/* /account/shipping */}
-          <Route path="password" element={<Password />} />             {/* /account/password */}
-          <Route path="email" element={<EmailAddress />} />           {/* /account/email */}
-        </Route>
-      </Routes>
-    </Router>
+      <div style={{ visibility: showSplash ? "hidden" : "visible" }}>
+        <Router>
+          <ScrollToTop />
+          <Routes>
+            {/* Public Pages */}
+            <Route path="/" element={<IndexPage />} />
+            <Route path="/shop" element={<ShopPage />} />
+            <Route path="/product/:id" element={<ProductPage />} />
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/logistics" element={<LogisticsPage />} />
+            <Route path="/track" element={<TrackorderPage />} />
+
+            {/* Auth Pages */}
+            <Route
+              path="/login"
+              element={
+                isLoggedIn ? (
+                  <Navigate to="/account" replace />
+                ) : (
+                  <LoginPage onLogin={() => handleLoginStateChange(true)} />
+                )
+              }
+            />
+            <Route
+              path="/signup"
+              element={
+                isLoggedIn ? (
+                  <Navigate to="/account" replace />
+                ) : (
+                  <SignupPage onSignup={() => handleLoginStateChange(true)} />
+                )
+              }
+            />
+
+            {/* Protected Account Routes */}
+            <Route
+              path="/account"
+              element={
+                isLoggedIn ? (
+                  <AccountPage onSignOut={() => handleLoginStateChange(false)} />
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              }
+            >
+              <Route index element={<AccountDashboard />} />
+              <Route path="edit-profile" element={<EditProfile />} />
+              <Route path="notifications" element={<Notifications />} />
+              <Route path="shipping" element={<ShippingAddress />} />
+              <Route path="password" element={<Password />} />
+              <Route path="email" element={<EmailAddress />} />
+            </Route>
+
+            {/* Catch-all */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Router>
+      </div>
+    </>
   );
 };
 

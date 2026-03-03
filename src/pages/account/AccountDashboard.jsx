@@ -11,6 +11,10 @@ import {
 } from "react-icons/fa";
 
 const AccountDashboard = () => {
+  // Get the logged-in user from localStorage
+  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+  const userName = currentUser?.name || "Guest";
+
   return (
     <div className="bg-white rounded-2xl shadow p-6">
 
@@ -27,7 +31,7 @@ const AccountDashboard = () => {
           </button>
         </div>
 
-        <h2 className="mt-4 text-xl font-semibold">Albert Florest</h2>
+        <h2 className="mt-4 text-xl font-semibold">{userName}</h2>
         <p className="text-gray-500 text-sm">Buyer</p>
       </div>
 

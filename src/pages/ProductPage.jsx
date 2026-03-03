@@ -15,6 +15,7 @@ export const ProductPage = () => {
   const { id } = useParams(); 
   const [product, setProduct] = useState(null);
   const [exploreProducts, setExploreProducts] = useState([]);
+  const [quantity, setQuantity] = useState(1);
 
   // Fetch main product
   useEffect(() => {
@@ -96,62 +97,84 @@ export const ProductPage = () => {
                 />
               </div>
             </div>
+{/* Info */}
+<div>
+  <h1 className="text-3xl font-heading font-bold text-slate-900 mb-2">
+    {product.name}
+  </h1>
+  <div className="flex items-center mb-4">
+    <div className="flex text-yellow-400">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Icon key={i} className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+        </Icon>
+      ))}
+    </div>
+    <Text className="ml-2 text-sm text-slate-500">{product.reviews || 0} reviews</Text>
+  </div>
+  <p className="text-2xl font-bold text-slate-900 mb-6">${product.price}</p>
 
-            {/* Info */}
-            <div>
-              <h1 className="text-3xl font-heading font-bold text-slate-900 mb-2">{product.name}</h1>
-              <div className="flex items-center mb-4">
-                <div className="flex text-yellow-400">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Icon key={i} className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                    </Icon>
-                  ))}
-                </div>
-                <Text className="ml-2 text-sm text-slate-500">{product.reviews || 0} reviews</Text>
-              </div>
-              <p className="text-2xl font-bold text-slate-900 mb-6">${product.price}</p>
+{/* Quantity + Long Rectangular Cart Icon Button */}
+<div className="flex items-center gap-3 mb-6">
+  {/* Quantity Selector */}
+  <div className="flex items-center border border-gray-300 overflow-hidden">
+    <button
+      className="px-3 py-1 bg-gray-100 hover:bg-gray-200 transition"
+      onClick={() => setQuantity(prev => (prev > 1 ? prev - 1 : 1))}
+    >
+      -
+    </button>
+    <span className="px-4 py-1 text-center">{quantity}</span>
+    <button
+      className="px-3 py-1 bg-gray-100 hover:bg-gray-200 transition"
+      onClick={() => setQuantity(prev => prev + 1)}
+    >
+      +
+    </button>
+  </div>
 
-              {/* Add to Cart */}
-              <Button
-                variant="primary"
-                className="w-full md:flex-1 bg-green-600 text-white py-3 px-6 md:px-8 rounded-none font-bold hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
-                onClick={() => addToCart(product)}
-              >
-                <Icon
-                  className="h-5 w-5 flex-shrink-0"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <path
-                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                  />
-                </Icon>
-                Add to Cart
-              </Button>
+  {/* Long Rectangular Cart Icon Button */}
+  <button
+    onClick={() => addToCart({ ...product, quantity })}
+    className="flex items-center justify-center w-32 h-10 bg-green-600 hover:bg-green-700 shadow-md transition-all"
+    title="Add to Cart"
+  >
+    <Icon
+      className="h-6 w-6 text-white"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+    >
+      <path
+        d="M3 3h2l.4 2M7 13h14l-1.5 8H6.5L5 13zm0 0L3 3m4 10v6m6-6v6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </Icon>
+  </button>
+</div>
+  {/* Product Details Subtitle */}
+  <h2 className="mt-8 text-xl font-semibold text-slate-900">Product Details</h2>
 
-              {/* Description */}
-              <p className="text-slate-600 mt-6">{product.description}</p>
+  {/* Description */}
+  <p className="text-slate-600 mt-2">{product.description}</p>
 
-              {/* Features */}
-              {product.features && (
-                <ul className="mt-6 space-y-3 text-sm text-slate-600">
-                  {product.features.map((f, idx) => (
-                    <li key={idx} className="flex items-center gap-2">
-                      <Icon className="w-5 h-5 text-green-500" viewBox="0 0 24 24" fill="none">
-                        <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
-                      </Icon>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </div>
-
+  {/* Features */}
+  {product.features && (
+    <ul className="mt-4 space-y-3 text-sm text-slate-600">
+      {product.features.map((f, idx) => (
+        <li key={idx} className="flex items-center gap-2">
+          <Icon className="w-5 h-5 text-green-500" viewBox="0 0 24 24" fill="none">
+            <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
+          </Icon>
+          {f}
+        </li>
+      ))}
+    </ul>
+  )}
+</div>
+</div>
           {/* Explore More */}
           <div className="mt-12 pt-8 border-t border-slate-200">
             <h3 className="text-lg font-bold text-slate-900 mb-6">Explore More</h3>
