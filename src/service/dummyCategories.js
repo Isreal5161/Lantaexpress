@@ -10,7 +10,9 @@ export const categories = [
     products: [
       { 
         id: 1, 
-        name: "Wireless Headphones", 
+        name: "Wireless Headphones",
+        brand: "SoundMax",
+        stock: 25,
         price: 120, 
         image: "https://m.media-amazon.com/images/I/51aHcGncblL._AC_UF894%2C1000_QL80_.jpg", 
         category: "Electronics",
@@ -18,7 +20,9 @@ export const categories = [
       },
       { 
         id: 2, 
-        name: "Smart Watch", 
+        name: "Smart Watch",
+        brand: "TechTime",
+        stock: 15,
         price: 250, 
         image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80", 
         category: "Electronics",
@@ -26,7 +30,9 @@ export const categories = [
       },
       { 
         id: 3, 
-        name: "Laptop", 
+        name: "Laptop",
+        brand: "DiaTech", 
+        stock: 10,
         price: 900, 
         image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=500&q=80", 
         category: "Electronics",
@@ -44,7 +50,9 @@ export const categories = [
     products: [
       { 
         id: 4, 
-        name: "Designer Handbag", 
+        name: "Designer Handbag",
+        brand: "Sewa's Collection", 
+        stock: 20,
         price: 180, 
         image: "https://png.pngtree.com/png-clipart/20241023/original/pngtree-a-white-purse-with-ruffled-handle-on-transparent-background-png-image_16469053.png", 
         category: "Fashion",
@@ -53,6 +61,8 @@ export const categories = [
       { 
         id: 5, 
         name: "Lip Gloss Set", 
+        brand: "GlowBeauty",
+        stock: 30,
         price: 100, 
         image: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=500&q=80", 
         category: "Fashion",
@@ -61,6 +71,8 @@ export const categories = [
       { 
         id: 6, 
         name: "Coats", 
+        brand: "Sewa's Collection",
+        stock: 25,
         price: 80, 
         image: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=500&q=80", 
         category: "Fashion",
@@ -78,7 +90,9 @@ export const categories = [
     products: [
       { 
         id: 7, 
-        name: "Sofa", 
+        name: "Sofa",
+        brand: "ComfortHome",
+        stock: 5, 
         price: 350, 
         image: "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=500&q=80", 
         category: "Home & Living",
@@ -86,7 +100,9 @@ export const categories = [
       },
       { 
         id: 8, 
-        name: "Lamp", 
+        name: "Lamp",
+        brand: "BrightLiving",
+        stock: 10, 
         price: 60, 
         image: "https://m.media-amazon.com/images/I/61K5lO4yQVL._AC_UF894%2C1000_QL80_.jpg", 
         category: "Home & Living",
@@ -105,6 +121,8 @@ export const categories = [
       {
         id: 9,
         name: "Fertilizer Bag",
+        brand: "SolaFarms",
+        stock: 25,
         price: 40,
         image: "https://shopsource.singoo.cc/1109/general/ZyRm67yCZWQ4JJwW.webp",
         category: "Agriculture & Livestocks",
@@ -113,6 +131,8 @@ export const categories = [
       {
         id: 10,
         name: "Tractor Model",
+        brand: "SolarFarms",
+        stock: 5,
         price: 1500,
         image: "https://www.fpeseals.com/uploads/images/tractor-agricultural-machine-cultivating-field.jpg",
         category: "Agriculture & Livestocks",
@@ -131,6 +151,8 @@ export const categories = [
       {
         id: 11,
         name: "Smartphone",
+        brand: "TechMobile",
+        stock: 30,
         price: 60,
         image: "https://www.3chub.com/cdn/shop/files/Infinix-Smart-10-Silver.jpg?v=1750179595&width=950",
         category: "Phone/Device",
@@ -139,6 +161,8 @@ export const categories = [
       {
         id: 12,
         name: "Tablet",
+        brand: "TechMobile",
+        stock: 20,
         price: 250,
         image: "https://m.media-amazon.com/images/I/61kfL%2BGcXBL.jpg",
         category: "Phone/Device",
@@ -147,6 +171,8 @@ export const categories = [
       {
         id: 13,
         name: "Tecno Spark 40 Pro+",
+        brand: "Tecno",
+        stock: 15,
         price: 150,
         image: "https://d13pvy8xd75yde.cloudfront.net/global/spark-40-pro-%2B/KM7%20%E9%BB%91.png",
         category: "Phone/Device",
@@ -155,6 +181,8 @@ export const categories = [
       {
         id: 14,
         name: "Tablet Model",
+        brand: "TechMobile",
+        stock: 10,
         price: 200,
         image: "https://paykobo.com/media/q1.jpg",
         category: "Phone/Device",
@@ -163,6 +191,8 @@ export const categories = [
       {
         id: 15,
         name: "Spark 20 Pro",
+        brand: "Tecno",
+        stock: 20,
         price: 200,
         image: "https://d13pvy8xd75yde.cloudfront.net/global/nga/banner/camon-40/mob%E5%B0%81%E9%9D%A2.png",
         category: "Phone/Device",
@@ -181,6 +211,8 @@ export const categories = [
       {
         id: 16,
         name: "Golden Veil Perfume",
+        brand: "Sewa's Collection",
+        stock: 20,
         price: 25,
         image: "https://png.pngtree.com/png-clipart/20240907/original/pngtree-perfumes-and-gels-nail-polish-cosmetics-product-png-image_15957200.png",
         category: "Perfumes & Cosmetics",
@@ -189,6 +221,8 @@ export const categories = [
       {
         id: 17,
         name: "Cosmetic Tablet",
+        brand: "Sewa's Collection",
+        stock: 15,
         price: 21,
         image: "https://png.pngtree.com/png-clipart/20240907/original/pngtree-perfumes-and-gels-nail-polish-cosmetics-product-png-image_15957201.png",
         category: "Perfumes & Cosmetics",
@@ -197,6 +231,8 @@ export const categories = [
       {
         id: 18,
         name: "Crystal Desire Perfume",
+        brand: "Sewa's Collection",
+        stock: 10,
         price: 15,
         image: "https://png.pngtree.com/png-vector/20260109/ourlarge/pngtree-cosmetic-products-display-on-a-clean-white-background-png-image_18459288.webp",
         category: "Perfumes & Cosmetics",
@@ -205,6 +241,8 @@ export const categories = [
       {
         id: 19,
         name: "Opal whisper Perfume",
+        brand: "Sewa's Collection",
+        stock: 5,
         price: 30,
         image: "perfumes.jpg",
         category: "Perfumes & Cosmetics",
@@ -213,6 +251,8 @@ export const categories = [
       {
         id: 20,
         name: "Rose Bloom Perfume",
+        brand: "Sewa's Collection",
+        stock: 8,
         price: 32,
         image: "valentines-day-still-life-design.jpg",
         category: "Perfumes & Cosmetics",

@@ -234,84 +234,41 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
     {/* Shop By Category */}
 <section id="shop_by_category" className="py-12 bg-white">
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    {/* Section Header */}
-    <div className="w-full p-[3px] bg-green-700 mb-6 rounded-sm">
+    <div className="w-full p-[3px] bg-green-700 mb-6">
       <h2 className="text-sm sm:text-base font-heading font-semibold bg-green-700 text-white px-4 py-2 text-left">
         Shop by Category
       </h2>
     </div>
 
-    {/* Swiper */}
     <Swiper
       modules={[Autoplay, Pagination]}
-      slidesPerView={1}
-      spaceBetween={20}
+      slidesPerView={2}
+      spaceBetween={12}
       autoplay={{ delay: 3000, disableOnInteraction: false }}
       pagination={{ clickable: true }}
       loop={true}
       className="w-full"
     >
-      {/* Slide 1 */}
-      <SwiperSlide>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Category 1 */}
-          <Link className="group relative overflow-hidden h-56 rounded-md" href="shop.html">
+      {categories.map((category) => (
+        <SwiperSlide key={category.id}>
+          <Link
+            href={`/shop?category=${encodeURIComponent(category.title)}`}
+            className="group relative overflow-hidden h-48  block"
+          >
             <Image
               variant="cover"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-md"
-              src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80"
-              alt="Electronics"
+              src={category.products?.[0]?.image || "/default-category.jpg"}
+              alt={category.title}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex items-end p-4 rounded-md">
-              <h3 className="text-white font-semibold text-sm sm:text-base">Electronics</h3>
+              <h3 className="text-white font-semibold text-sm sm:text-base">
+                {category.title}
+              </h3>
             </div>
           </Link>
-
-          {/* Category 2 */}
-          <Link className="group relative overflow-hidden h-56 rounded-md" href="shop.html">
-            <Image
-              variant="cover"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-md"
-              src="https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=500&q=80"
-              alt="Fashion"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex items-end p-4 rounded-md">
-              <h3 className="text-white font-semibold text-sm sm:text-base">Fashion</h3>
-            </div>
-          </Link>
-        </div>
-      </SwiperSlide>
-
-      {/* Slide 2 */}
-      <SwiperSlide>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Category 3 */}
-          <Link className="group relative overflow-hidden h-56 rounded-md" href="shop.html">
-            <Image
-              variant="cover"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-md"
-              src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=500&q=80"
-              alt="Home"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex items-end p-4 rounded-md">
-              <h3 className="text-white font-semibold text-sm sm:text-base">Home</h3>
-            </div>
-          </Link>
-
-          {/* Category 4 */}
-          <Link className="group relative overflow-hidden h-56 rounded-md" href="shop.html">
-            <Image
-              variant="cover"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-md"
-              src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80"
-              alt="Beauty"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex items-end p-4 rounded-md">
-              <h3 className="text-white font-semibold text-sm sm:text-base">Beauty</h3>
-            </div>
-          </Link>
-        </div>
-      </SwiperSlide>
+        </SwiperSlide>
+      ))}
     </Swiper>
   </div>
 </section>

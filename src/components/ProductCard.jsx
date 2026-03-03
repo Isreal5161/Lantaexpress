@@ -1,3 +1,4 @@
+// src/components/ProductCard.jsx
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Image } from "./Image";
@@ -28,7 +29,7 @@ export const ProductCard = ({ product, addToCart }) => {
             alt={product.name}
           />
 
-          {/* Add to Cart Icon Button */}
+          {/* Add to Cart Icon */}
           <button
             onClick={(e) => {
               e.preventDefault();
@@ -61,31 +62,55 @@ export const ProductCard = ({ product, addToCart }) => {
 
       {/* Product Info */}
       <div className="px-2 py-3 relative">
-        <h3 className="text-sm text-slate-700 font-medium line-clamp-2">
-          {product.name}
-        </h3>
-        <p className="mt-1 text-base font-semibold text-slate-900">
-          ${product.price.toFixed(2)}
-        </p>
+  <h3 className="text-sm text-slate-700 font-medium line-clamp-2">
+    {product.name}
+  </h3>
 
-        {/* Product Description (truncated) */}
-        {product.description && (
-          <p
-            className="mt-1 text-xs text-slate-500 line-clamp-1 cursor-pointer"
-            onMouseEnter={() => setShowTooltip(true)}
-            onMouseLeave={() => setShowTooltip(false)}
-          >
-            {product.description}
-          </p>
-        )}
+  {/* Brand */}
+  <p className="text-xs text-gray-500 mt-1">Brand: {product.brand}</p>
 
-        {/* Tooltip with full description */}
-        {showTooltip && product.description && (
-          <div className="absolute z-10 left-0 top-full mt-1 w-full bg-white border border-gray-200 p-2 text-xs text-slate-700 shadow-lg rounded-md">
-            {product.description}
-          </div>
-        )}
-      </div>
+  {/* Price */}
+  <p className="mt-1 text-base font-semibold text-slate-900">
+    ${product.price.toFixed(2)}
+  </p>
+
+  {/* Stock Info */}
+  <p className={`text-xs mt-1 font-medium ${
+    product.stock > 0 ? "text-green-600" : "text-red-600"
+  }`}>
+    {product.stock > 0 ? `In stock: ${product.stock}` : "Out of stock"}
+  </p>
+
+  {/* Stock Bar */}
+  {product.stock > 0 && (
+    <div className="w-full bg-gray-200 h-2 rounded-full mt-1">
+      <div
+        className="h-2 rounded-full bg-green-500 transition-all"
+        style={{
+          width: `${Math.min((product.stock / 50) * 100, 100)}%`
+        }}
+      ></div>
     </div>
+  )}
+
+  {/* Product Description (truncated) */}
+  {product.description && (
+    <p
+      className="mt-1 text-xs text-slate-500 line-clamp-1 cursor-pointer"
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+    >
+      {product.description}
+    </p>
+  )}
+
+  {/* Tooltip with full description */}
+  {showTooltip && product.description && (
+    <div className="absolute z-10 left-0 top-full mt-1 w-full bg-white border border-gray-200 p-2 text-xs text-slate-700 shadow-lg rounded-md">
+      {product.description}
+    </div>
+  )}
+</div>
+  </div>
   );
 };

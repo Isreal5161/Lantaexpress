@@ -21,15 +21,15 @@ import EmailAddress from "./pages/account/EmailAddress";
 
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import { CheckoutPage } from './pages/CheckoutPage'; // <-- CheckoutPage import
 
 const App = () => {
   const [showSplash, setShowSplash] = useState(false);
 
-  // Track login status in state
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("authToken"));
+  // Use the same key as CartPage for login check
+ const getIsLoggedIn = () => !!localStorage.getItem("user");
 
   useEffect(() => {
-    // Splash screen check
     const hasVisited = localStorage.getItem("hasVisited");
     if (!hasVisited) {
       setShowSplash(true);
@@ -40,12 +40,15 @@ const App = () => {
       return () => clearTimeout(timer);
     }
   }, []);
-
-  // Function to update login state when user logs in/out
-  const handleLoginStateChange = (loggedIn) => {
-    setIsLoggedIn(loggedIn);
-  };
-
+  const [isLoggedIn, setIsLoggedIn] = useState(getIsLoggedIn());
+const handleLoginStateChange = (loggedIn, userData) => {
+  setIsLoggedIn(loggedIn);
+  if (loggedIn) {
+    localStorage.setItem("user", JSON.stringify(userData));
+  } else {
+    localStorage.removeItem("user");
+  }
+};
   return (
     <>
       {showSplash && (
@@ -88,6 +91,18 @@ const App = () => {
                   <Navigate to="/account" replace />
                 ) : (
                   <SignupPage onSignup={() => handleLoginStateChange(true)} />
+                )
+              }
+            />
+
+            {/* Protected Checkout Route */}
+            <Route
+              path="/checkout"
+              element={
+                isLoggedIn ? (
+                  <CheckoutPage />
+                ) : (
+                  <Navigate to="/login" replace />
                 )
               }
             />

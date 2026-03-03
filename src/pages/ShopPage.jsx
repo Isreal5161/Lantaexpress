@@ -9,6 +9,7 @@ import { Footer } from '../components/footer';
 import { Link } from '../components/Link';
 import { Text } from '../components/Text';
 import BannerCarousel from '../components/BannerCarousel';
+import { useLocation } from "react-router-dom";
 
 export const ShopPage = () => {
   const { addToCart } = useCart();
@@ -21,7 +22,14 @@ export const ShopPage = () => {
     "Fashion", "Electronics","Sports & Fitness","Toys & Hobbies",
     "Automotive & Accessories","Books & Stationery","Used Materials", "Cereals"
   ];
-
+const location = useLocation();
+useEffect(() => {
+  const params = new URLSearchParams(location.search);
+  const categoryParam = params.get("category");
+  if (categoryParam && categories.includes(categoryParam)) {
+    setActiveCategory(categoryParam);
+  }
+}, [location.search]);
   // Fetch products whenever category changes
   useEffect(() => {
     const fetchProducts = async () => {
