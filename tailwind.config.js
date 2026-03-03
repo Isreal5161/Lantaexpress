@@ -24,6 +24,22 @@ module.exports = {
       fontFamily: {
         outfit: ["Outfit", "sans-serif"],
       },
+
+      // ✅ Add custom animations
+      keyframes: {
+        spinSlow: {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
+        },
+        bounceSlow: {
+          '0%, 100%': { transform: 'translateY(-2%)' },
+          '50%': { transform: 'translateY(2%)' },
+        },
+      },
+      animation: {
+        'spin-slow': 'spinSlow 6s linear infinite',
+        'bounce-slow': 'bounceSlow 2s infinite',
+      },
     },
   },
   plugins: [],

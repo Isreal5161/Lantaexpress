@@ -16,6 +16,7 @@ import "swiper/css/pagination";
 import { ProductCard } from "../components/ProductCard";
 import Modal from "../components/Modal";
 import { MobileHero as MobileHero } from "../components/MobileHero"; // rename to avoid conflict
+import { BecomeSeller } from "../components/BecomeSeller";
 
 // Import your product service
 import { getProducts } from "../service/ProductService";
@@ -338,7 +339,7 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
          
        <Footer />
         </>
-
+<BecomeSeller position="right" />
     </div>
   );
 };
