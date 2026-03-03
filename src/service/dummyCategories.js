@@ -12,7 +12,7 @@ export const categories = [
         id: 1, 
         name: "Wireless Headphones", 
         price: 120, 
-        image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80", 
+        image: "https://m.media-amazon.com/images/I/51aHcGncblL._AC_UF894%2C1000_QL80_.jpg", 
         category: "Electronics",
         description: "High-quality wireless headphones with noise-cancellation and long battery life."
       },
