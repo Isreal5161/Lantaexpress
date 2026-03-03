@@ -1,13 +1,12 @@
 // src/pages/AccountPage.jsx
 import React from "react";
-import { useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { FaSignOutAlt, FaArrowLeft } from "react-icons/fa";
 import AccountHeader from "../components/AccountHeader";
 import AccountSidebar from "../components/AccountSidebar";
 import { Footer } from "../components/footer";
 
-const AccountPage = () => {
+const AccountPage = ({ onSignOut }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -16,14 +15,30 @@ const AccountPage = () => {
   const showSignOutButton = location.pathname === "/account"; // Only show sign out on dashboard
 
   // Get logged-in user from localStorage
-  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-  const userName = currentUser?.name || "Guest";
+  // src/pages/AccountPage.jsx
+let currentUser;
+try {
+  const storedUser = localStorage.getItem("user");
+  currentUser = storedUser ? JSON.parse(storedUser) : null;
+} catch (error) {
+  console.warn("Failed to parse user from localStorage:", error);
+  currentUser = null;
+}
+
+const userName = currentUser?.name || "Guest";
 
   // Sign Out Handler
   const handleSignOut = () => {
-    localStorage.removeItem("currentUser"); // Clear current user
-    localStorage.removeItem("authToken");   // Clear auth token (important!)
-    navigate("/login", { replace: true });   // Redirect to login page
+    // Clear all relevant auth info
+    localStorage.removeItem("user");       // used by App.jsx to track login
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("authToken");
+
+    // Notify App about logout
+    if (onSignOut) onSignOut(false);
+
+    // Navigate to login page
+    navigate("/login", { replace: true });
   };
 
   return (
@@ -37,7 +52,7 @@ const AccountPage = () => {
           
           {/* Sidebar for desktop */}
           <div className="hidden md:block md:w-1/4">
-            <AccountSidebar />
+            
           </div>
 
           {/* Main content area */}
