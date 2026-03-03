@@ -1,5 +1,6 @@
 // src/pages/AccountPage.jsx
 import React from "react";
+import { useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { FaSignOutAlt, FaArrowLeft } from "react-icons/fa";
 import AccountHeader from "../components/AccountHeader";
