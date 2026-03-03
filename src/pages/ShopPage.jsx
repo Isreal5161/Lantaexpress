@@ -17,8 +17,8 @@ export const ShopPage = () => {
   const [loading, setLoading] = useState(false);
 
   const categories = [
-    "All Products", "Electronics","Home & Living", "Agriculture & Livestocks",
-    "Fashion", "Phone/Device","Sports & Fitness","Toys & Hobbies",
+    "All Products", "Phone/Device", "Perfumes & Cosmetics","Home & Living", "Agriculture & Livestocks",
+    "Fashion", "Electronics","Sports & Fitness","Toys & Hobbies",
     "Automotive & Accessories","Books & Stationery","Used Materials", "Cereals"
   ];
 

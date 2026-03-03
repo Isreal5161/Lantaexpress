@@ -46,25 +46,25 @@ export const categories = [
         id: 4, 
         name: "Designer Handbag", 
         price: 180, 
-        image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=500&q=80", 
+        image: "https://png.pngtree.com/png-clipart/20241023/original/pngtree-a-white-purse-with-ruffled-handle-on-transparent-background-png-image_16469053.png", 
         category: "Fashion",
         description: "Stylish designer handbag made of premium materials for everyday use."
       },
       { 
         id: 5, 
-        name: "Gaming Shoes", 
+        name: "Lip Gloss Set", 
         price: 100, 
         image: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=500&q=80", 
         category: "Fashion",
-        description: "Comfortable and durable shoes perfect for gaming or sports activities."
+        description: "Set of high-quality lip glosses in various trendy shades."
       },
       { 
         id: 6, 
-        name: "Sunglasses", 
+        name: "Coats", 
         price: 80, 
         image: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=500&q=80", 
         category: "Fashion",
-        description: "UV-protected stylish sunglasses suitable for daily wear and outdoor activities."
+        description: "Warm and stylish coats perfect for cold weather."
       },
     ],
   },
@@ -168,6 +168,57 @@ export const categories = [
         category: "Phone/Device",
         description: "Tecno Spark 20 Pro with sleek design and powerful performance."
       },
+        
+    ],
+  },  {
+    id: 6,
+    title: "Perfumes & Cosmetics",
+    gradientFrom: "from-black",
+    gradientTo: "to-purple-500",
+    bgColor: "bg-purple",
+    textColor: "text-white",
+    products: [
+      {
+        id: 16,
+        name: "Golden Veil Perfume",
+        price: 25,
+        image: "https://png.pngtree.com/png-clipart/20240907/original/pngtree-perfumes-and-gels-nail-polish-cosmetics-product-png-image_15957200.png",
+        category: "Perfumes & Cosmetics",
+        description: "Luxurious golden veil perfume with long-lasting fragrance."
+      },
+      {
+        id: 17,
+        name: "Cosmetic Tablet",
+        price: 21,
+        image: "https://png.pngtree.com/png-clipart/20240907/original/pngtree-perfumes-and-gels-nail-polish-cosmetics-product-png-image_15957201.png",
+        category: "Perfumes & Cosmetics",
+        description: "Large-screen tablet suitable for work and entertainment."
+      },
+      {
+        id: 18,
+        name: "Crystal Desire Perfume",
+        price: 15,
+        image: "https://png.pngtree.com/png-vector/20260109/ourlarge/pngtree-cosmetic-products-display-on-a-clean-white-background-png-image_18459288.webp",
+        category: "Perfumes & Cosmetics",
+        description: "High-performance crystal desire perfume with long-lasting fragrance."
+      },
+      {
+        id: 19,
+        name: "Opal whisper Perfume",
+        price: 30,
+        image: "perfumes.jpg",
+        category: "Perfumes & Cosmetics",
+        description: "Fragrant and elegant perfume with a long-lasting scent."
+      },
+      {
+        id: 20,
+        name: "Rose Bloom Perfume",
+        price: 32,
+        image: "valentines-day-still-life-design.jpg",
+        category: "Perfumes & Cosmetics",
+        description: "Elegant rose bloom perfume with a romantic and long-lasting scent."
+      },
+        
     ],
   },
 ];

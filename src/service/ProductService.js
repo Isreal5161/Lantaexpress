@@ -6,17 +6,15 @@ const allProducts = categories.flatMap(category => category.products);
 
 /**
  * Fetch all products
- * Simulates async backend call
  */
 export const getProducts = async () => {
   return new Promise((resolve) => {
-    setTimeout(() => resolve(allProducts), 100); // small delay to simulate fetch
+    setTimeout(() => resolve(allProducts), 100);
   });
 };
 
 /**
  * Fetch single product by ID
- * @param {string|number} id - Product ID
  */
 export const getProductById = async (id) => {
   return new Promise((resolve) => {
@@ -27,7 +25,6 @@ export const getProductById = async (id) => {
 
 /**
  * Fetch products by category
- * @param {string} categoryName - Category name
  */
 export const getProductsByCategory = async (categoryName) => {
   return new Promise((resolve) => {
@@ -38,4 +35,20 @@ export const getProductsByCategory = async (categoryName) => {
       resolve(filtered);
     }
   });
+};
+
+/**
+ * Fetch Hot Deals (4 newest products)
+ */
+export const getHotDeals = async () => {
+  const sorted = [...allProducts].sort((a, b) => b.id - a.id); // newest first by id
+  return sorted.slice(0, 4);
+};
+
+/**
+ * Fetch Trending Now (4 newest products)
+ */
+export const getTrendingNow = async () => {
+  const sorted = [...allProducts].sort((a, b) => b.id - a.id); // newest first by id
+  return sorted.slice(0, 4);
 };
