@@ -10,6 +10,8 @@ import { ShopPage } from './pages/ShopPage';
 import { ProductPage } from './pages/ProductPage';
 import { CartPage } from './pages/CartPage';
 import { TrackorderPage } from './pages/TrackorderPage';
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+
 
 import AccountPage from "./pages/AccountPage";
 import AccountDashboard from "./pages/account/AccountDashboard";
@@ -30,7 +32,7 @@ import SellerProductsPage from './pages/seller/SellerProductsPage';
 import SellerOrdersPage from './pages/seller/SellerOrdersPage';
 import SellerIncomePage from './pages/seller/SellerIncomePage';
 import SellerWithdrawPage from './pages/seller/SellerWithdrawPage';
-import SellerAnalyticsPage from './pages/seller/SellerAnalyticsPage';
+import SellerProfilePage from './pages/seller/SellerProfilePage';
 import SellerSettingsPage from './pages/seller/SellerSettingsPage';
 
 const App = () => {
@@ -84,6 +86,7 @@ const App = () => {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/logistics" element={<LogisticsPage />} />
             <Route path="/track" element={<TrackorderPage />} />
+             <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
 
             {/* Seller Dashboard */}
             <Route path="/seller-dashboard/*" element={<SellerDashboardPage />}>
@@ -92,7 +95,7 @@ const App = () => {
               <Route path="orders" element={<SellerOrdersPage />} />
               <Route path="income" element={<SellerIncomePage />} />
               <Route path="withdraw" element={<SellerWithdrawPage />} />
-              <Route path="analytics" element={<SellerAnalyticsPage />} />
+              <Route path="profile" element={<SellerProfilePage />} />
               <Route path="settings" element={<SellerSettingsPage />} />
             </Route>
 

@@ -9,10 +9,17 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [acceptPrivacy, setAcceptPrivacy] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const handleSignup = (e) => {
     e.preventDefault();
+
+    if (!acceptPrivacy) {
+      alert("You must accept the Privacy & Policy to sign up.");
+      return;
+    }
+
     const users = JSON.parse(localStorage.getItem("users")) || [];
 
     if (users.some((u) => u.email === email)) {
@@ -107,6 +114,28 @@ export default function SignupPage() {
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
               </div>
+
+              {/* Privacy & Policy */}
+             <div className="flex items-center gap-2">
+               <input
+  type="checkbox"
+  id="acceptPolicy"
+  checked={acceptPrivacy}
+  onChange={(e) => setAcceptPrivacy(e.target.checked)}
+  className="w-4 h-4 accent-green-600"
+  required
+/>
+            <label htmlFor="acceptPolicy" className="text-sm text-gray-600">
+            I accept the{" "}
+            <Link
+            to="/privacy-policy"
+            className="text-green-600 hover:underline"
+            target="_blank"
+             >
+            Privacy & Policy
+    </Link>
+  </label>
+</div>
 
               <button
                 type="submit"
