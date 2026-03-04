@@ -21,13 +21,22 @@ import EmailAddress from "./pages/account/EmailAddress";
 
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
-import { CheckoutPage } from './pages/CheckoutPage'; // <-- CheckoutPage import
+import { CheckoutPage } from './pages/CheckoutPage';
+
+// Seller Dashboard
+import SellerDashboardPage from './pages/seller/SellerDashboardPage';
+import SellerDashboardHome from './pages/seller/SellerDashboardHome';
+import SellerProductsPage from './pages/seller/SellerProductsPage';
+import SellerOrdersPage from './pages/seller/SellerOrdersPage';
+import SellerIncomePage from './pages/seller/SellerIncomePage';
+import SellerWithdrawPage from './pages/seller/SellerWithdrawPage';
+import SellerAnalyticsPage from './pages/seller/SellerAnalyticsPage';
+import SellerSettingsPage from './pages/seller/SellerSettingsPage';
 
 const App = () => {
   const [showSplash, setShowSplash] = useState(false);
 
-  // Use the same key as CartPage for login check
- const getIsLoggedIn = () => !!localStorage.getItem("user");
+  const getIsLoggedIn = () => !!localStorage.getItem("user");
 
   useEffect(() => {
     const hasVisited = localStorage.getItem("hasVisited");
@@ -40,15 +49,18 @@ const App = () => {
       return () => clearTimeout(timer);
     }
   }, []);
+
   const [isLoggedIn, setIsLoggedIn] = useState(getIsLoggedIn());
-const handleLoginStateChange = (loggedIn, userData) => {
-  setIsLoggedIn(loggedIn);
-  if (loggedIn) {
-    localStorage.setItem("user", JSON.stringify(userData));
-  } else {
-    localStorage.removeItem("user");
-  }
-};
+
+  const handleLoginStateChange = (loggedIn, userData) => {
+    setIsLoggedIn(loggedIn);
+    if (loggedIn) {
+      localStorage.setItem("user", JSON.stringify(userData));
+    } else {
+      localStorage.removeItem("user");
+    }
+  };
+
   return (
     <>
       {showSplash && (
@@ -72,6 +84,17 @@ const handleLoginStateChange = (loggedIn, userData) => {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/logistics" element={<LogisticsPage />} />
             <Route path="/track" element={<TrackorderPage />} />
+
+            {/* Seller Dashboard */}
+            <Route path="/seller-dashboard/*" element={<SellerDashboardPage />}>
+              <Route index element={<SellerDashboardHome />} />
+              <Route path="products" element={<SellerProductsPage />} />
+              <Route path="orders" element={<SellerOrdersPage />} />
+              <Route path="income" element={<SellerIncomePage />} />
+              <Route path="withdraw" element={<SellerWithdrawPage />} />
+              <Route path="analytics" element={<SellerAnalyticsPage />} />
+              <Route path="settings" element={<SellerSettingsPage />} />
+            </Route>
 
             {/* Auth Pages */}
             <Route

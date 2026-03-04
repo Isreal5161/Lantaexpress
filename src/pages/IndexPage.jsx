@@ -336,10 +336,10 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
 ))}
 
          </div>
-         
+         <BecomeSeller position="right" offsetBottom="100" />
        <Footer />
         </>
-<BecomeSeller position="right" />
+
     </div>
   );
 };
