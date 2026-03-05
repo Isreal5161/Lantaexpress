@@ -1,18 +1,24 @@
 // src/App.jsx
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import ScrollToTop from './components/ScrollToTop';
-import './styles/globals.css';
+import React, { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import ScrollToTop from "./components/ScrollToTop";
+import "./styles/globals.css";
 
-import { LogisticsPage } from './pages/LogisticsPage';
-import { IndexPage } from './pages/IndexPage';
-import { ShopPage } from './pages/ShopPage';
-import { ProductPage } from './pages/ProductPage';
-import { CartPage } from './pages/CartPage';
-import { TrackorderPage } from './pages/TrackorderPage';
+// Public Pages
+import { IndexPage } from "./pages/IndexPage";
+import { ShopPage } from "./pages/ShopPage";
+import { ProductPage } from "./pages/ProductPage";
+import { CartPage } from "./pages/CartPage";
+import { LogisticsPage } from "./pages/LogisticsPage";
+import { TrackorderPage } from "./pages/TrackorderPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 
+// Auth Pages
+import LoginPage from "./pages/LoginPage";
+import SignupPage from "./pages/SignupPage";
+import { CheckoutPage } from "./pages/CheckoutPage";
 
+// Account Pages
 import AccountPage from "./pages/AccountPage";
 import AccountDashboard from "./pages/account/AccountDashboard";
 import EditProfile from "./pages/account/EditProfile";
@@ -21,24 +27,28 @@ import ShippingAddress from "./pages/account/ShippingAddress";
 import Password from "./pages/account/Password";
 import EmailAddress from "./pages/account/EmailAddress";
 
-import LoginPage from './pages/LoginPage';
-import SignupPage from './pages/SignupPage';
-import { CheckoutPage } from './pages/CheckoutPage';
+// Seller Pages
+import SellerLogin from "./pages/seller/SellerLogin";
+import SellerSignup from "./pages/seller/SellerSignup";
+import SellerDashboardPage from "./pages/seller/SellerDashboardPage";
+import SellerDashboardHome from "./pages/seller/SellerDashboardHome";
+import SellerProductsPage from "./pages/seller/SellerProductsPage";
+import SellerOrdersPage from "./pages/seller/SellerOrdersPage";
+import SellerIncomePage from "./pages/seller/SellerIncomePage";
+import SellerWithdrawPage from "./pages/seller/SellerWithdrawPage";
+import SellerProfilePage from "./pages/seller/SellerProfilePage";
+import SellerSettingsPage from "./pages/seller/SellerSettingsPage";
 
-// Seller Dashboard
-import SellerDashboardPage from './pages/seller/SellerDashboardPage';
-import SellerDashboardHome from './pages/seller/SellerDashboardHome';
-import SellerProductsPage from './pages/seller/SellerProductsPage';
-import SellerOrdersPage from './pages/seller/SellerOrdersPage';
-import SellerIncomePage from './pages/seller/SellerIncomePage';
-import SellerWithdrawPage from './pages/seller/SellerWithdrawPage';
-import SellerProfilePage from './pages/seller/SellerProfilePage';
-import SellerSettingsPage from './pages/seller/SellerSettingsPage';
+// Context & Routes
+import { SellerAuthProvider } from "./context/SellerAuthContext";
+import ProtectedSellerRoute from "./routes/ProtectedSellerRoute";
 
 const App = () => {
   const [showSplash, setShowSplash] = useState(false);
 
+  // Normal user login state
   const getIsLoggedIn = () => !!localStorage.getItem("user");
+  const [isLoggedIn, setIsLoggedIn] = useState(getIsLoggedIn());
 
   useEffect(() => {
     const hasVisited = localStorage.getItem("hasVisited");
@@ -52,8 +62,6 @@ const App = () => {
     }
   }, []);
 
-  const [isLoggedIn, setIsLoggedIn] = useState(getIsLoggedIn());
-
   const handleLoginStateChange = (loggedIn, userData) => {
     setIsLoggedIn(loggedIn);
     if (loggedIn) {
@@ -64,14 +72,11 @@ const App = () => {
   };
 
   return (
-    <>
+    <SellerAuthProvider>
+      {/* Splash Screen */}
       {showSplash && (
         <div className="fixed inset-0 flex items-center justify-center bg-green-700 z-50">
-          <img
-            src="/homescreenlogo.png"
-            alt="LantaXpress Logo"
-            className="w-48 h-48"
-          />
+          <img src="/homescreenlogo.png" alt="LantaXpress Logo" className="w-48 h-48" />
         </div>
       )}
 
@@ -86,10 +91,21 @@ const App = () => {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/logistics" element={<LogisticsPage />} />
             <Route path="/track" element={<TrackorderPage />} />
-             <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
 
-            {/* Seller Dashboard */}
-            <Route path="/seller-dashboard/*" element={<SellerDashboardPage />}>
+            {/* Seller Auth Pages */}
+            <Route path="/seller-login" element={<SellerLogin />} />
+            <Route path="/seller-signup" element={<SellerSignup />} />
+
+            {/* Seller Dashboard Routes (Protected) */}
+            <Route
+              path="/seller-dashboard/*"
+              element={
+                <ProtectedSellerRoute>
+                  <SellerDashboardPage />
+                </ProtectedSellerRoute>
+              }
+            >
               <Route index element={<SellerDashboardHome />} />
               <Route path="products" element={<SellerProductsPage />} />
               <Route path="orders" element={<SellerOrdersPage />} />
@@ -99,7 +115,7 @@ const App = () => {
               <Route path="settings" element={<SellerSettingsPage />} />
             </Route>
 
-            {/* Auth Pages */}
+            {/* Normal Auth Pages */}
             <Route
               path="/login"
               element={
@@ -124,13 +140,7 @@ const App = () => {
             {/* Protected Checkout Route */}
             <Route
               path="/checkout"
-              element={
-                isLoggedIn ? (
-                  <CheckoutPage />
-                ) : (
-                  <Navigate to="/login" replace />
-                )
-              }
+              element={isLoggedIn ? <CheckoutPage /> : <Navigate to="/login" replace />}
             />
 
             {/* Protected Account Routes */}
@@ -157,7 +167,7 @@ const App = () => {
           </Routes>
         </Router>
       </div>
-    </>
+    </SellerAuthProvider>
   );
 };
 

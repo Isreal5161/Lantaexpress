@@ -10,6 +10,7 @@ import { Link } from '../components/Link';
 import { Text } from '../components/Text';
 import BannerCarousel from '../components/BannerCarousel';
 import { useLocation } from "react-router-dom";
+import PromoModal from "../components/PromoModal";
 
 export const ShopPage = () => {
   const { addToCart } = useCart();
@@ -40,6 +41,17 @@ useEffect(() => {
     };
     fetchProducts();
   }, [activeCategory]);
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Auto open after 2 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsOpen(true);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
 
   return (
     <div className="font-body text-slate-600 antialiased bg-white">
@@ -58,6 +70,13 @@ useEffect(() => {
           </div>
         </div>
       </div>
+ <>
+      <PromoModal 
+        isOpen={isOpen} 
+        onClose={() => setIsOpen(false)} 
+      />
+          
+    </>
 
       <main className="pb-20 md:pb-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

@@ -11,6 +11,7 @@ import {
   MdPerson,
 } from "react-icons/md";
 import SellerHeader from "../../components/seller/SellerHeader";
+import { useSellerAuth } from "../../context/SellerAuthContext";
 
 const sidebarLinks = [
   { name: "Dashboard", path: "/seller-dashboard", icon: <MdDashboard /> },
@@ -24,7 +25,7 @@ const sidebarLinks = [
 
 const SellerDashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const seller = JSON.parse(localStorage.getItem("currentSeller")) || { brandName: "Your Brand" };
+  const { seller } = useSellerAuth();
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -35,7 +36,9 @@ const SellerDashboardLayout = () => {
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
       >
         <div className="p-6 text-center border-b">
-          <h1 className="font-extrabold text-xl text-green-700">{seller.brandName}</h1>
+          <h1 className="font-extrabold text-xl text-green-700">
+            {seller?.brandName || "Your Brand"}
+          </h1>
           <p className="text-gray-500 text-sm">Seller Dashboard</p>
         </div>
 
@@ -69,7 +72,7 @@ const SellerDashboardLayout = () => {
         />
       )}
 
-      {/* Right content */}
+      {/* Main content */}
       <div className="flex-1 flex flex-col md:ml-64">
         <SellerHeader toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
         <main className="p-6 flex-1 overflow-y-auto">

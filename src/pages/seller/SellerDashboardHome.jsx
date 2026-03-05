@@ -1,3 +1,4 @@
+// src/pages/seller/SellerDashboardHome.jsx
 import React from "react";
 import {
   MdAttachMoney,
@@ -5,44 +6,54 @@ import {
   MdStorefront,
   MdPendingActions,
 } from "react-icons/md";
-
-
-const stats = [
-  {
-    title: "Total Revenue",
-    value: "₦0.00",
-    icon: <MdAttachMoney />,
-    bg: "bg-green-100",
-    color: "text-green-600",
-  },
-  {
-    title: "Total Orders",
-    value: "0",
-    icon: <MdShoppingCart />,
-    bg: "bg-blue-100",
-    color: "text-blue-600",
-  },
-  {
-    title: "Products Listed",
-    value: "0",
-    icon: <MdStorefront />,
-    bg: "bg-purple-100",
-    color: "text-purple-600",
-  },
-  {
-    title: "Pending Orders",
-    value: "0",
-    icon: <MdPendingActions />,
-    bg: "bg-yellow-100",
-    color: "text-yellow-600",
-  },
-];
+import { useSellerAuth } from "../../context/SellerAuthContext";
 
 const SellerDashboardHome = () => {
+  const { seller } = useSellerAuth();
+
+  // Placeholder stats - replace with backend data later
+  const stats = [
+    {
+      title: "Total Revenue",
+      value: "₦45600.00",
+      icon: <MdAttachMoney />,
+      bg: "bg-green-100",
+      color: "text-green-600",
+    },
+    {
+      title: "Total Orders",
+      value: "0",
+      icon: <MdShoppingCart />,
+      bg: "bg-blue-100",
+      color: "text-blue-600",
+    },
+    {
+      title: "Products Listed",
+      value: "0",
+      icon: <MdStorefront />,
+      bg: "bg-purple-100",
+      color: "text-purple-600",
+    },
+    {
+      title: "Pending Orders",
+      value: "0",
+      icon: <MdPendingActions />,
+      bg: "bg-yellow-100",
+      color: "text-yellow-600",
+    },
+  ];
+
   return (
     <div className="space-y-8">
-        
-      
+
+      {/* Welcome */}
+      <section>
+        <h1 className="text-2xl font-bold text-gray-800">
+          Welcome, {seller?.brandName || "Seller"}
+        </h1>
+        <p className="text-gray-500">Here’s an overview of your store.</p>
+      </section>
+
       {/* Stats Cards */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((item, index) => (
@@ -67,12 +78,11 @@ const SellerDashboardHome = () => {
         ))}
       </section>
 
-      {/* Placeholder Chart Section */}
+      {/* Sales Overview Chart */}
       <section className="bg-white p-6 rounded-2xl shadow-sm">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">
           Sales Overview
         </h3>
-
         <div className="h-64 flex items-center justify-center text-gray-400">
           Chart coming next step...
         </div>
@@ -83,7 +93,6 @@ const SellerDashboardHome = () => {
         <h3 className="text-lg font-semibold text-gray-800 mb-4">
           Recent Orders
         </h3>
-
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm text-left">
             <thead className="text-gray-500 border-b">
@@ -119,7 +128,6 @@ const SellerDashboardHome = () => {
           </table>
         </div>
       </section>
-
     </div>
   );
 };
