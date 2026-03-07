@@ -38,6 +38,11 @@ import SellerIncomePage from "./pages/seller/SellerIncomePage";
 import SellerWithdrawPage from "./pages/seller/SellerWithdrawPage";
 import SellerProfilePage from "./pages/seller/SellerProfilePage";
 import SellerSettingsPage from "./pages/seller/SellerSettingsPage";
+import Dashboard from "./AdminPanel/pages/Dashboard";
+import Users from "./AdminPanel/pages/Users";
+import Sellers from "./AdminPanel/pages/Sellers";
+import Products from "./AdminPanel/pages/Products";
+import Logistics from "./AdminPanel/pages/Logistics";
 
 // Context & Routes
 import { SellerAuthProvider } from "./context/SellerAuthContext";
@@ -92,7 +97,11 @@ const App = () => {
             <Route path="/logistics" element={<LogisticsPage />} />
             <Route path="/track" element={<TrackorderPage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-
+            <Route path="/AdminPanel/dashboard" element={<Dashboard />} />
+            <Route path="/AdminPanel/users" element={<Users />} />
+            <Route path="/AdminPanel/sellers" element={<Sellers />} />
+            <Route path="/AdminPanel/products" element={<Products />} />
+            <Route path="/AdminPanel/logistics" element={<Logistics />} />
             {/* Seller Auth Pages */}
             <Route path="/seller-login" element={<SellerLogin />} />
             <Route path="/seller-signup" element={<SellerSignup />} />

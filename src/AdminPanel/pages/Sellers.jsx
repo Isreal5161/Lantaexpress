@@ -1,0 +1,26 @@
+import React from "react";
+import AdminLayout from "../Layout/AdminLayout";
+
+export default function Sellers() {
+  return (
+    <AdminLayout>
+
+      <h1 className="text-2xl font-bold text-slate-800 mb-6">
+        Sellers Management
+      </h1>
+
+      <div className="bg-white border rounded-lg shadow-sm p-6">
+
+        <ul className="list-disc ml-6 text-slate-600 space-y-2">
+          <li>Monitor seller brands</li>
+          <li>Approve / Reject seller products</li>
+          <li>View seller product listings</li>
+          <li>Monitor seller balance</li>
+          <li>Monitor withdrawals</li>
+        </ul>
+
+      </div>
+
+    </AdminLayout>
+  );
+}
