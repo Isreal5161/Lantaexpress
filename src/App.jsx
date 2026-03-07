@@ -43,7 +43,7 @@ import Users from "./AdminPanel/pages/Users";
 import Sellers from "./AdminPanel/pages/Sellers";
 import Products from "./AdminPanel/pages/Products";
 import Logistics from "./AdminPanel/pages/Logistics";
-
+import SellerDetailPage from "./AdminPanel/components/SellerDetails"; 
 // Context & Routes
 import { SellerAuthProvider } from "./context/SellerAuthContext";
 import ProtectedSellerRoute from "./routes/ProtectedSellerRoute";
@@ -102,6 +102,8 @@ const App = () => {
             <Route path="/AdminPanel/sellers" element={<Sellers />} />
             <Route path="/AdminPanel/products" element={<Products />} />
             <Route path="/AdminPanel/logistics" element={<Logistics />} />
+            <Route path="/sellers" element={<Sellers />} />
+            <Route path="/sellers/:sellerId" element={<SellerDetailPage />} />
             {/* Seller Auth Pages */}
             <Route path="/seller-login" element={<SellerLogin />} />
             <Route path="/seller-signup" element={<SellerSignup />} />
