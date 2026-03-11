@@ -54,6 +54,13 @@ export default function Sidebar() {
 
           {openMenu === "users" && (
             <div className="ml-8 mt-1 space-y-1">
+               <Link
+                to="/AdminPanel/users"
+                className="block p-2 hover:bg-green-600 rounded"
+              >
+                All Users
+              </Link>
+
               <Link
                 to="/AdminPanel/users/orders"
                 className="block p-2 hover:bg-green-600 rounded"
