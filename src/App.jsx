@@ -38,17 +38,34 @@ import SellerIncomePage from "./pages/seller/SellerIncomePage";
 import SellerWithdrawPage from "./pages/seller/SellerWithdrawPage";
 import SellerProfilePage from "./pages/seller/SellerProfilePage";
 import SellerSettingsPage from "./pages/seller/SellerSettingsPage";
+
+// Admin Pages
 import Dashboard from "./AdminPanel/pages/Dashboard";
 import Users from "./AdminPanel/pages/Users";
 import Sellers from "./AdminPanel/pages/Sellers";
 import Products from "./AdminPanel/pages/Products";
 import Logistics from "./AdminPanel/pages/Logistics";
-import SellerDetailPage from "./AdminPanel/components/SellerDetails"; 
+
+import SellerDetailPage from "./AdminPanel/components/SellerDetails";
+
+// Admin Submenu Pages
+import UserOrders from "./AdminPanel/pages/UserOrders";
+import UserTracking from "./AdminPanel/pages/UserTracking";
+
+import SellerOrdersAdmin from "./AdminPanel/pages/SellerOrdersAdmin";
+import SellerProductsAdmin from "./AdminPanel/pages/SellerProductsAdmin";
+import SellerPayments from "./AdminPanel/pages/SellerPayments";
+import SellerRequests from "./AdminPanel/pages/SellerRequests";
+
+import OrderLocations from "./AdminPanel/pages/OrderLocations";
+import OrderStatusUpdate from "./AdminPanel/pages/OrderStatusUpdate";
+
 // Context & Routes
 import { SellerAuthProvider } from "./context/SellerAuthContext";
 import ProtectedSellerRoute from "./routes/ProtectedSellerRoute";
 
 const App = () => {
+
   const [showSplash, setShowSplash] = useState(false);
 
   // Normal user login state
@@ -57,18 +74,22 @@ const App = () => {
 
   useEffect(() => {
     const hasVisited = localStorage.getItem("hasVisited");
+
     if (!hasVisited) {
       setShowSplash(true);
+
       const timer = setTimeout(() => {
         setShowSplash(false);
         localStorage.setItem("hasVisited", "true");
       }, 3000);
+
       return () => clearTimeout(timer);
     }
   }, []);
 
   const handleLoginStateChange = (loggedIn, userData) => {
     setIsLoggedIn(loggedIn);
+
     if (loggedIn) {
       localStorage.setItem("user", JSON.stringify(userData));
     } else {
@@ -78,6 +99,7 @@ const App = () => {
 
   return (
     <SellerAuthProvider>
+
       {/* Splash Screen */}
       {showSplash && (
         <div className="fixed inset-0 flex items-center justify-center bg-green-700 z-50">
@@ -86,10 +108,14 @@ const App = () => {
       )}
 
       <div style={{ visibility: showSplash ? "hidden" : "visible" }}>
+
         <Router>
           <ScrollToTop />
+
           <Routes>
-            {/* Public Pages */}
+
+            {/* PUBLIC PAGES */}
+
             <Route path="/" element={<IndexPage />} />
             <Route path="/shop" element={<ShopPage />} />
             <Route path="/product/:id" element={<ProductPage />} />
@@ -97,18 +123,48 @@ const App = () => {
             <Route path="/logistics" element={<LogisticsPage />} />
             <Route path="/track" element={<TrackorderPage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+
+
+
+            {/* ADMIN PANEL ROUTES */}
+
             <Route path="/AdminPanel/dashboard" element={<Dashboard />} />
+
+            {/* USERS */}
             <Route path="/AdminPanel/users" element={<Users />} />
+            <Route path="/AdminPanel/users/orders" element={<UserOrders />} />
+            <Route path="/AdminPanel/users/tracking" element={<UserTracking />} />
+
+            {/* SELLERS */}
             <Route path="/AdminPanel/sellers" element={<Sellers />} />
-            <Route path="/AdminPanel/products" element={<Products />} />
-            <Route path="/AdminPanel/logistics" element={<Logistics />} />
+            <Route path="/AdminPanel/sellers/orders" element={<SellerOrdersAdmin />} />
+            <Route path="/AdminPanel/sellers/products" element={<SellerProductsAdmin />} />
+            <Route path="/AdminPanel/sellers/payments" element={<SellerPayments />} />
+            <Route path="/AdminPanel/sellers/requests" element={<SellerRequests />} />
+
+            {/* SELLER DETAILS */}
             <Route path="/sellers" element={<Sellers />} />
             <Route path="/sellers/:sellerId" element={<SellerDetailPage />} />
-            {/* Seller Auth Pages */}
+
+            {/* PRODUCTS */}
+            <Route path="/AdminPanel/products" element={<Products />} />
+
+            {/* LOGISTICS */}
+            <Route path="/AdminPanel/logistics" element={<Logistics />} />
+            <Route path="/AdminPanel/logistics/location" element={<OrderLocations />} />
+            <Route path="/AdminPanel/logistics/status" element={<OrderStatusUpdate />} />
+
+
+
+            {/* SELLER AUTH */}
+
             <Route path="/seller-login" element={<SellerLogin />} />
             <Route path="/seller-signup" element={<SellerSignup />} />
 
-            {/* Seller Dashboard Routes (Protected) */}
+
+
+            {/* SELLER DASHBOARD */}
+
             <Route
               path="/seller-dashboard/*"
               element={
@@ -126,7 +182,10 @@ const App = () => {
               <Route path="settings" element={<SellerSettingsPage />} />
             </Route>
 
-            {/* Normal Auth Pages */}
+
+
+            {/* USER AUTH */}
+
             <Route
               path="/login"
               element={
@@ -137,6 +196,7 @@ const App = () => {
                 )
               }
             />
+
             <Route
               path="/signup"
               element={
@@ -148,21 +208,29 @@ const App = () => {
               }
             />
 
-            {/* Protected Checkout Route */}
+
+
+            {/* CHECKOUT */}
+
             <Route
               path="/checkout"
-              element={isLoggedIn ? <CheckoutPage /> : <Navigate to="/login" replace />}
+              element={
+                isLoggedIn
+                  ? <CheckoutPage />
+                  : <Navigate to="/login" replace />
+              }
             />
 
-            {/* Protected Account Routes */}
+
+
+            {/* ACCOUNT */}
+
             <Route
               path="/account"
               element={
-                isLoggedIn ? (
-                  <AccountPage onSignOut={() => handleLoginStateChange(false)} />
-                ) : (
-                  <Navigate to="/login" replace />
-                )
+                isLoggedIn
+                  ? <AccountPage onSignOut={() => handleLoginStateChange(false)} />
+                  : <Navigate to="/login" replace />
               }
             >
               <Route index element={<AccountDashboard />} />
@@ -173,11 +241,17 @@ const App = () => {
               <Route path="email" element={<EmailAddress />} />
             </Route>
 
-            {/* Catch-all */}
+
+
+            {/* FALLBACK */}
+
             <Route path="*" element={<Navigate to="/" replace />} />
+
           </Routes>
         </Router>
+
       </div>
+
     </SellerAuthProvider>
   );
 };

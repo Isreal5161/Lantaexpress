@@ -1,40 +1,174 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   FaTachometerAlt,
   FaUsers,
   FaStore,
   FaTruck,
-  FaBoxOpen
+  FaBoxOpen,
+  FaChevronDown,
+  FaChevronRight
 } from "react-icons/fa";
 
 export default function Sidebar() {
+
+  const [openMenu, setOpenMenu] = useState(null);
+
+  const toggleMenu = (menu) => {
+    setOpenMenu(openMenu === menu ? null : menu);
+  };
+
   return (
     <div className="flex flex-col h-full">
 
       {/* Logo */}
       <div className="p-4 sm:p-5 border-b border-green-600">
-        <h1 className="text-lg sm:text-xl font-bold truncate">LantaExpress Admin</h1>
+        <h1 className="text-lg sm:text-xl font-bold truncate">
+          LantaExpress Admin
+        </h1>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 p-3 sm:p-4 space-y-2">
-        {[
-          { to: "/AdminPanel/dashboard", icon: <FaTachometerAlt />, label: "Dashboard" },
-          { to: "/AdminPanel/users", icon: <FaUsers />, label: "Users" },
-          { to: "/AdminPanel/sellers", icon: <FaStore />, label: "Sellers" },
-          { to: "/AdminPanel/products", icon: <FaBoxOpen />, label: "Products" },
-          { to: "/AdminPanel/logistics", icon: <FaTruck />, label: "Logistics" },
-        ].map((item) => (
-          <Link
-            key={item.to}
-            to={item.to}
-            className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 hover:bg-green-600 rounded"
+
+        {/* Dashboard */}
+        <Link
+          to="/AdminPanel/dashboard"
+          className="flex items-center gap-3 p-3 hover:bg-green-600 rounded"
+        >
+          <FaTachometerAlt />
+          <span>Dashboard</span>
+        </Link>
+
+        {/* USERS */}
+        <div>
+          <button
+            onClick={() => toggleMenu("users")}
+            className="flex items-center justify-between w-full p-3 hover:bg-green-600 rounded"
           >
-            <span className="text-sm sm:text-base">{item.icon}</span>
-            <span className="text-sm sm:text-base">{item.label}</span>
-          </Link>
-        ))}
+            <div className="flex items-center gap-3">
+              <FaUsers />
+              <span>Users</span>
+            </div>
+            {openMenu === "users" ? <FaChevronDown /> : <FaChevronRight />}
+          </button>
+
+          {openMenu === "users" && (
+            <div className="ml-8 mt-1 space-y-1">
+              <Link
+                to="/AdminPanel/users/orders"
+                className="block p-2 hover:bg-green-600 rounded"
+              >
+                User Orders
+              </Link>
+
+              <Link
+                to="/AdminPanel/users/tracking"
+                className="block p-2 hover:bg-green-600 rounded"
+              >
+                Trackings
+              </Link>
+            </div>
+          )}
+        </div>
+
+        {/* SELLERS */}
+        <div>
+          <button
+            onClick={() => toggleMenu("sellers")}
+            className="flex items-center justify-between w-full p-3 hover:bg-green-600 rounded"
+          >
+            <div className="flex items-center gap-3">
+              <FaStore />
+              <span>Sellers</span>
+            </div>
+            {openMenu === "sellers" ? <FaChevronDown /> : <FaChevronRight />}
+          </button>
+
+          {openMenu === "sellers" && (
+            <div className="ml-8 mt-1 space-y-1">
+
+              <Link
+                to="/AdminPanel/sellers"
+                className="block p-2 hover:bg-green-600 rounded"
+              >
+                All Sellers
+              </Link>
+
+              <Link
+                to="/AdminPanel/sellers/orders"
+                className="block p-2 hover:bg-green-600 rounded"
+              >
+                Seller Orders
+              </Link>
+
+              <Link
+                to="/AdminPanel/sellers/products"
+                className="block p-2 hover:bg-green-600 rounded"
+              >
+                Seller Products
+              </Link>
+
+              <Link
+                to="/AdminPanel/sellers/payments"
+                className="block p-2 hover:bg-green-600 rounded"
+              >
+                Seller Payments
+              </Link>
+
+              <Link
+                to="/AdminPanel/sellers/requests"
+                className="block p-2 hover:bg-green-600 rounded"
+              >
+                New Seller Requests
+              </Link>
+
+            </div>
+          )}
+        </div>
+
+        {/* PRODUCTS */}
+        <Link
+          to="/AdminPanel/products"
+          className="flex items-center gap-3 p-3 hover:bg-green-600 rounded"
+        >
+          <FaBoxOpen />
+          <span>Products</span>
+        </Link>
+
+        {/* LOGISTICS */}
+        <div>
+          <button
+            onClick={() => toggleMenu("logistics")}
+            className="flex items-center justify-between w-full p-3 hover:bg-green-600 rounded"
+          >
+            <div className="flex items-center gap-3">
+              <FaTruck />
+              <span>Logistics</span>
+            </div>
+            {openMenu === "logistics" ? <FaChevronDown /> : <FaChevronRight />}
+          </button>
+
+          {openMenu === "logistics" && (
+            <div className="ml-8 mt-1 space-y-1">
+
+              <Link
+                to="/AdminPanel/logistics/location"
+                className="block p-2 hover:bg-green-600 rounded"
+              >
+                Order Locations
+              </Link>
+
+              <Link
+                to="/AdminPanel/logistics/status"
+                className="block p-2 hover:bg-green-600 rounded"
+              >
+                Order Status Update
+              </Link>
+
+            </div>
+          )}
+        </div>
+
       </nav>
     </div>
   );
