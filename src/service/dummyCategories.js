@@ -154,7 +154,7 @@ export const categories = [
         brand: "TechMobile",
         stock: 30,
         price: 120000,
-        image: "https://www.3chub.com/cdn/shop/files/Infinix-Smart-10-Silver.jpg?v=1750179595&width=950",
+        image: "https://www.notebookcheck.net/fileadmin/Notebooks/Honor/10X_Lite/Honor_10X_Lite.jpg",
         category: "Phone/Device",
         description: "Compact smartphone with fast processor and long battery life."
       },
