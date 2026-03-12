@@ -6,12 +6,27 @@ import { Header } from "../components/header";
 import { Footer } from "../components/footer";
 import { useNavigate } from "react-router-dom";
 
-export const CheckoutPage = () => {
+// Helper for formatting currency dynamically
+const formatCurrency = (amount, currency = "NGN") => {
+  const currencySymbols = { NGN: "₦", USD: "$", EUR: "€" };
+  return `${currencySymbols[currency] || currency} ${amount.toLocaleString()}`;
+};
+
+// Optional: simple conversion rates
+const convertPrice = (amount, targetCurrency = "NGN") => {
+  const rates = { NGN: 1, USD: 0.0026, EUR: 0.0023 };
+  return amount * (rates[targetCurrency] || 1);
+};
+
+export const CheckoutPage = ({ userCurrency = "NGN" }) => {
   const { cartItems } = useCart();
   const navigate = useNavigate();
 
   // Calculate totals
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + convertPrice(item.price, userCurrency) * item.quantity,
+    0
+  );
   const shipping = 0; // Free shipping
   const tax = subtotal * 0.08;
   const total = subtotal + shipping + tax;
@@ -77,7 +92,7 @@ export const CheckoutPage = () => {
       <Header />
       <div className="pb-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 grid grid-cols-1 lg:grid-cols-12 gap-12">
-          
+
           {/* Shipping Address Form */}
           <div className="lg:col-span-7 bg-white border border-slate-200 rounded-lg p-6">
             <h2 className="text-lg font-bold text-slate-900 mb-4">Shipping Address</h2>
@@ -106,8 +121,7 @@ export const CheckoutPage = () => {
                 onChange={handleChange}
                 className="w-full border border-slate-300 rounded px-3 py-2"
               />
-              
-              {/* Responsive City + ZIP row */}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <input
                   type="text"
@@ -178,14 +192,14 @@ export const CheckoutPage = () => {
               {cartItems.map((item) => (
                 <div key={item.id} className="flex justify-between">
                   <Text>{item.name} x {item.quantity}</Text>
-                  <Text>${(item.price * item.quantity).toFixed(2)}</Text>
+                  <Text>{formatCurrency(convertPrice(item.price, userCurrency) * item.quantity, userCurrency)}</Text>
                 </div>
               ))}
             </div>
             <div className="border-t border-slate-200 mt-4 pt-4 space-y-2">
               <div className="flex justify-between text-slate-600">
                 <Text>Subtotal</Text>
-                <Text>${subtotal.toFixed(2)}</Text>
+                <Text>{formatCurrency(subtotal, userCurrency)}</Text>
               </div>
               <div className="flex justify-between text-slate-600">
                 <Text>Shipping</Text>
@@ -193,11 +207,11 @@ export const CheckoutPage = () => {
               </div>
               <div className="flex justify-between text-slate-600">
                 <Text>Tax</Text>
-                <Text>${tax.toFixed(2)}</Text>
+                <Text>{formatCurrency(tax, userCurrency)}</Text>
               </div>
               <div className="flex justify-between text-lg font-bold text-slate-900">
                 <Text>Total</Text>
-                <Text>${total.toFixed(2)}</Text>
+                <Text>{formatCurrency(total, userCurrency)}</Text>
               </div>
             </div>
 

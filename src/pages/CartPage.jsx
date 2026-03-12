@@ -10,23 +10,37 @@ import { FaPaypal, FaCreditCard } from 'react-icons/fa';
 import { SiVisa, SiMastercard } from 'react-icons/si';
 import { useNavigate } from "react-router-dom";
 
-export const CartPage = () => {
+// Helper for formatting currency dynamically
+const formatCurrency = (amount, currency = "NGN") => {
+  const currencySymbols = { NGN: "₦", USD: "$", EUR: "€" };
+  return `${currencySymbols[currency] || currency} ${amount.toLocaleString()}`;
+};
+
+// Optional: simple conversion rates
+const convertPrice = (amount, targetCurrency = "NGN") => {
+  const rates = { NGN: 1, USD: 0.0026, EUR: 0.0023 };
+  return amount * (rates[targetCurrency] || 1);
+};
+
+export const CartPage = ({ userCurrency = "NGN" }) => {
   const { cartItems, removeFromCart, increaseQuantity, decreaseQuantity } = useCart();
   const navigate = useNavigate();
 
-  // Totals
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shipping = 0; 
-  const tax = subtotal * 0.08; 
+  // Totals with currency conversion
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + convertPrice(item.price, userCurrency) * item.quantity,
+    0
+  );
+  const shipping = 0;
+  const tax = subtotal * 0.08;
   const total = subtotal + shipping + tax;
 
   const handleCheckout = () => {
-    // Use the same key your App.jsx uses for login
     const user = localStorage.getItem("user"); 
     if (!user) {
-      navigate("/login"); // redirect if not signed in
+      navigate("/login");
     } else {
-      navigate("/checkout"); // go to checkout
+      navigate("/checkout");
     }
   };
 
@@ -71,7 +85,10 @@ export const CartPage = () => {
                               </p>
                             </div>
                             <p className="text-lg font-bold text-slate-900">
-                              ${(item.price * item.quantity).toFixed(2)}
+                              {formatCurrency(
+                                convertPrice(item.price, userCurrency) * item.quantity,
+                                userCurrency
+                              )}
                             </p>
                           </div>
 
@@ -120,7 +137,7 @@ export const CartPage = () => {
                     <>
                       <div className="flex justify-between text-slate-600">
                         <Text>Subtotal</Text>
-                        <Text>${subtotal.toFixed(2)}</Text>
+                        <Text>{formatCurrency(subtotal, userCurrency)}</Text>
                       </div>
                       <div className="flex justify-between text-slate-600">
                         <Text>Shipping</Text>
@@ -128,11 +145,11 @@ export const CartPage = () => {
                       </div>
                       <div className="flex justify-between text-slate-600">
                         <Text>Tax</Text>
-                        <Text>${tax.toFixed(2)}</Text>
+                        <Text>{formatCurrency(tax, userCurrency)}</Text>
                       </div>
                       <div className="border-t border-slate-200 pt-4 flex justify-between text-lg font-bold text-slate-900">
                         <Text>Total</Text>
-                        <Text>${total.toFixed(2)}</Text>
+                        <Text>{formatCurrency(total, userCurrency)}</Text>
                       </div>
                     </>
                   )}

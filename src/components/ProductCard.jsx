@@ -6,7 +6,19 @@ import { ShoppingCart } from "lucide-react";
 import { useCart } from "../context/CartContextTemp";
 import { useCartButton } from "../context/CartButtonContext";
 
-export const ProductCard = ({ product }) => {
+// Helper for formatting currency dynamically
+const formatCurrency = (amount, currency = "NGN") => {
+  const currencySymbols = { NGN: "₦", USD: "$", EUR: "€" };
+  return `${currencySymbols[currency] || currency} ${amount.toLocaleString()}`;
+};
+
+// Optional: simple conversion rates
+const convertPrice = (amount, targetCurrency = "NGN") => {
+  const rates = { NGN: 1, USD: 0.0026, EUR: 0.0023 };
+  return amount * (rates[targetCurrency] || 1);
+};
+
+export const ProductCard = ({ product, userCurrency = "NGN" }) => {
   const { cartItems, addToCart, removeFromCart } = useCart();
   const { visibleProductId, showCartForProduct, hideCart } = useCartButton();
   const cardRef = useRef(null);
@@ -15,46 +27,28 @@ export const ProductCard = ({ product }) => {
   const [isInCart, setIsInCart] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
 
-  // Detect touch device once
   const isTouchDevice = useRef(
     "ontouchstart" in window || navigator.maxTouchPoints > 0
   ).current;
 
-  // Update cart state
   useEffect(() => {
-    const inCart = cartItems.some((item) => item.id === product.id);
-    setIsInCart(inCart);
+    setIsInCart(cartItems.some((item) => item.id === product.id));
   }, [cartItems, product.id]);
 
-  // Handle outside click ONLY when this card is active
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (!cardRef.current) return;
-
-      if (!cardRef.current.contains(event.target)) {
-        hideCart();
-      }
+      if (!cardRef.current.contains(event.target)) hideCart();
     };
-
-    if (visibleProductId === product.id) {
+    if (visibleProductId === product.id)
       document.addEventListener("click", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
-    };
+    return () => document.removeEventListener("click", handleClickOutside);
   }, [visibleProductId, product.id, hideCart]);
 
   const handleCartToggle = (e) => {
     e.preventDefault();
     e.stopPropagation();
-
-    if (isInCart) {
-      removeFromCart(product.id);
-    } else {
-      addToCart(product);
-    }
-
+    isInCart ? removeFromCart(product.id) : addToCart(product);
     showCartForProduct(product.id);
   };
 
@@ -67,6 +61,8 @@ export const ProductCard = ({ product }) => {
   };
 
   const isCartVisible = showButton || visibleProductId === product.id;
+
+  const price = formatCurrency(convertPrice(product.price, userCurrency), userCurrency);
 
   return (
     <div
@@ -85,19 +81,23 @@ export const ProductCard = ({ product }) => {
             alt={product.name}
           />
 
+          {/* Cart Button */}
           <button
             onClick={handleCartToggle}
             className={`absolute bottom-3 right-3 p-3 rounded-full shadow-md transform hover:scale-110 transition-all duration-300 
               ${isCartVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}
-              ${
-                isInCart
-                  ? "bg-green-600 text-white animate-pulse"
-                  : "bg-white text-slate-700 hover:bg-green-100"
-              }
+              ${isInCart ? "bg-green-600 text-white animate-pulse" : "bg-white text-slate-700 hover:bg-green-100"}
             `}
           >
             <ShoppingCart size={18} />
           </button>
+
+          {/* Pending badge */}
+          {product.status === "pending" && (
+            <div className="absolute top-3 left-3 bg-yellow-400 text-xs font-semibold px-2 py-1 rounded-full">
+              Pending
+            </div>
+          )}
         </div>
       </Link>
 
@@ -114,35 +114,18 @@ export const ProductCard = ({ product }) => {
       </div>
 
       <div className="px-2 py-3 relative">
-        <h3 className="text-sm text-slate-700 font-medium line-clamp-2">
-          {product.name}
-        </h3>
-
-        <p className="text-xs text-gray-500 mt-1">
-          Brand: {product.brand}
-        </p>
-
-        <p className="mt-1 text-base font-semibold text-slate-900">
-          ${product.price.toFixed(2)}
-        </p>
-
-        <p
-          className={`text-xs mt-1 font-medium ${
-            product.stock > 0 ? "text-green-600" : "text-red-600"
-          }`}
-        >
-          {product.stock > 0
-            ? `In stock: ${product.stock}`
-            : "Out of stock"}
+        <h3 className="text-sm text-slate-700 font-medium line-clamp-2">{product.name}</h3>
+        <p className="text-xs text-gray-500 mt-1">Brand: {product.brand}</p>
+        <p className="mt-1 text-base font-semibold text-slate-900">{price}</p>
+        <p className={`text-xs mt-1 font-medium ${product.stock > 0 ? "text-green-600" : "text-red-600"}`}>
+          {product.stock > 0 ? `In stock: ${product.stock}` : "Out of stock"}
         </p>
 
         {product.stock > 0 && (
           <div className="w-full bg-gray-200 h-2 rounded-full mt-1">
             <div
               className="h-2 rounded-full bg-green-500 transition-all"
-              style={{
-                width: `${Math.min((product.stock / 50) * 100, 100)}%`,
-              }}
+              style={{ width: `${Math.min((product.stock / 50) * 100, 100)}%` }}
             />
           </div>
         )}

@@ -13,7 +13,7 @@ export const categories = [
         name: "Wireless Headphones",
         brand: "SoundMax",
         stock: 25,
-        price: 120, 
+        price: 1200, 
         image: "https://m.media-amazon.com/images/I/51aHcGncblL._AC_UF894%2C1000_QL80_.jpg", 
         category: "Electronics",
         description: "High-quality wireless headphones with noise-cancellation and long battery life."
@@ -23,7 +23,7 @@ export const categories = [
         name: "Smart Watch",
         brand: "TechTime",
         stock: 15,
-        price: 250, 
+        price: 2500, 
         image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80", 
         category: "Electronics",
         description: "Smart watch with fitness tracking, notifications, and customizable watch faces."
@@ -33,7 +33,7 @@ export const categories = [
         name: "Laptop",
         brand: "DiaTech", 
         stock: 10,
-        price: 900, 
+        price: 90000, 
         image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=500&q=80", 
         category: "Electronics",
         description: "High-performance laptop suitable for work, gaming, and multimedia use."
@@ -53,7 +53,7 @@ export const categories = [
         name: "Designer Handbag",
         brand: "Sewa's Collection", 
         stock: 20,
-        price: 180, 
+        price: 18000, 
         image: "https://png.pngtree.com/png-clipart/20241023/original/pngtree-a-white-purse-with-ruffled-handle-on-transparent-background-png-image_16469053.png", 
         category: "Fashion",
         description: "Stylish designer handbag made of premium materials for everyday use."
@@ -63,7 +63,7 @@ export const categories = [
         name: "Lip Gloss Set", 
         brand: "GlowBeauty",
         stock: 30,
-        price: 100, 
+        price: 1000, 
         image: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=500&q=80", 
         category: "Fashion",
         description: "Set of high-quality lip glosses in various trendy shades."
@@ -73,7 +73,7 @@ export const categories = [
         name: "Coats", 
         brand: "Sewa's Collection",
         stock: 25,
-        price: 80, 
+        price: 8000, 
         image: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=500&q=80", 
         category: "Fashion",
         description: "Warm and stylish coats perfect for cold weather."
@@ -93,7 +93,7 @@ export const categories = [
         name: "Sofa",
         brand: "ComfortHome",
         stock: 5, 
-        price: 350, 
+        price: 35000, 
         image: "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=500&q=80", 
         category: "Home & Living",
         description: "Comfortable and stylish sofa perfect for living rooms and lounges."
@@ -103,7 +103,7 @@ export const categories = [
         name: "Lamp",
         brand: "BrightLiving",
         stock: 10, 
-        price: 60, 
+        price: 3000, 
         image: "https://m.media-amazon.com/images/I/61K5lO4yQVL._AC_UF894%2C1000_QL80_.jpg", 
         category: "Home & Living",
         description: "Modern lamp with adjustable brightness for study, office, or bedroom use."
@@ -123,7 +123,7 @@ export const categories = [
         name: "Fertilizer Bag",
         brand: "SolaFarms",
         stock: 25,
-        price: 40,
+        price: 40000,
         image: "https://shopsource.singoo.cc/1109/general/ZyRm67yCZWQ4JJwW.webp",
         category: "Agriculture & Livestocks",
         description: "High-nutrient fertilizer bag to enhance crop growth and yield."
@@ -133,7 +133,7 @@ export const categories = [
         name: "Tractor Model",
         brand: "SolarFarms",
         stock: 5,
-        price: 1500,
+        price: 15000000,
         image: "https://www.fpeseals.com/uploads/images/tractor-agricultural-machine-cultivating-field.jpg",
         category: "Agriculture & Livestocks",
         description: "Reliable tractor suitable for all types of farming and cultivation."
@@ -153,7 +153,7 @@ export const categories = [
         name: "Smartphone",
         brand: "TechMobile",
         stock: 30,
-        price: 60,
+        price: 120000,
         image: "https://www.3chub.com/cdn/shop/files/Infinix-Smart-10-Silver.jpg?v=1750179595&width=950",
         category: "Phone/Device",
         description: "Compact smartphone with fast processor and long battery life."
@@ -163,7 +163,7 @@ export const categories = [
         name: "Tablet",
         brand: "TechMobile",
         stock: 20,
-        price: 250,
+        price: 250000,
         image: "https://m.media-amazon.com/images/I/61kfL%2BGcXBL.jpg",
         category: "Phone/Device",
         description: "Large-screen tablet suitable for work and entertainment."
@@ -173,7 +173,7 @@ export const categories = [
         name: "Tecno Spark 40 Pro+",
         brand: "Tecno",
         stock: 15,
-        price: 150,
+        price: 101000,
         image: "https://d13pvy8xd75yde.cloudfront.net/global/spark-40-pro-%2B/KM7%20%E9%BB%91.png",
         category: "Phone/Device",
         description: "High-performance Tecno Spark 40 Pro+ with excellent camera features."
@@ -183,7 +183,7 @@ export const categories = [
         name: "Tablet Model",
         brand: "TechMobile",
         stock: 10,
-        price: 200,
+        price: 150000,
         image: "https://paykobo.com/media/q1.jpg",
         category: "Phone/Device",
         description: "Affordable tablet model for students and professionals."
@@ -193,7 +193,7 @@ export const categories = [
         name: "Spark 20 Pro",
         brand: "Tecno",
         stock: 20,
-        price: 200,
+        price: 200100,
         image: "https://d13pvy8xd75yde.cloudfront.net/global/nga/banner/camon-40/mob%E5%B0%81%E9%9D%A2.png",
         category: "Phone/Device",
         description: "Tecno Spark 20 Pro with sleek design and powerful performance."
@@ -213,7 +213,7 @@ export const categories = [
         name: "Golden Veil Perfume",
         brand: "Sewa's Collection",
         stock: 20,
-        price: 25,
+        price: 25000,
         image: "https://png.pngtree.com/png-clipart/20240907/original/pngtree-perfumes-and-gels-nail-polish-cosmetics-product-png-image_15957200.png",
         category: "Perfumes & Cosmetics",
         description: "Luxurious golden veil perfume with long-lasting fragrance."
@@ -223,7 +223,7 @@ export const categories = [
         name: "Cosmetic Tablet",
         brand: "Sewa's Collection",
         stock: 15,
-        price: 21,
+        price: 21000,
         image: "https://png.pngtree.com/png-clipart/20240907/original/pngtree-perfumes-and-gels-nail-polish-cosmetics-product-png-image_15957201.png",
         category: "Perfumes & Cosmetics",
         description: "Large-screen tablet suitable for work and entertainment."
@@ -233,7 +233,7 @@ export const categories = [
         name: "Crystal Desire Perfume",
         brand: "Sewa's Collection",
         stock: 10,
-        price: 15,
+        price: 12600,
         image: "https://png.pngtree.com/png-vector/20260109/ourlarge/pngtree-cosmetic-products-display-on-a-clean-white-background-png-image_18459288.webp",
         category: "Perfumes & Cosmetics",
         description: "High-performance crystal desire perfume with long-lasting fragrance."
@@ -243,7 +243,7 @@ export const categories = [
         name: "Opal whisper Perfume",
         brand: "Sewa's Collection",
         stock: 5,
-        price: 30,
+        price: 15000,
         image: "perfumes.jpg",
         category: "Perfumes & Cosmetics",
         description: "Fragrant and elegant perfume with a long-lasting scent."
@@ -253,7 +253,7 @@ export const categories = [
         name: "Rose Bloom Perfume",
         brand: "Sewa's Collection",
         stock: 8,
-        price: 32,
+        price: 3200,
         image: "valentines-day-still-life-design.jpg",
         category: "Perfumes & Cosmetics",
         description: "Elegant rose bloom perfume with a romantic and long-lasting scent."

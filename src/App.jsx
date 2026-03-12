@@ -45,7 +45,6 @@ import Users from "./AdminPanel/pages/Users";
 import Sellers from "./AdminPanel/pages/Sellers";
 import Products from "./AdminPanel/pages/Products";
 import Logistics from "./AdminPanel/pages/Logistics";
-
 import SellerDetailPage from "./AdminPanel/components/SellerDetails";
 
 // Admin Submenu Pages
@@ -59,37 +58,32 @@ import SellerRequests from "./AdminPanel/pages/SellerRequests";
 
 import OrderLocations from "./AdminPanel/pages/OrderLocations";
 import OrderStatusUpdate from "./AdminPanel/pages/OrderStatusUpdate";
+import SellerOrders from "./AdminPanel/pages/SellerOrders";
 
 // Context & Routes
 import { SellerAuthProvider } from "./context/SellerAuthContext";
 import ProtectedSellerRoute from "./routes/ProtectedSellerRoute";
 
 const App = () => {
-
   const [showSplash, setShowSplash] = useState(false);
 
-  // Normal user login state
   const getIsLoggedIn = () => !!localStorage.getItem("user");
   const [isLoggedIn, setIsLoggedIn] = useState(getIsLoggedIn());
 
   useEffect(() => {
     const hasVisited = localStorage.getItem("hasVisited");
-
     if (!hasVisited) {
       setShowSplash(true);
-
       const timer = setTimeout(() => {
         setShowSplash(false);
         localStorage.setItem("hasVisited", "true");
       }, 3000);
-
       return () => clearTimeout(timer);
     }
   }, []);
 
   const handleLoginStateChange = (loggedIn, userData) => {
     setIsLoggedIn(loggedIn);
-
     if (loggedIn) {
       localStorage.setItem("user", JSON.stringify(userData));
     } else {
@@ -99,8 +93,6 @@ const App = () => {
 
   return (
     <SellerAuthProvider>
-
-      {/* Splash Screen */}
       {showSplash && (
         <div className="fixed inset-0 flex items-center justify-center bg-green-700 z-50">
           <img src="/homescreenlogo.png" alt="LantaXpress Logo" className="w-48 h-48" />
@@ -108,14 +100,11 @@ const App = () => {
       )}
 
       <div style={{ visibility: showSplash ? "hidden" : "visible" }}>
-
         <Router>
           <ScrollToTop />
-
           <Routes>
 
             {/* PUBLIC PAGES */}
-
             <Route path="/" element={<IndexPage />} />
             <Route path="/shop" element={<ShopPage />} />
             <Route path="/product/:id" element={<ProductPage />} />
@@ -124,10 +113,7 @@ const App = () => {
             <Route path="/track" element={<TrackorderPage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
 
-
-
             {/* ADMIN PANEL ROUTES */}
-
             <Route path="/AdminPanel/dashboard" element={<Dashboard />} />
 
             {/* USERS */}
@@ -138,6 +124,13 @@ const App = () => {
             {/* SELLERS */}
             <Route path="/AdminPanel/sellers" element={<Sellers />} />
             <Route path="/AdminPanel/sellers/orders" element={<SellerOrdersAdmin />} />
+
+            {/* BRAND ORDERS DETAILS - using sellerBrand */}
+            <Route
+              path="/AdminPanel/sellers/orders/:sellerBrand"
+              element={<SellerOrders />}
+            />
+
             <Route path="/AdminPanel/sellers/products" element={<SellerProductsAdmin />} />
             <Route path="/AdminPanel/sellers/payments" element={<SellerPayments />} />
             <Route path="/AdminPanel/sellers/requests" element={<SellerRequests />} />
@@ -154,17 +147,11 @@ const App = () => {
             <Route path="/AdminPanel/logistics/location" element={<OrderLocations />} />
             <Route path="/AdminPanel/logistics/status" element={<OrderStatusUpdate />} />
 
-
-
             {/* SELLER AUTH */}
-
             <Route path="/seller-login" element={<SellerLogin />} />
             <Route path="/seller-signup" element={<SellerSignup />} />
 
-
-
             {/* SELLER DASHBOARD */}
-
             <Route
               path="/seller-dashboard/*"
               element={
@@ -182,10 +169,7 @@ const App = () => {
               <Route path="settings" element={<SellerSettingsPage />} />
             </Route>
 
-
-
             {/* USER AUTH */}
-
             <Route
               path="/login"
               element={
@@ -196,7 +180,6 @@ const App = () => {
                 )
               }
             />
-
             <Route
               path="/signup"
               element={
@@ -208,29 +191,21 @@ const App = () => {
               }
             />
 
-
-
             {/* CHECKOUT */}
-
             <Route
               path="/checkout"
-              element={
-                isLoggedIn
-                  ? <CheckoutPage />
-                  : <Navigate to="/login" replace />
-              }
+              element={isLoggedIn ? <CheckoutPage /> : <Navigate to="/login" replace />}
             />
 
-
-
             {/* ACCOUNT */}
-
             <Route
               path="/account"
               element={
-                isLoggedIn
-                  ? <AccountPage onSignOut={() => handleLoginStateChange(false)} />
-                  : <Navigate to="/login" replace />
+                isLoggedIn ? (
+                  <AccountPage onSignOut={() => handleLoginStateChange(false)} />
+                ) : (
+                  <Navigate to="/login" replace />
+                )
               }
             >
               <Route index element={<AccountDashboard />} />
@@ -241,17 +216,11 @@ const App = () => {
               <Route path="email" element={<EmailAddress />} />
             </Route>
 
-
-
             {/* FALLBACK */}
-
             <Route path="*" element={<Navigate to="/" replace />} />
-
           </Routes>
         </Router>
-
       </div>
-
     </SellerAuthProvider>
   );
 };

@@ -1,13 +1,184 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import AdminLayout from "../Layout/AdminLayout";
+import { categories } from "../../service/dummyCategories";
+import { FaEdit, FaTrash, FaArrowRight } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 export default function SellerProductsAdmin() {
+  const [products, setProducts] = useState([]);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [formData, setFormData] = useState({
+    name: "",
+    brand: "",
+    category: "",
+    stock: 0,
+    price: 0,
+  });
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const allProducts = categories.flatMap((cat) => cat.products);
+    setProducts(allProducts);
+  }, []);
+
+  const handleEditClick = (product) => {
+    setEditingProduct(product);
+    setFormData({
+      name: product.name,
+      brand: product.brand,
+      category: product.category,
+      stock: product.stock,
+      price: product.price,
+    });
+  };
+
+  const handleDelete = (productId) => {
+    if (window.confirm("Are you sure you want to delete this product?")) {
+      setProducts((prev) => prev.filter((p) => p.id !== productId));
+    }
+  };
+
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "stock" || name === "price" ? Number(value) : value,
+    }));
+  };
+
+  const handleSave = () => {
+    setProducts((prev) =>
+      prev.map((p) => (p.id === editingProduct.id ? { ...p, ...formData } : p))
+    );
+    setEditingProduct(null);
+  };
+
+  const handleCancel = () => setEditingProduct(null);
+
   return (
     <AdminLayout>
-      <h1 className="text-2xl font-bold mb-4">Seller Products</h1>
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold text-slate-800">Seller Products</h1>
+        <p className="text-sm text-gray-500">
+          Products uploaded by sellers are displayed here. Admin can edit, delete, or view orders for any product.
+        </p>
 
-      <div className="bg-white p-6 rounded-lg shadow">
-        <p>Products uploaded by sellers will appear here.</p>
+        {products.length === 0 ? (
+          <p className="text-gray-500 mt-6">No products available.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+            {products.map((product) => (
+              <div
+                key={product.id}
+                className="bg-white border rounded-xl shadow hover:shadow-lg transition overflow-hidden"
+              >
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="w-full h-48 object-cover"
+                />
+                <div className="p-4 space-y-2">
+                  <h2 className="text-lg font-semibold text-slate-800">{product.name}</h2>
+                  <p className="text-sm text-gray-500">Brand: {product.brand}</p>
+                  <p className="text-sm text-gray-500">Category: {product.category}</p>
+                  <p className="text-sm text-gray-500">Stock: {product.stock}</p>
+                  <p className="text-sm font-medium text-green-600">₦{product.price}</p>
+
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    <button
+                      onClick={() => handleEditClick(product)}
+                      className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                    >
+                      <FaEdit /> Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(product.id)}
+                      className="flex items-center gap-1 px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+                    >
+                      <FaTrash /> Delete
+                    </button>
+                    <button
+                      onClick={() =>
+                        navigate(`/AdminPanel/sellers/orders/${encodeURIComponent(product.brand)}`)
+                      }
+                      className="flex items-center gap-1 px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+                    >
+                      <FaArrowRight /> View Orders
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Edit Modal */}
+        {editingProduct && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="bg-white p-6 rounded-lg w-96">
+              <h2 className="text-xl font-semibold mb-4">Edit Product</h2>
+
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Product Name"
+                  value={formData.name}
+                  onChange={handleFormChange}
+                  className="w-full border rounded px-3 py-2"
+                />
+                <input
+                  type="text"
+                  name="brand"
+                  placeholder="Brand"
+                  value={formData.brand}
+                  onChange={handleFormChange}
+                  className="w-full border rounded px-3 py-2"
+                />
+                <input
+                  type="text"
+                  name="category"
+                  placeholder="Category"
+                  value={formData.category}
+                  onChange={handleFormChange}
+                  className="w-full border rounded px-3 py-2"
+                />
+                <input
+                  type="number"
+                  name="stock"
+                  placeholder="Stock"
+                  value={formData.stock}
+                  onChange={handleFormChange}
+                  className="w-full border rounded px-3 py-2"
+                />
+                <input
+                  type="number"
+                  name="price"
+                  placeholder="Price"
+                  value={formData.price}
+                  onChange={handleFormChange}
+                  className="w-full border rounded px-3 py-2"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 mt-4">
+                <button
+                  onClick={handleCancel}
+                  className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </AdminLayout>
   );
