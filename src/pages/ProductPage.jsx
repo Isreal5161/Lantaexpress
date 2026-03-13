@@ -112,7 +112,7 @@ export const ProductPage = () => {
     </div>
     <Text className="ml-2 text-sm text-slate-500">{product.reviews || 0} reviews</Text>
   </div>
-  <p className="text-2xl font-bold text-slate-900 mb-6">${product.price}</p>
+  <p className="text-2xl font-bold text-slate-900 mb-6">₦{product.price}</p>
 
 {/* Quantity + Long Rectangular Cart Icon Button */}
 <div className="flex items-center gap-3 mb-6">

@@ -1,3 +1,4 @@
+// src/pages/CartPage.jsx
 import React from 'react';
 import { useCart } from '../context/CartContextTemp';
 import { Button } from '../components/Button';
@@ -26,7 +27,6 @@ export const CartPage = ({ userCurrency = "NGN" }) => {
   const { cartItems, removeFromCart, increaseQuantity, decreaseQuantity } = useCart();
   const navigate = useNavigate();
 
-  // Totals with currency conversion
   const subtotal = cartItems.reduce(
     (sum, item) => sum + convertPrice(item.price, userCurrency) * item.quantity,
     0
@@ -36,12 +36,27 @@ export const CartPage = ({ userCurrency = "NGN" }) => {
   const total = subtotal + shipping + tax;
 
   const handleCheckout = () => {
-    const user = localStorage.getItem("user"); 
-    if (!user) {
+    const userRaw = localStorage.getItem("user");
+    let user = null;
+
+    if (!userRaw) {
       navigate("/login");
-    } else {
-      navigate("/checkout");
+      return;
     }
+
+    try {
+      user = JSON.parse(userRaw);
+      if (!user || typeof user !== "object") user = { email: userRaw };
+    } catch {
+      user = { email: userRaw };
+    }
+
+    localStorage.setItem(
+      "checkoutData",
+      JSON.stringify({ user, cartItems, subtotal, shipping, tax, total })
+    );
+
+    navigate("/checkout");
   };
 
   return (
@@ -55,7 +70,6 @@ export const CartPage = ({ userCurrency = "NGN" }) => {
           </h1>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-            {/* Cart Items */}
             <div className="lg:col-span-8">
               <div className="bg-white border border-slate-200 overflow-hidden">
                 <ul className="divide-y divide-slate-200">
@@ -125,7 +139,6 @@ export const CartPage = ({ userCurrency = "NGN" }) => {
               </div>
             </div>
 
-            {/* Order Summary */}
             <div className="lg:col-span-4">
               <div className="bg-slate-50 rounded-lg p-6 border border-slate-200 sticky top-24">
                 <h2 className="text-lg font-bold text-slate-900 mb-6">Order Summary</h2>
@@ -155,7 +168,6 @@ export const CartPage = ({ userCurrency = "NGN" }) => {
                   )}
                 </div>
 
-                {/* Proceed to Checkout */}
                 {cartItems.length > 0 && (
                   <Button
                     variant="primary"
@@ -166,7 +178,6 @@ export const CartPage = ({ userCurrency = "NGN" }) => {
                   </Button>
                 )}
 
-                {/* Payment Icons */}
                 <div className="mt-6 text-center">
                   <p className="text-xs text-slate-500 mb-2">We accept</p>
                   <div className="flex justify-center gap-3 text-2xl text-slate-700 opacity-80">
@@ -178,6 +189,7 @@ export const CartPage = ({ userCurrency = "NGN" }) => {
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </div>

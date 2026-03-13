@@ -1,44 +1,60 @@
 // src/AdminPanel/pages/UserOrders.jsx
+
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../Layout/AdminLayout";
 import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
+
+// Define possible order statuses (sync with UserTracking)
+const orderStages = [
+  "Pending",
+  "Approved",
+  "Picked Up",
+  "Shipped",
+  "In Transit",
+  "Out for Delivery",
+  "Delivered",
+];
 
 export default function UserOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Sample mock data for now
-  const sampleOrders = [
-    {
-      id: "ORD001",
-      userName: "John Doe",
-      productName: "Wireless Earbuds",
-      brand: "SoundMax",
-      price: 49.99,
-      quantity: 2,
-      status: "pending",
-      description: "Gift for friend",
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: "ORD002",
-      userName: "Mary Jane",
-      productName: "Smartwatch",
-      brand: "TimePro",
-      price: 120.0,
-      quantity: 1,
-      status: "completed",
-      description: "Birthday purchase",
-      createdAt: new Date().toISOString(),
-    },
-  ];
+  // Load orders from localStorage
+  const loadOrders = () => {
+    const savedOrders = JSON.parse(localStorage.getItem("user_orders")) || [];
+    setOrders(savedOrders);
+  };
 
   useEffect(() => {
-    setTimeout(() => {
-      setOrders(sampleOrders);
-      setLoading(false);
-    }, 500);
+    loadOrders();
+    setLoading(false);
+
+    // Listen to localStorage changes (from UserTracking or other tabs)
+    const handleStorageChange = (e) => {
+      if (e.key === "user_orders") {
+        loadOrders();
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
+
+  // Update order status
+  const updateStatus = (orderId, newStatus) => {
+    const updatedOrders = orders.map((order) =>
+      order.id === orderId ? { ...order, status: newStatus } : order
+    );
+    setOrders(updatedOrders);
+    localStorage.setItem("user_orders", JSON.stringify(updatedOrders));
+  };
+
+  // Helper for status badge colors
+  const statusColor = (status) => {
+    if (status === "Delivered") return "bg-green-100 text-green-700";
+    if (status === "Shipped" || status === "Out for Delivery")
+      return "bg-blue-100 text-blue-700";
+    return "bg-yellow-100 text-yellow-700";
+  };
 
   return (
     <AdminLayout>
@@ -48,7 +64,7 @@ export default function UserOrders() {
         <p>Loading orders...</p>
       ) : orders.length === 0 ? (
         <div className="bg-red-100 text-red-700 p-4 rounded-lg">
-          ⚠️ No orders available yet. Backend not connected.
+          ⚠️ No orders available yet.
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -80,7 +96,9 @@ export default function UserOrders() {
 
               <div className="flex justify-between">
                 <span className="text-sm text-slate-500">Price</span>
-                <span className="font-medium">${order.price.toFixed(2)}</span>
+                <span className="font-medium">
+                  ${order.price ? order.price.toFixed(2) : "N/A"}
+                </span>
               </div>
 
               <div className="flex justify-between">
@@ -88,22 +106,20 @@ export default function UserOrders() {
                 <span className="font-medium">{order.quantity}</span>
               </div>
 
-              <div className="flex justify-between items-center">
+              {/* Status Dropdown */}
+              <div className="flex flex-col gap-2 mt-2">
                 <span className="text-sm text-slate-500">Status</span>
-                <span
-                  className={`px-2 py-1 text-xs rounded flex items-center gap-1 ${
-                    order.status === "completed"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-yellow-100 text-yellow-700"
-                  }`}
+                <select
+                  value={order.status}
+                  onChange={(e) => updateStatus(order.id, e.target.value)}
+                  className={`w-full border p-2 rounded text-sm ${statusColor(
+                    order.status
+                  )}`}
                 >
-                  {order.status === "completed" ? (
-                    <FaCheckCircle />
-                  ) : (
-                    <FaTimesCircle />
-                  )}
-                  {order.status}
-                </span>
+                  {orderStages.map((stage) => (
+                    <option key={stage}>{stage}</option>
+                  ))}
+                </select>
               </div>
 
               <div className="flex justify-between">
@@ -114,18 +130,10 @@ export default function UserOrders() {
               <div className="flex justify-between">
                 <span className="text-sm text-slate-500">Date</span>
                 <span className="text-sm">
-                  {new Date(order.createdAt).toLocaleDateString()}
+                  {order.createdAt
+                    ? new Date(order.createdAt).toLocaleDateString()
+                    : "N/A"}
                 </span>
-              </div>
-
-              {/* Actions (Optional) */}
-              <div className="flex gap-2 mt-3">
-                <button className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 text-sm">
-                  View
-                </button>
-                <button className="flex-1 bg-gray-600 text-white py-2 rounded hover:bg-gray-700 text-sm">
-                  Delete
-                </button>
               </div>
             </div>
           ))}

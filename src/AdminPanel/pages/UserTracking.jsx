@@ -1,49 +1,59 @@
 // src/AdminPanel/pages/UserTracking.jsx
+
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../Layout/AdminLayout";
-import { FaShippingFast, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
+import { FaShippingFast, FaCheckCircle } from "react-icons/fa";
+
+// Define possible order statuses
+const orderStages = [
+  "Pending",
+  "Approved",
+  "Picked Up",
+  "Shipped",
+  "In Transit",
+  "Out for Delivery",
+  "Delivered",
+];
 
 export default function UserTracking() {
   const [trackingOrders, setTrackingOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Sample mock data
-  const sampleTrackingOrders = [
-    {
-      id: "ORD001",
-      userName: "John Doe",
-      contact: "john@example.com",
-      productName: "Wireless Earbuds",
-      brand: "SoundMax",
-      quantity: 2,
-      status: "In Transit",
-      expectedDelivery: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days later
-    },
-    {
-      id: "ORD002",
-      userName: "Mary Jane",
-      contact: "mary@example.com",
-      productName: "Smartwatch",
-      brand: "TimePro",
-      quantity: 1,
-      status: "Shipped",
-      expectedDelivery: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-  ];
-
-  useEffect(() => {
-    setTimeout(() => {
-      setTrackingOrders(sampleTrackingOrders);
-      setLoading(false);
-    }, 500);
-  }, []);
-
-  const updateStatus = (orderId) => {
-    alert(`Update status for order ${orderId} (backend integration coming soon)`);
+  // Load orders from localStorage or fallback to sample data
+  const loadOrders = () => {
+    const savedOrders = JSON.parse(localStorage.getItem("user_orders")) || [];
+    setTrackingOrders(savedOrders);
   };
 
-  const sendNotification = (orderId) => {
-    alert(`Send notification to user for order ${orderId}`);
+  useEffect(() => {
+    loadOrders();
+    setLoading(false);
+
+    // Listen to localStorage updates from other tabs/pages
+    const handleStorageChange = (e) => {
+      if (e.key === "user_orders") {
+        loadOrders();
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
+  // Update order status
+  const updateStatus = (orderId, newStatus) => {
+    const updatedOrders = trackingOrders.map((order) =>
+      order.id === orderId ? { ...order, status: newStatus } : order
+    );
+    setTrackingOrders(updatedOrders);
+    localStorage.setItem("user_orders", JSON.stringify(updatedOrders));
+  };
+
+  // Helper for status badge colors
+  const statusColor = (status) => {
+    if (status === "Delivered") return "bg-green-100 text-green-700";
+    if (status === "Shipped" || status === "Out for Delivery")
+      return "bg-blue-100 text-blue-700";
+    return "bg-yellow-100 text-yellow-700";
   };
 
   return (
@@ -94,43 +104,28 @@ export default function UserTracking() {
                 <span className="font-medium">{order.quantity}</span>
               </div>
 
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col gap-2 mt-2">
                 <span className="text-sm text-slate-500">Status</span>
-                <span
-                  className={`px-2 py-1 text-xs rounded flex items-center gap-1 ${
-                    order.status === "Delivered"
-                      ? "bg-green-100 text-green-700"
-                      : order.status === "Shipped"
-                      ? "bg-blue-100 text-blue-700"
-                      : "bg-yellow-100 text-yellow-700"
-                  }`}
+                <select
+                  value={order.status}
+                  onChange={(e) => updateStatus(order.id, e.target.value)}
+                  className={`w-full border p-2 rounded text-sm ${statusColor(
+                    order.status
+                  )}`}
                 >
-                  {order.status === "Delivered" ? <FaCheckCircle /> : <FaShippingFast />}
-                  {order.status}
-                </span>
+                  {orderStages.map((stage) => (
+                    <option key={stage}>{stage}</option>
+                  ))}
+                </select>
               </div>
 
               <div className="flex justify-between">
                 <span className="text-sm text-slate-500">Expected Delivery</span>
                 <span className="text-sm">
-                  {new Date(order.expectedDelivery).toLocaleDateString()}
+                  {order.expectedDelivery
+                    ? new Date(order.expectedDelivery).toLocaleDateString()
+                    : "N/A"}
                 </span>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-2 mt-3">
-                <button
-                  onClick={() => updateStatus(order.id)}
-                  className="flex-1 bg-green-600 text-white py-2 rounded hover:bg-green-700 text-sm"
-                >
-                  Update Status
-                </button>
-                <button
-                  onClick={() => sendNotification(order.id)}
-                  className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 text-sm"
-                >
-                  Send Notification
-                </button>
               </div>
             </div>
           ))}

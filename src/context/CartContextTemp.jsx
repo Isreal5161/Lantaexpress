@@ -5,32 +5,32 @@ const CartContext = createContext();
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
 
-  // Add to cart (handle duplicates)
+  // Add item
   const addToCart = (product) => {
     const existing = cartItems.find((item) => item.id === product.id);
 
     if (existing) {
-      setCartItems((prevItems) =>
-        prevItems.map((item) =>
+      setCartItems((prev) =>
+        prev.map((item) =>
           item.id === product.id
             ? { ...item, quantity: item.quantity + 1 }
             : item
         )
       );
     } else {
-      setCartItems((prevItems) => [...prevItems, { ...product, quantity: 1 }]);
+      setCartItems((prev) => [...prev, { ...product, quantity: 1 }]);
     }
   };
 
-  // Remove from cart completely
+  // Remove item
   const removeFromCart = (id) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
+    setCartItems((prev) => prev.filter((item) => item.id !== id));
   };
 
   // Increase quantity
   const increaseQuantity = (id) => {
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
+    setCartItems((prev) =>
+      prev.map((item) =>
         item.id === id ? { ...item, quantity: item.quantity + 1 } : item
       )
     );
@@ -38,8 +38,8 @@ export const CartProvider = ({ children }) => {
 
   // Decrease quantity
   const decreaseQuantity = (id) => {
-    setCartItems((prevItems) =>
-      prevItems
+    setCartItems((prev) =>
+      prev
         .map((item) =>
           item.id === id ? { ...item, quantity: item.quantity - 1 } : item
         )
@@ -47,11 +47,12 @@ export const CartProvider = ({ children }) => {
     );
   };
 
-  // Cart count for badge
-  const cartCount = cartItems.reduce(
-    (total, item) => total + item.quantity,
-    0
-  );
+  // ⭐ THIS FIXES YOUR ERROR
+  const clearCart = () => {
+    setCartItems([]);
+  };
+
+  const cartCount = cartItems.reduce((t, item) => t + item.quantity, 0);
 
   return (
     <CartContext.Provider
@@ -61,6 +62,7 @@ export const CartProvider = ({ children }) => {
         removeFromCart,
         increaseQuantity,
         decreaseQuantity,
+        clearCart,
         cartCount,
       }}
     >
@@ -69,5 +71,4 @@ export const CartProvider = ({ children }) => {
   );
 };
 
-// Custom hook to use cart
 export const useCart = () => useContext(CartContext);
