@@ -57,7 +57,7 @@ import SellerPayments from "./AdminPanel/pages/SellerPayments";
 import SellerRequests from "./AdminPanel/pages/SellerRequests";
 
 import OrderLocations from "./AdminPanel/pages/OrderLocations";
-import OrderStatusUpdate from "./AdminPanel/pages/OrderStatusUpdate";
+import LogisticsRequest from "./AdminPanel/pages/LogisticsRequest";
 import SellerOrders from "./AdminPanel/pages/SellerOrders";
 
 // Context & Routes
@@ -145,7 +145,7 @@ const App = () => {
             {/* LOGISTICS */}
             <Route path="/AdminPanel/logistics" element={<Logistics />} />
             <Route path="/AdminPanel/logistics/location" element={<OrderLocations />} />
-            <Route path="/AdminPanel/logistics/status" element={<OrderStatusUpdate />} />
+            <Route path="/AdminPanel/logistics/requests" element={<LogisticsRequest />} />
 
             {/* SELLER AUTH */}
             <Route path="/seller-login" element={<SellerLogin />} />

@@ -157,6 +157,12 @@ export default function Sidebar() {
 
           {openMenu === "logistics" && (
             <div className="ml-8 mt-1 space-y-1">
+              <Link
+                to="/AdminPanel/logistics"
+                className="block p-2 hover:bg-green-600 rounded"
+              >
+                All Logistics
+              </Link>
 
               <Link
                 to="/AdminPanel/logistics/location"
@@ -166,10 +172,10 @@ export default function Sidebar() {
               </Link>
 
               <Link
-                to="/AdminPanel/logistics/status"
+                to="/AdminPanel/logistics/requests"
                 className="block p-2 hover:bg-green-600 rounded"
               >
-                Order Status Update
+                Logistics Requests
               </Link>
 
             </div>

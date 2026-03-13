@@ -154,7 +154,7 @@ export const categories = [
         brand: "TechMobile",
         stock: 30,
         price: 120000,
-        image: "https://www.notebookcheck.net/fileadmin/Notebooks/Honor/10X_Lite/Honor_10X_Lite.jpg",
+        image: "https://www.notebookcheck.net/fileadmin/Notebooks/Honor/10X_Lite/4_zu_3_Honor_10X_Lite.jpg",
         category: "Phone/Device",
         description: "Compact smartphone with fast processor and long battery life."
       },
