@@ -1,10 +1,7 @@
 // src/AdminPanel/pages/UserOrders.jsx
-
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import AdminLayout from "../Layout/AdminLayout";
-import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 
-// Define possible order statuses (sync with UserTracking)
 const orderStages = [
   "Pending",
   "Approved",
@@ -18,41 +15,51 @@ const orderStages = [
 export default function UserOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const previousOrderCount = useRef(0);
 
-  // Load orders from localStorage
   const loadOrders = () => {
     const savedOrders = JSON.parse(localStorage.getItem("user_orders")) || [];
-    setOrders(savedOrders);
+    setOrders(savedOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+
+    if (previousOrderCount.current && savedOrders.length > previousOrderCount.current) {
+      alert("📦 New order received!");
+    }
+    previousOrderCount.current = savedOrders.length;
   };
 
   useEffect(() => {
     loadOrders();
     setLoading(false);
 
-    // Listen to localStorage changes (from UserTracking or other tabs)
     const handleStorageChange = (e) => {
-      if (e.key === "user_orders") {
-        loadOrders();
-      }
+      if (e.key === "user_orders") loadOrders();
     };
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  // Update order status
   const updateStatus = (orderId, newStatus) => {
-    const updatedOrders = orders.map((order) =>
-      order.id === orderId ? { ...order, status: newStatus } : order
-    );
+    const updatedOrders = orders.map((order) => {
+      if (order.id === orderId) {
+        const newTimestamps = { ...order.stageTimestamps };
+        if (!newTimestamps[newStatus]) newTimestamps[newStatus] = new Date().toISOString();
+        return { ...order, status: newStatus, stageTimestamps: newTimestamps };
+      }
+      return order;
+    });
     setOrders(updatedOrders);
     localStorage.setItem("user_orders", JSON.stringify(updatedOrders));
   };
 
-  // Helper for status badge colors
+  const deleteOrder = (orderId) => {
+    const updatedOrders = orders.filter((order) => order.id !== orderId);
+    setOrders(updatedOrders);
+    localStorage.setItem("user_orders", JSON.stringify(updatedOrders));
+  };
+
   const statusColor = (status) => {
     if (status === "Delivered") return "bg-green-100 text-green-700";
-    if (status === "Shipped" || status === "Out for Delivery")
-      return "bg-blue-100 text-blue-700";
+    if (status === "Shipped" || status === "Out for Delivery") return "bg-blue-100 text-blue-700";
     return "bg-yellow-100 text-yellow-700";
   };
 
@@ -73,7 +80,14 @@ export default function UserOrders() {
               key={order.id}
               className="bg-white border rounded-lg shadow-sm p-4 flex flex-col gap-3"
             >
-              {/* Order Info */}
+              {order.image && (
+                <img
+                  src={order.image}
+                  alt={order.productName}
+                  className="w-full h-40 object-cover rounded-lg mb-2"
+                />
+              )}
+
               <div className="flex justify-between">
                 <span className="text-sm text-slate-500">Order ID</span>
                 <span className="font-medium">{order.id}</span>
@@ -83,6 +97,21 @@ export default function UserOrders() {
                 <span className="text-sm text-slate-500">User</span>
                 <span className="font-medium">{order.userName}</span>
               </div>
+
+              <div className="flex justify-between">
+                <span className="text-sm text-slate-500">Contact</span>
+                <span className="text-sm">{order.phone || order.contact}</span>
+              </div>
+
+              {order.shippingAddress && (
+                <div className="flex flex-col text-sm text-slate-500 border-t pt-2 mt-2">
+                  <span>Address: {order.shippingAddress.address}</span>
+                  <span>City: {order.shippingAddress.city}</span>
+                  <span>State: {order.shippingAddress.state}</span>
+                  <span>ZIP: {order.shippingAddress.zip}</span>
+                  <span>Country: {order.shippingAddress.country}</span>
+                </div>
+              )}
 
               <div className="flex justify-between">
                 <span className="text-sm text-slate-500">Product</span>
@@ -95,26 +124,23 @@ export default function UserOrders() {
               </div>
 
               <div className="flex justify-between">
-                <span className="text-sm text-slate-500">Price</span>
-                <span className="font-medium">
-                  ${order.price ? order.price.toFixed(2) : "N/A"}
-                </span>
-              </div>
-
-              <div className="flex justify-between">
                 <span className="text-sm text-slate-500">Quantity</span>
                 <span className="font-medium">{order.quantity}</span>
               </div>
 
-              {/* Status Dropdown */}
+              {order.description && (
+                <div className="flex flex-col">
+                  <span className="text-sm text-slate-500">Description</span>
+                  <span className="text-sm">{order.description}</span>
+                </div>
+              )}
+
               <div className="flex flex-col gap-2 mt-2">
                 <span className="text-sm text-slate-500">Status</span>
                 <select
                   value={order.status}
                   onChange={(e) => updateStatus(order.id, e.target.value)}
-                  className={`w-full border p-2 rounded text-sm ${statusColor(
-                    order.status
-                  )}`}
+                  className={`w-full border p-2 rounded text-sm ${statusColor(order.status)}`}
                 >
                   {orderStages.map((stage) => (
                     <option key={stage}>{stage}</option>
@@ -122,19 +148,14 @@ export default function UserOrders() {
                 </select>
               </div>
 
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-500">Description</span>
-                <span className="text-sm">{order.description}</span>
-              </div>
-
-              <div className="flex justify-between">
-                <span className="text-sm text-slate-500">Date</span>
-                <span className="text-sm">
-                  {order.createdAt
-                    ? new Date(order.createdAt).toLocaleDateString()
-                    : "N/A"}
-                </span>
-              </div>
+              {order.status === "Delivered" && (
+                <button
+                  onClick={() => deleteOrder(order.id)}
+                  className="bg-red-600 text-white px-3 py-1 rounded mt-2"
+                >
+                  Delete Delivered Order
+                </button>
+              )}
             </div>
           ))}
         </div>

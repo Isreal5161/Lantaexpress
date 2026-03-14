@@ -1,5 +1,4 @@
 // src/pages/CheckoutPage.jsx
-
 import React, { useState, useEffect } from "react";
 import { useCart } from "../context/CartContextTemp";
 import { Button } from "../components/Button";
@@ -30,8 +29,10 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
   const [shippingAddress, setShippingAddress] = useState({
     name: "",
     email: "",
+    phone: "",
     address: "",
     city: "",
+    state: "",
     zip: "",
     country: "",
   });
@@ -60,7 +61,6 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
     }
 
     let user;
-
     try {
       user = JSON.parse(userRaw);
     } catch {
@@ -92,8 +92,8 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
 
   // Checkout
   const handleProceedToPayment = () => {
-    if (!shippingAddress.address || !shippingAddress.city) {
-      alert("Please complete your shipping address.");
+    if (!shippingAddress.address || !shippingAddress.city || !shippingAddress.state || !shippingAddress.phone) {
+      alert("Please complete your shipping address with all required fields.");
       return;
     }
 
@@ -106,6 +106,7 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
       id: generatedId,
       userName: shippingAddress.name,
       contact: shippingAddress.email,
+      phone: shippingAddress.phone,
       productName: item.name,
       brand: item.brand || "Generic",
       price: convertPrice(item.price, userCurrency),
@@ -116,6 +117,13 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
       expectedDelivery: new Date(
         Date.now() + 7 * 24 * 60 * 60 * 1000
       ).toISOString(),
+      shippingAddress: {
+        address: shippingAddress.address,
+        city: shippingAddress.city,
+        state: shippingAddress.state,
+        zip: shippingAddress.zip,
+        country: shippingAddress.country,
+      },
     }));
 
     const updatedOrders = [...existingOrders, ...newOrders];
@@ -174,6 +182,15 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
               />
 
               <input
+                type="tel"
+                name="phone"
+                placeholder="Phone Number"
+                value={shippingAddress.phone}
+                onChange={handleChange}
+                className="w-full border rounded px-3 py-2"
+              />
+
+              <input
                 type="text"
                 name="address"
                 placeholder="Address"
@@ -194,22 +211,33 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
 
                 <input
                   type="text"
+                  name="state"
+                  placeholder="State"
+                  value={shippingAddress.state}
+                  onChange={handleChange}
+                  className="w-full border rounded px-3 py-2"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  type="text"
                   name="zip"
                   placeholder="ZIP Code"
                   value={shippingAddress.zip}
                   onChange={handleChange}
                   className="w-full border rounded px-3 py-2"
                 />
-              </div>
 
-              <input
-                type="text"
-                name="country"
-                placeholder="Country"
-                value={shippingAddress.country}
-                onChange={handleChange}
-                className="w-full border rounded px-3 py-2"
-              />
+                <input
+                  type="text"
+                  name="country"
+                  placeholder="Country"
+                  value={shippingAddress.country}
+                  onChange={handleChange}
+                  className="w-full border rounded px-3 py-2"
+                />
+              </div>
 
               <Button
                 className="bg-green-600 text-white px-4 py-2"
