@@ -61,12 +61,7 @@ export default function Sidebar() {
                 All Users
               </Link>
 
-              <Link
-                to="/AdminPanel/users/orders"
-                className="block p-2 hover:bg-green-600 rounded"
-              >
-                User Orders
-              </Link>
+             
 
               <Link
                 to="/AdminPanel/users/tracking"

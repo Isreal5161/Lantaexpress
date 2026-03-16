@@ -48,7 +48,6 @@ import Logistics from "./AdminPanel/pages/Logistics";
 import SellerDetailPage from "./AdminPanel/components/SellerDetails";
 
 // Admin Submenu Pages
-import UserOrders from "./AdminPanel/pages/UserOrders";
 import UserTracking from "./AdminPanel/pages/UserTracking";
 
 import SellerOrdersAdmin from "./AdminPanel/pages/SellerOrdersAdmin";
@@ -118,7 +117,7 @@ const App = () => {
 
             {/* USERS */}
             <Route path="/AdminPanel/users" element={<Users />} />
-            <Route path="/AdminPanel/users/orders" element={<UserOrders />} />
+            
             <Route path="/AdminPanel/users/tracking" element={<UserTracking />} />
 
             {/* SELLERS */}

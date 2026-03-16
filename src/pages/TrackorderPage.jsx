@@ -1,244 +1,286 @@
-// src/pages/TrackorderPage.jsx
-import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
-import { Button } from "../components/Button";
+import React, { useState, useEffect } from "react";
 import { Header } from "../components/header";
 import { Footer } from "../components/footer";
-import { Text } from "../components/Text";
 
 const orderStages = [
   "Pending",
   "Approved",
-  "Picked Up",
+  "Processing",
   "Shipped",
   "In Transit",
   "Out for Delivery",
   "Delivered",
+  "Completed"
 ];
 
 export const TrackorderPage = () => {
-  const location = useLocation();
-  const [orderId, setOrderId] = useState(location.state?.orderId || "");
-  const [order, setOrder] = useState(null);
-  const [received, setReceived] = useState(false);
-  const [review, setReview] = useState("");
-  const [rating, setRating] = useState(0);
-  const [returnRequested, setReturnRequested] = useState(false);
 
-  const loadOrder = () => {
+  const [order, setOrder] = useState(null);
+  const [orderId, setOrderId] = useState("");
+
+  // Fetch order from localStorage
+  const getOrder = (id) => {
     const orders = JSON.parse(localStorage.getItem("user_orders")) || [];
-    return orders.find((o) => o.id === orderId);
+    return orders.find((o) => o.id === id);
   };
 
-  const handleTrack = () => {
-    if (!orderId) return alert("Please enter an Order ID");
-    const found = loadOrder();
-    if (!found) {
-      alert("Order not found");
-      setOrder(null);
+  // Track order
+  const trackOrder = () => {
+
+    if (!orderId) {
+      alert("Please enter an Order ID");
       return;
     }
+
+    const found = getOrder(orderId);
+
+    if (!found) {
+      alert("Order not found");
+      return;
+    }
+
     setOrder(found);
-    setReceived(found.received || false);
-    setReview(found.review || "");
-    setRating(found.rating || 0);
-    setReturnRequested(found.returnRequested || false);
   };
 
+  // Auto refresh order every 3 seconds
   useEffect(() => {
-    if (orderId) handleTrack();
-    const handleStorageChange = (e) => {
-      if (e.key === "user_orders") handleTrack();
-    };
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
+
+    if (!orderId) return;
+
+    const interval = setInterval(() => {
+
+      const updated = getOrder(orderId);
+
+      if (updated) {
+        setOrder(updated);
+      }
+
+    }, 3000);
+
+    return () => clearInterval(interval);
+
   }, [orderId]);
 
-  const isStageCompleted = (stage) => {
+
+  // Confirm order received
+  const confirmReceived = () => {
+
+    if (!window.confirm("Confirm you have received this order?")) return;
+
+    const orders = JSON.parse(localStorage.getItem("user_orders")) || [];
+
+    const updatedOrders = orders.map((o) => {
+
+      if (o.id === order.id) {
+        return {
+          ...o,
+          status: "Completed",
+          received: true,
+          receivedAt: new Date().toISOString()
+        };
+      }
+
+      return o;
+
+    });
+
+    localStorage.setItem("user_orders", JSON.stringify(updatedOrders));
+
+    setOrder({
+      ...order,
+      status: "Completed",
+      received: true,
+      receivedAt: new Date().toISOString()
+    });
+
+    alert("Thank you! Order marked as received.");
+
+  };
+
+  // Check stage completion
+  const isCompleted = (stage) => {
+
     if (!order) return false;
-    return orderStages.indexOf(stage) <= orderStages.indexOf(order.status);
-  };
 
-  const markAsReceived = () => {
-    if (!order) return;
-    const orders = JSON.parse(localStorage.getItem("user_orders")) || [];
-    const updatedOrders = orders.map((o) =>
-      o.id === order.id
-        ? {
-            ...o,
-            received: true,
-            status: "Delivered",
-            stageTimestamps: {
-              ...o.stageTimestamps,
-              Delivered: o.stageTimestamps?.Delivered || new Date().toISOString(),
-              Received: new Date().toISOString(),
-            },
-          }
-        : o
-    );
-    localStorage.setItem("user_orders", JSON.stringify(updatedOrders));
-    setOrder({ ...order, received: true, status: "Delivered" });
-    setReceived(true);
-    alert("🎉 Thank you! You marked this order as received.");
-  };
+    const orderIndex = orderStages.indexOf(order.status);
+    const stageIndex = orderStages.indexOf(stage);
 
-  const submitReview = () => {
-    if (rating === 0 || !review) return alert("Please give a rating and comment.");
-    const orders = JSON.parse(localStorage.getItem("user_orders")) || [];
-    const updatedOrders = orders.map((o) =>
-      o.id === order.id ? { ...o, review, rating, returnRequested } : o
-    );
-    localStorage.setItem("user_orders", JSON.stringify(updatedOrders));
-    alert("✅ Review submitted successfully!");
-  };
+    return stageIndex <= orderIndex;
 
-  const requestReturn = () => {
-    setReturnRequested(true);
-    alert("⚠️ Return request submitted. Our support team will contact you.");
   };
-
-  const showReviewSection = order?.status === "Delivered";
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <Header />
-      <div className="pb-24 flex-grow flex flex-col items-center justify-start px-4 py-8 w-full">
-        <Text className="text-2xl font-bold mb-6">Track Your Order</Text>
 
-        <div className="flex flex-col sm:flex-row gap-4 mb-8 w-full sm:w-auto">
+    <div className="min-h-screen bg-gray-100 flex flex-col">
+
+      <Header />
+
+      <div className="flex-grow max-w-3xl mx-auto py-10 px-4">
+
+        <h1 className="text-3xl font-bold mb-8 text-center">
+          Track Your Order
+        </h1>
+
+        {/* Order Search */}
+
+        <div className="flex gap-3 mb-10">
+
           <input
             type="text"
             placeholder="Enter Order ID"
             value={orderId}
             onChange={(e) => setOrderId(e.target.value)}
-            className="border border-gray-300 rounded-md px-4 py-2 flex-1"
+            className="flex-1 border rounded-lg px-4 py-2"
           />
-          <Button text="Track Order" onClick={handleTrack} />
+
+          <button
+            onClick={trackOrder}
+            className="bg-green-600 text-white px-6 rounded-lg"
+          >
+            Track
+          </button>
+
         </div>
 
+
+        {/* Order Card */}
+
         {order && (
-          <div className="bg-white border rounded-xl p-6 shadow-lg w-full sm:w-96 flex flex-col gap-4">
-            <div className="mb-4">
-              <p className="text-sm text-gray-500">Order ID</p>
-              <p className="font-semibold text-gray-900">{order.id}</p>
+
+          <div className="bg-white shadow-lg rounded-xl p-6">
+
+            {/* Order Info */}
+
+            <div className="flex gap-4 border-b pb-4 mb-6">
+
+              <img
+                src={order.image}
+                alt={order.productName}
+                className="w-20 h-20 object-cover rounded"
+              />
+
+              <div>
+
+                <h3 className="font-semibold text-lg">
+                  {order.productName}
+                </h3>
+
+                <p className="text-sm text-gray-500">
+                  Order ID: {order.id}
+                </p>
+
+                <p className="text-green-600 font-semibold">
+                  Status: {order.status}
+                </p>
+
+              </div>
+
             </div>
 
-            <div>
-              <p className="text-sm text-gray-500">Product</p>
-              <p className="font-semibold">{order.productName}</p>
-            </div>
 
-            <div>
-              <p className="text-sm text-gray-500">Quantity</p>
-              <p className="font-semibold">{order.quantity}</p>
-            </div>
+            {/* Timeline */}
 
-            <div>
-              <p className="text-sm text-gray-500">Expected Delivery</p>
-              <p className="font-semibold text-gray-900">
-                {new Date(order.expectedDelivery).toLocaleDateString()}
-              </p>
-            </div>
+            <div className="space-y-5">
 
-            <div className="mt-6">
-              <h3 className="text-gray-700 font-semibold mb-3">Shipment Progress</h3>
-              <div className="relative ml-4">
-                {orderStages.map((stage, index) => (
-                  <div key={stage} className="flex items-start mb-6 last:mb-0">
-                    <div
-                      className={`w-5 h-5 rounded-full border-2 mt-0.5 ${
-                        isStageCompleted(stage)
-                          ? "bg-green-600 border-green-600"
-                          : "border-gray-300"
+              {orderStages.map((stage) => (
+
+                <div key={stage} className="flex items-start gap-3">
+
+                  <div
+                    className={`w-4 h-4 mt-1 rounded-full ${
+                      isCompleted(stage)
+                        ? "bg-green-600"
+                        : "bg-gray-300"
+                    }`}
+                  />
+
+                  <div>
+
+                    <p
+                      className={`font-medium ${
+                        isCompleted(stage)
+                          ? "text-black"
+                          : "text-gray-400"
                       }`}
-                    ></div>
-                    {index < orderStages.length - 1 && (
-                      <div
-                        className={`absolute top-2.5 left-6 w-[2px] h-[calc(100%-1rem)] ${
-                          isStageCompleted(orderStages[index + 1])
-                            ? "bg-green-600"
-                            : "bg-gray-300"
-                        }`}
-                      ></div>
-                    )}
-                    <div className="ml-6">
-                      <p
-                        className={`font-medium ${
-                          isStageCompleted(stage) ? "text-green-600" : "text-gray-600"
-                        }`}
-                      >
-                        {stage}
-                      </p>
-                      {isStageCompleted(stage) && order.stageTimestamps?.[stage] && (
-                        <p className="text-xs text-gray-400">
-                          {new Date(order.stageTimestamps[stage]).toLocaleString()}
-                        </p>
-                      )}
-                    </div>
+                    >
+                      {stage}
+                    </p>
+
+                    <p className="text-xs text-gray-400">
+
+                      {order.stageTimestamps?.[stage] &&
+                        new Date(
+                          order.stageTimestamps[stage]
+                        ).toLocaleString()}
+
+                    </p>
+
                   </div>
-                ))}
-              </div>
+
+                </div>
+
+              ))}
+
             </div>
 
-            {/* Show Mark as Received if not received yet */}
-            {!received && order.status === "Delivered" && (
-              <Button text="Mark as Received" onClick={markAsReceived} className="mt-4" />
-            )}
 
-            {/* Review Section */}
-            {showReviewSection && (
-              <div className="mt-6 flex flex-col gap-4">
-                <div className="bg-green-100 p-4 rounded-lg text-center text-green-700 font-semibold">
-                  🎉 {received ? "You have received your order!" : "Order has been delivered!"}
-                </div>
+            {/* Confirm Received Button */}
 
-                <div className="flex flex-col gap-2">
-                  <label className="font-medium text-gray-700">Rate the Product:</label>
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <span
-                        key={star}
-                        onClick={() => setRating(star)}
-                        className={`cursor-pointer text-2xl ${
-                          rating >= star ? "text-yellow-400" : "text-gray-300"
-                        }`}
-                      >
-                        ★
-                      </span>
-                    ))}
-                  </div>
-                  <textarea
-                    placeholder="Leave a comment..."
-                    value={review}
-                    onChange={(e) => setReview(e.target.value)}
-                    className="border border-gray-300 rounded-md p-2 mt-2 w-full"
-                  />
-                  <Button text="Submit Review" onClick={submitReview} />
-                </div>
+            {order.status === "Delivered" && !order.received && (
 
-                {!returnRequested && (
-                  <Button
-                    text="Request Return (within 24h)"
-                    onClick={requestReturn}
-                    className="bg-red-600 mt-2"
-                  />
-                )}
-                {returnRequested && (
-                  <div className="text-red-600 font-semibold">
-                    Return requested. Our team will contact you shortly.
-                  </div>
-                )}
+              <div className="mt-8">
+
+                <button
+                  onClick={confirmReceived}
+                  className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition"
+                >
+                  ✔ Confirm Order Received
+                </button>
+
+                <p className="text-xs text-gray-400 text-center mt-2">
+                  Click only if you have received the product.
+                </p>
+
               </div>
+
             )}
+
+
+            {/* Completed Message */}
+
+            {order.received && (
+
+              <div className="mt-8 bg-green-100 text-green-700 p-4 rounded-lg text-center">
+
+                🎉 Order Received Successfully  
+                <br />
+                Thank you for shopping with LantaXpress.
+
+                {order.receivedAt && (
+
+                  <p className="text-sm mt-2 text-gray-600">
+
+                    Received on:{" "}
+                    {new Date(order.receivedAt).toLocaleDateString()}
+
+                  </p>
+
+                )}
+
+              </div>
+
+            )}
+
           </div>
+
         )}
 
-        {!order && orderId && (
-          <p className="text-red-500 mt-2">No order found with this ID.</p>
-        )}
       </div>
 
       <Footer />
+
     </div>
+
   );
+
 };
