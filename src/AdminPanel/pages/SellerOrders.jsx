@@ -1,146 +1,183 @@
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import AdminLayout from "../Layout/AdminLayout";
-import { categories } from "../../service/dummyCategories";
-import { FaUserCircle } from "react-icons/fa";
+// src/pages/admin/AdminSellerOrders.jsx
+import React, { useState, useEffect, useRef } from "react";
 
-export default function SellerOrders() {
-  const { sellerBrand } = useParams(); // Brand name from URL
-  const navigate = useNavigate();
+const orderStages = [
+  "Pending",
+  "Approved",
+  "Processing",
+  "Shipped",
+  "In Transit",
+  "Out for Delivery",
+  "Delivered",
+  "Completed"
+];
+
+export default function AdminSellerOrders() {
   const [orders, setOrders] = useState([]);
+  const [search, setSearch] = useState("");
+  const previousOrderCount = useRef(0);
 
-  useEffect(() => {
-    const decodedBrand = decodeURIComponent(sellerBrand);
+  // Load orders from localStorage
+  const loadOrders = () => {
+    const allOrders = JSON.parse(localStorage.getItem("user_orders")) || [];
+    setOrders(allOrders);
 
-    // Extract all products from all categories
-    const allProducts = categories.flatMap((cat) => cat.products);
-
-    // Filter products by brand
-    const brandProducts = allProducts.filter(
-      (product) => product.brand === decodedBrand
-    );
-
-    // Generate dummy orders per product
-    const dummyOrders = brandProducts.flatMap((product) => {
-      const ordersCount = Math.floor(Math.random() * 5) + 1; // 1-5 orders per product
-      return Array.from({ length: ordersCount }).map((_, idx) => ({
-        id: `${product.id}-${idx + 1}`,
-        productId: product.id,
-        productName: product.name,
-        productImage: product.image,
-        sellerBrand: product.brand,
-        status: ["Pending", "Shipped", "Delivered"][Math.floor(Math.random() * 3)],
-        user: `User${Math.floor(Math.random() * 1000)}`,
-        userEmail: `user${Math.floor(Math.random() * 1000)}@mail.com`,
-        userPhone: `+234${Math.floor(1000000000 + Math.random() * 9000000000)}`,
-        tracking: `TRK${Math.floor(100000 + Math.random() * 900000)}`,
-      }));
-    });
-
-    setOrders(dummyOrders);
-  }, [sellerBrand]);
-
-  const statusColors = {
-    Pending: "bg-yellow-100 text-yellow-700",
-    Shipped: "bg-blue-100 text-blue-700",
-    Delivered: "bg-green-100 text-green-700",
-    Cancelled: "bg-red-100 text-red-700",
+    // Notify if new order arrived
+    if (previousOrderCount.current && allOrders.length > previousOrderCount.current) {
+      alert("🔔 New order received!");
+    }
+    previousOrderCount.current = allOrders.length;
   };
 
+  useEffect(() => {
+    loadOrders();
+
+    const handleStorageChange = (e) => {
+      if (e.key === "user_orders") loadOrders();
+    };
+    window.addEventListener("storage", handleStorageChange);
+
+    const interval = setInterval(() => loadOrders(), 3000); // auto-refresh
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
+
+  const updateStatus = (orderId, newStatus) => {
+    const allOrders = JSON.parse(localStorage.getItem("user_orders")) || [];
+    const updatedOrders = allOrders.map((order) => {
+      if (order.id === orderId) {
+        const timestamps = { ...order.stageTimestamps };
+        if (!timestamps[newStatus]) timestamps[newStatus] = new Date().toISOString();
+        return { ...order, status: newStatus, stageTimestamps: timestamps };
+      }
+      return order;
+    });
+    localStorage.setItem("user_orders", JSON.stringify(updatedOrders));
+    loadOrders();
+  };
+
+  const isCompleted = (order, stage) => {
+    if (!order) return false;
+    return orderStages.indexOf(stage) <= orderStages.indexOf(order.status);
+  };
+
+  // Filter orders by search input (brand name or order ID or buyer)
+  const filteredOrders = orders.filter(
+    (o) =>
+      o.brand.toLowerCase().includes(search.toLowerCase()) ||
+      o.id.toLowerCase().includes(search.toLowerCase()) ||
+      o.userName?.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
-    <AdminLayout>
-      <div className="p-6 space-y-6">
-        {/* Back Button */}
-        <button
-          onClick={() => navigate(-1)}
-          className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600"
-        >
-          ← Back
-        </button>
+    <div className="px-4 py-6">
+      <h1 className="text-2xl font-bold mb-6">Admin Seller Orders Dashboard</h1>
 
-        {/* Page Title */}
-        <h1 className="text-3xl font-bold mt-4">
-          {decodeURIComponent(sellerBrand)} Orders
-        </h1>
-        <p className="text-gray-600">
-          Detailed overview of all orders for this brand.
-        </p>
+      {/* Search Bar */}
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Search by Brand, Order ID, or Buyer..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full border px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+        />
+      </div>
 
-        {orders.length === 0 ? (
-          <p className="text-gray-500 mt-6">No orders found for this brand.</p>
-        ) : (
-          <div className="space-y-4 mt-4">
-            {orders.map((order) => (
-              <div
-                key={order.id}
-                className="bg-white border rounded-xl shadow hover:shadow-lg transition p-5 flex flex-col md:flex-row gap-4"
-              >
-                {/* Product Section */}
-                <div className="flex items-center gap-4 flex-1">
-                  <img
-                    src={order.productImage}
-                    alt={order.productName}
-                    className="w-28 h-28 object-cover rounded-lg"
-                  />
-                  <div className="flex-1 space-y-1">
-                    <h3 className="font-semibold text-lg">{order.productName}</h3>
-                    <p className="text-sm text-gray-500">Product ID: {order.productId}</p>
-                    <p className="text-sm text-gray-500">Order ID: {order.id}</p>
-                  </div>
-                </div>
-
-                {/* Customer Info */}
-                <div className="flex-1 flex flex-col justify-center space-y-1">
-                  <div className="flex items-center gap-2">
-                    <FaUserCircle className="text-gray-400" />
-                    <span className="font-medium">{order.user}</span>
-                  </div>
-                  <p className="text-sm text-gray-500">{order.userEmail}</p>
-                  <p className="text-sm text-gray-500">{order.userPhone}</p>
-                </div>
-
-                {/* Status & Actions */}
-                <div className="flex flex-col justify-between items-start gap-3">
-                  <span
-                    className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                      statusColors[order.status] || "bg-gray-100 text-gray-700"
-                    }`}
-                  >
-                    {order.status}
-                  </span>
-
-                  {order.tracking && (
-                    <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-700">
-                      Tracking: {order.tracking}
-                    </span>
-                  )}
-
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    <button
-                      onClick={() => alert(`Update status for ${order.id}`)}
-                      className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
-                      Update Status
-                    </button>
-                    <button
-                      onClick={() => alert(`View details for ${order.user}`)}
-                      className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"
-                    >
-                      View Customer
-                    </button>
-                    <button
-                      onClick={() => alert(`View product ${order.productId}`)}
-                      className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
-                    >
-                      View Product
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+      {/* Orders List */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredOrders.length === 0 && (
+          <div className="col-span-full text-center text-gray-500 py-6">
+            No orders found
           </div>
         )}
+        {filteredOrders.map((order) => (
+          <div key={order.id} className="bg-white rounded-xl shadow p-4 flex flex-col gap-3">
+            
+            {/* Product & Brand */}
+            <div className="flex gap-3 items-center border-b pb-3">
+              <img
+                src={order.image || "https://via.placeholder.com/100?text=No+Image"}
+                alt={order.productName}
+                className="w-20 h-20 object-cover rounded"
+              />
+              <div>
+                <h3 className="font-semibold text-lg">{order.productName}</h3>
+                <p className="text-gray-500 text-sm">Brand: {order.brand}</p>
+                <p className="text-gray-500 text-sm">Order ID: {order.id}</p>
+              </div>
+            </div>
+
+            {/* Buyer & Quantity */}
+            <div className="flex justify-between text-sm">
+              <span>Buyer:</span>
+              <span>{order.userName}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>Quantity:</span>
+              <span>{order.quantity}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>Amount:</span>
+              <span>₦{order.amount}</span>
+            </div>
+
+            {/* Shipping */}
+            {order.shippingAddress && (
+              <div className="text-xs text-gray-500 border-t pt-2">
+                <p>Address: {order.shippingAddress.address}</p>
+                <p>City: {order.shippingAddress.city}</p>
+                <p>State: {order.shippingAddress.state}</p>
+                <p>ZIP: {order.shippingAddress.zip}</p>
+                <p>Country: {order.shippingAddress.country}</p>
+              </div>
+            )}
+
+            {/* Status Timeline */}
+            <div className="space-y-2 mt-2">
+              {orderStages.map((stage) => (
+                <div key={stage} className="flex items-start gap-2">
+                  <div
+                    className={`w-4 h-4 mt-1 rounded-full ${
+                      isCompleted(order, stage) ? "bg-green-600" : "bg-gray-300"
+                    }`}
+                  />
+                  <div>
+                    <p
+                      className={`font-medium ${
+                        isCompleted(order, stage) ? "text-black" : "text-gray-400"
+                      }`}
+                    >
+                      {stage}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {order.stageTimestamps?.[stage] &&
+                        new Date(order.stageTimestamps[stage]).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Status Update */}
+            <div className="mt-2 flex flex-col gap-2">
+              <span className="text-sm text-gray-500">Update Status</span>
+              <select
+                value={order.status}
+                onChange={(e) => updateStatus(order.id, e.target.value)}
+                className="border rounded p-2 text-sm"
+              >
+                {orderStages.map((stage) => (
+                  <option key={stage} value={stage}>{stage}</option>
+                ))}
+              </select>
+            </div>
+
+          </div>
+        ))}
       </div>
-    </AdminLayout>
+    </div>
   );
 }

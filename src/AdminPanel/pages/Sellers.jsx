@@ -2,50 +2,77 @@ import React, { useEffect, useState } from "react";
 import AdminLayout from "../Layout/AdminLayout";
 import AdminTable from "../components/AdminTable";
 import SellerCard from "../components/SellerCard";
-import {
-  getSellers,
-  initializeSellers,
-  deleteSeller,
-  approveProduct,
-  rejectProduct,
-  approveSellerRequest,
-  rejectSellerRequest
-} from "../services/sellerService";
+
+const LOCAL_STORAGE_KEY = "adminSellers";
 
 export default function Sellers() {
   const [sellers, setSellers] = useState([]);
   const [showSellerRequests, setShowSellerRequests] = useState(false);
 
+  // Load sellers from localStorage
   useEffect(() => {
-    initializeSellers();
-    setSellers(getSellers());
+    const storedSellers = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (storedSellers) {
+      setSellers(JSON.parse(storedSellers));
+    } else {
+      // No sellers yet
+      setSellers([]);
+    }
   }, []);
 
-  const refreshSellers = () => setSellers(getSellers());
+  const updateSellers = (newSellers) => {
+    setSellers(newSellers);
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newSellers));
+  };
 
   const handleDelete = (id) => {
-    deleteSeller(id);
-    refreshSellers();
+    const updated = sellers.filter((s) => s.id !== id);
+    updateSellers(updated);
   };
 
   const handleApproveProduct = (sellerId, productId) => {
-    approveProduct(sellerId, productId);
-    refreshSellers();
+    const updated = sellers.map((s) => {
+      if (s.id === sellerId) {
+        const newProducts = s.products.map((p) =>
+          p.id === productId ? { ...p, status: "Approved" } : p
+        );
+        return { ...s, products: newProducts };
+      }
+      return s;
+    });
+    updateSellers(updated);
   };
 
   const handleRejectProduct = (sellerId, productId) => {
-    rejectProduct(sellerId, productId);
-    refreshSellers();
+    const updated = sellers.map((s) => {
+      if (s.id === sellerId) {
+        const newProducts = s.products.map((p) =>
+          p.id === productId ? { ...p, status: "Rejected" } : p
+        );
+        return { ...s, products: newProducts };
+      }
+      return s;
+    });
+    updateSellers(updated);
   };
 
   const handleApproveSeller = (sellerId) => {
-    approveSellerRequest(sellerId);
-    refreshSellers();
+    const updated = sellers.map((s) =>
+      s.id === sellerId ? { ...s, status: "Verified" } : s
+    );
+    updateSellers(updated);
   };
 
   const handleRejectSeller = (sellerId) => {
-    rejectSellerRequest(sellerId);
-    refreshSellers();
+    const updated = sellers.map((s) =>
+      s.id === sellerId ? { ...s, status: "Rejected" } : s
+    );
+    updateSellers(updated);
+  };
+
+  const refreshSellers = () => {
+    const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (stored) setSellers(JSON.parse(stored));
   };
 
   const columns = [
@@ -91,7 +118,7 @@ export default function Sellers() {
     </div>,
   ]);
 
-  /* Filter sellers with pending verification requests */
+  // Pending verification requests
   const pendingSellers = sellers.filter((s) => s.status === "Pending");
 
   return (
@@ -118,9 +145,15 @@ export default function Sellers() {
         </div>
 
         {/* DESKTOP TABLE */}
-        <div className="hidden md:block">
-          <AdminTable columns={columns} data={data} />
-        </div>
+        {sellers.length > 0 ? (
+          <div className="hidden md:block">
+            <AdminTable columns={columns} data={data} />
+          </div>
+        ) : (
+          <p className="text-center text-gray-500 mt-10 text-lg">
+            No sellers available on the site at this moment.
+          </p>
+        )}
 
         {/* MOBILE CARDS */}
         <div className="grid grid-cols-1 gap-4 md:hidden">

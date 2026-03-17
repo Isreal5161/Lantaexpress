@@ -14,26 +14,56 @@ const orderStages = [
 
 export default function UserTracking() {
 
-  const [trackingOrders, setTrackingOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [activeOrders, setActiveOrders] = useState([]);
+  const [historyOrders, setHistoryOrders] = useState([]);
   const previousOrderCount = useRef(0);
 
-  // Load orders
+  // -------- PRICE RESOLVER (handles backend or localStorage structures) --------
+  const resolveOrderAmount = (order) => {
+
+    const qty = Number(order.quantity) || 1;
+
+    const unitPrice =
+      order.unitPrice ??
+      order.price ??
+      order.productPrice ??
+      order.itemPrice ??
+      order.cost;
+
+    const total =
+      order.total ??
+      order.totalPrice ??
+      order.amount ??
+      order.orderTotal;
+
+    if (total) return Number(total);
+
+    if (unitPrice) return Number(unitPrice) * qty;
+
+    return 0;
+  };
+
+  // -------- LOAD ORDERS --------
   const loadOrders = () => {
 
-    const savedOrders = JSON.parse(localStorage.getItem("user_orders")) || [];
+    const savedOrders =
+      JSON.parse(localStorage.getItem("user_orders")) || [];
 
     const sorted = savedOrders.sort(
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
     );
 
-    setTrackingOrders(sorted);
+    const active = sorted.filter((o) => !o.received);
+    const history = sorted.filter((o) => o.received);
+
+    setActiveOrders(active);
+    setHistoryOrders(history);
 
     if (
       previousOrderCount.current &&
       savedOrders.length > previousOrderCount.current
     ) {
-      alert("📦 New order received!");
+      alert("🔔 New order received!");
     }
 
     previousOrderCount.current = savedOrders.length;
@@ -42,7 +72,6 @@ export default function UserTracking() {
   useEffect(() => {
 
     loadOrders();
-    setLoading(false);
 
     const handleStorageChange = (e) => {
       if (e.key === "user_orders") {
@@ -57,25 +86,28 @@ export default function UserTracking() {
 
   }, []);
 
-  // Update order status
+  // -------- UPDATE STATUS --------
   const updateStatus = (orderId, newStatus) => {
 
-    const updatedOrders = trackingOrders.map((order) => {
+    const savedOrders =
+      JSON.parse(localStorage.getItem("user_orders")) || [];
+
+    const updatedOrders = savedOrders.map((order) => {
 
       if (order.id === orderId) {
 
-        const newTimestamps = {
+        const timestamps = {
           ...order.stageTimestamps
         };
 
-        if (!newTimestamps[newStatus]) {
-          newTimestamps[newStatus] = new Date().toISOString();
+        if (!timestamps[newStatus]) {
+          timestamps[newStatus] = new Date().toISOString();
         }
 
         return {
           ...order,
           status: newStatus,
-          stageTimestamps: newTimestamps
+          stageTimestamps: timestamps
         };
       }
 
@@ -83,13 +115,30 @@ export default function UserTracking() {
 
     });
 
-    setTrackingOrders(updatedOrders);
-
     localStorage.setItem(
       "user_orders",
       JSON.stringify(updatedOrders)
     );
 
+    loadOrders();
+  };
+
+  // -------- CLEAR HISTORY --------
+  const clearHistory = () => {
+
+    if (!window.confirm("Clear order history?")) return;
+
+    const savedOrders =
+      JSON.parse(localStorage.getItem("user_orders")) || [];
+
+    const activeOnly = savedOrders.filter((o) => !o.received);
+
+    localStorage.setItem(
+      "user_orders",
+      JSON.stringify(activeOnly)
+    );
+
+    loadOrders();
   };
 
   const statusColor = (status) => {
@@ -105,7 +154,6 @@ export default function UserTracking() {
       return "bg-blue-100 text-blue-700";
 
     return "bg-yellow-100 text-yellow-700";
-
   };
 
   return (
@@ -116,21 +164,23 @@ export default function UserTracking() {
         Order Tracking Management
       </h1>
 
-      {loading ? (
+      {/* ACTIVE ORDERS */}
 
-        <p>Loading tracking orders...</p>
+      <h2 className="text-xl font-semibold mb-4">
+        Active Orders
+      </h2>
 
-      ) : trackingOrders.length === 0 ? (
+      {activeOrders.length === 0 ? (
 
-        <div className="bg-red-100 text-red-700 p-4 rounded-lg">
-          ⚠️ No orders found
+        <div className="bg-gray-100 p-4 rounded">
+          No active orders
         </div>
 
       ) : (
 
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3 mb-10">
 
-          {trackingOrders.map((order) => (
+          {activeOrders.map((order) => (
 
             <div
               key={order.id}
@@ -149,32 +199,47 @@ export default function UserTracking() {
 
               )}
 
-              {/* Order Info */}
+              {/* Order ID */}
 
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">
-                  Order ID
-                </span>
+                <span className="text-gray-500">Order ID</span>
+                <span className="font-semibold">{order.id}</span>
+              </div>
+
+              {/* User */}
+
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">User</span>
+                <span>{order.userName}</span>
+              </div>
+
+              {/* Product */}
+
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Product</span>
+                <span>{order.productName}</span>
+              </div>
+
+              {/* Brand */}
+
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Brand</span>
+                <span>{order.brand}</span>
+              </div>
+
+              {/* Quantity */}
+
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Quantity</span>
+                <span>{order.quantity}</span>
+              </div>
+
+              {/* Amount (REAL PRICE RESOLVER) */}
+
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Amount</span>
                 <span className="font-semibold">
-                  {order.id}
-                </span>
-              </div>
-
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">
-                  User
-                </span>
-                <span className="font-medium">
-                  {order.userName}
-                </span>
-              </div>
-
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">
-                  Contact
-                </span>
-                <span>
-                  {order.phone || order.contact}
+                  ₦{resolveOrderAmount(order).toLocaleString()}
                 </span>
               </div>
 
@@ -208,32 +273,7 @@ export default function UserTracking() {
 
               )}
 
-              {/* Product */}
-
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">
-                  Product
-                </span>
-                <span className="font-medium">
-                  {order.productName}
-                </span>
-              </div>
-
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">
-                  Brand
-                </span>
-                <span>{order.brand}</span>
-              </div>
-
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">
-                  Quantity
-                </span>
-                <span>{order.quantity}</span>
-              </div>
-
-              {/* Status */}
+              {/* Status Update */}
 
               <div className="flex flex-col gap-2 mt-2">
 
@@ -263,37 +303,70 @@ export default function UserTracking() {
 
               </div>
 
-              {/* Delivery */}
+            </div>
 
-              <div className="flex justify-between text-sm">
+          ))}
 
-                <span className="text-gray-500">
-                  Expected Delivery
-                </span>
+        </div>
 
-                <span>
+      )}
 
-                  {order.expectedDelivery
-                    ? new Date(
-                        order.expectedDelivery
-                      ).toLocaleDateString()
-                    : "N/A"}
+      {/* HISTORY */}
 
-                </span>
+      <div className="flex justify-between items-center mb-4">
 
-              </div>
+        <h2 className="text-xl font-semibold">
+          Completed Orders History
+        </h2>
 
-              {/* Received by User */}
+        {historyOrders.length > 0 && (
 
-              {order.received && (
+          <button
+            onClick={clearHistory}
+            className="bg-red-500 text-white px-4 py-2 rounded text-sm"
+          >
+            Clear History
+          </button>
 
-                <div className="bg-green-100 text-green-700 text-sm p-2 rounded text-center">
+        )}
 
-                  ✅ Customer confirmed delivery
+      </div>
 
-                </div>
+      {historyOrders.length === 0 ? (
 
-              )}
+        <div className="bg-gray-100 p-4 rounded">
+          No completed orders
+        </div>
+
+      ) : (
+
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+
+          {historyOrders.map((order) => (
+
+            <div
+              key={order.id}
+              className="bg-white border rounded-xl shadow p-4"
+            >
+
+              <p className="font-semibold">
+                {order.productName}
+              </p>
+
+              <p className="text-sm text-gray-500">
+                Order ID: {order.id}
+              </p>
+
+              <p className="text-sm text-green-600">
+                Completed
+              </p>
+
+              <p className="text-xs text-gray-400">
+                Received:{" "}
+                {order.receivedAt
+                  ? new Date(order.receivedAt).toLocaleDateString()
+                  : ""}
+              </p>
 
             </div>
 

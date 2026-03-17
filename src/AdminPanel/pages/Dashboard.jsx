@@ -1,145 +1,124 @@
-import React from "react";
+// src/pages/admin/Dashboard.jsx
+import React, { useEffect, useState } from "react";
 import AdminLayout from "../Layout/AdminLayout";
 import StatCard from "../components/StatCard";
-
-import {
-  FaUsers,
-  FaShoppingCart,
-  FaStore,
-  FaBoxOpen
-} from "react-icons/fa";
+import { FaUsers, FaShoppingCart, FaStore, FaBoxOpen } from "react-icons/fa";
+import { categories } from "../../service/dummyCategories";
 
 export default function Dashboard() {
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [ordersToday, setOrdersToday] = useState(0);
+  const [totalSellers, setTotalSellers] = useState(0);
+  const [pendingProducts, setPendingProducts] = useState(0);
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [newUsers, setNewUsers] = useState([]);
+
+  const formatPrice = (value) => {
+    if (!value) return "₦0";
+    return new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN" }).format(value);
+  };
+
+  useEffect(() => {
+    // Users
+    const users = JSON.parse(localStorage.getItem("users")) || [
+      { name: "John Doe", createdAt: new Date().toISOString() },
+      { name: "Aisha Bello", createdAt: new Date().toISOString() },
+      { name: "Michael James", createdAt: new Date().toISOString() },
+    ];
+    setTotalUsers(users.length);
+    setNewUsers(users.slice(-5).reverse()); // last 5 users
+
+    // Orders
+    const orders = JSON.parse(localStorage.getItem("user_orders")) || [];
+    const today = new Date().toISOString().split("T")[0];
+    const todaysOrders = orders.filter(o => o.date?.startsWith(today));
+    setOrdersToday(todaysOrders.length);
+    setRecentOrders(orders.slice(-5).reverse()); // last 5 orders
+
+    // Sellers / Brands
+    const brandsSet = new Set(orders.map(o => o.brand));
+    setTotalSellers(brandsSet.size || categories.length);
+
+    // Pending products
+    const pendingCount = orders.filter(o => o.status === "Pending").length;
+    setPendingProducts(pendingCount);
+  }, []);
+
   return (
-
-    
     <AdminLayout>
-<main className="p-6">
-      {/* PAGE TITLE */}
-      <h1 className="text-xl sm:text-2xl font-bold text-slate-800 mb-6">
-        Dashboard Overview
-      </h1>
+      <main className="p-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-800 mb-6">
+          Dashboard Overview
+        </h1>
 
-      {/* STAT CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-10">
+        {/* STAT CARDS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-10">
+          <StatCard title="Total Users" value={totalUsers} icon={<FaUsers />} />
+          <StatCard title="Orders Today" value={ordersToday} icon={<FaShoppingCart />} />
+          <StatCard title="Total Sellers" value={totalSellers} icon={<FaStore />} />
+          <StatCard title="Pending Products" value={pendingProducts} icon={<FaBoxOpen />} />
+        </div>
 
-        <StatCard
-          title="Total Users"
-          value="1,240"
-          icon={<FaUsers />}
-        />
-
-        <StatCard
-          title="Orders Today"
-          value="87"
-          icon={<FaShoppingCart />}
-        />
-
-        <StatCard
-          title="Total Sellers"
-          value="56"
-          icon={<FaStore />}
-        />
-
-        <StatCard
-          title="Pending Products"
-          value="12"
-          icon={<FaBoxOpen />}
-        />
-
-      </div>
-
-      {/* LOWER SECTION */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-
-        {/* RECENT ORDERS */}
-        <div className="xl:col-span-2 bg-white border shadow-sm p-4 sm:p-6 overflow-hidden">
-
-          <h2 className="font-semibold text-slate-800 mb-4">
-            Recent Orders
-          </h2>
-
-          {/* TABLE SCROLL AREA */}
-          <div className="w-full overflow-x-auto">
-
-            <table className="w-full text-sm">
-
-              <thead className="text-left text-slate-500 border-b">
-                <tr>
-                  <th className="pb-2 pr-4">Order ID</th>
-                  <th className="pb-2 pr-4">Customer</th>
-                  <th className="pb-2 pr-4">Amount</th>
-                  <th className="pb-2">Status</th>
-                </tr>
-              </thead>
-
-              <tbody>
-
-                <tr className="border-b">
-                  <td className="py-3 pr-4">#LX1023</td>
-                  <td className="pr-4">John Doe</td>
-                  <td className="pr-4">₦45,000</td>
-                  <td className="text-green-600">Completed</td>
-                </tr>
-
-                <tr className="border-b">
-                  <td className="py-3 pr-4">#LX1022</td>
-                  <td className="pr-4">Aisha Bello</td>
-                  <td className="pr-4">₦18,500</td>
-                  <td className="text-yellow-600">Pending</td>
-                </tr>
-
-                <tr>
-                  <td className="py-3 pr-4">#LX1021</td>
-                  <td className="pr-4">Michael James</td>
-                  <td className="pr-4">₦72,300</td>
-                  <td className="text-blue-600">Processing</td>
-                </tr>
-
-              </tbody>
-
-            </table>
-
+        {/* LOWER SECTION */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* RECENT ORDERS */}
+          <div className="xl:col-span-2 bg-white border shadow-sm p-4 sm:p-6 overflow-hidden">
+            <h2 className="font-semibold text-slate-800 mb-4">Recent Orders</h2>
+            <div className="w-full overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="text-left text-slate-500 border-b">
+                  <tr>
+                    <th className="pb-2 pr-4">Order ID</th>
+                    <th className="pb-2 pr-4">Customer</th>
+                    <th className="pb-2 pr-4">Amount</th>
+                    <th className="pb-2">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentOrders.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="py-3 text-center text-gray-500">
+                        No orders yet
+                      </td>
+                    </tr>
+                  ) : (
+                    recentOrders.map(order => (
+                      <tr key={order.id} className="border-b">
+                        <td className="py-3 pr-4">#{order.id}</td>
+                        <td className="pr-4">{order.userName || order.buyer}</td>
+                        <td className="pr-4">{formatPrice(order.amount || order.price)}</td>
+                        <td className={`font-semibold ${
+                          order.status === "Pending" ? "text-yellow-600" :
+                          order.status === "Shipped" ? "text-blue-600" :
+                          order.status === "Delivered" ? "text-green-600" :
+                          "text-red-600"
+                        }`}>{order.status}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
 
+          {/* NEW USERS */}
+          <div className="bg-white border shadow-sm p-4 sm:p-6">
+            <h2 className="font-semibold text-slate-800 mb-4">New Users</h2>
+            <ul className="space-y-4">
+              {newUsers.length === 0 ? (
+                <li className="text-gray-500">No new users</li>
+              ) : (
+                newUsers.map((user, idx) => (
+                  <li key={idx} className="flex justify-between items-center">
+                    <span className="font-medium">{user.name}</span>
+                    <span className="text-slate-400 text-xs sm:text-sm">{new Date(user.createdAt).toLocaleTimeString()}</span>
+                  </li>
+                ))
+              )}
+            </ul>
+          </div>
         </div>
-
-        {/* NEW USERS */}
-        <div className="bg-white border shadow-sm p-4 sm:p-6">
-
-          <h2 className="font-semibold text-slate-800 mb-4">
-            New Users
-          </h2>
-
-          <ul className="space-y-4">
-
-            <li className="flex justify-between items-center">
-              <span className="font-medium">David</span>
-              <span className="text-slate-400 text-xs sm:text-sm">2m ago</span>
-            </li>
-
-            <li className="flex justify-between items-center">
-              <span className="font-medium">Sarah</span>
-              <span className="text-slate-400 text-xs sm:text-sm">10m ago</span>
-            </li>
-
-            <li className="flex justify-between items-center">
-              <span className="font-medium">Emeka</span>
-              <span className="text-slate-400 text-xs sm:text-sm">30m ago</span>
-            </li>
-
-            <li className="flex justify-between items-center">
-              <span className="font-medium">Grace</span>
-              <span className="text-slate-400 text-xs sm:text-sm">1h ago</span>
-            </li>
-
-          </ul>
-
-        </div>
-
-      </div>
-</main>
+      </main>
     </AdminLayout>
-   
   );
 }

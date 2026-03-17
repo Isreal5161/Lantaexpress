@@ -2,38 +2,49 @@ import React, { useEffect, useState } from "react";
 import AdminLayout from "../Layout/AdminLayout";
 import AdminTable from "../components/AdminTable";
 import UserCard from "../components/UserCard";
-import { getUsers, initializeUsers, deleteUser, banUser, unbanUser } from "../services/userService";
+
+const LOCAL_STORAGE_KEY = "adminUsers";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null); // For modal
+  const [selectedUser, setSelectedUser] = useState(null);
 
+  // Load users from localStorage
   useEffect(() => {
-    initializeUsers();
-    setUsers(getUsers());
+    const storedUsers = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (storedUsers) {
+      setUsers(JSON.parse(storedUsers));
+    } else {
+      // No users yet
+      setUsers([]);
+    }
   }, []);
 
+  const updateUsers = (newUsers) => {
+    setUsers(newUsers);
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newUsers));
+  };
+
   const handleDelete = (id) => {
-    deleteUser(id);
-    setUsers(getUsers());
+    const updated = users.filter((user) => user.id !== id);
+    updateUsers(updated);
   };
 
   const handleBan = (id) => {
-    banUser(id);
-    setUsers(getUsers());
+    const updated = users.map((user) =>
+      user.id === id ? { ...user, status: "Banned" } : user
+    );
+    updateUsers(updated);
   };
 
   const handleUnban = (id) => {
-    unbanUser(id);
-    setUsers(getUsers());
+    const updated = users.map((user) =>
+      user.id === id ? { ...user, status: "Active" } : user
+    );
+    updateUsers(updated);
   };
 
-  // Open user modal
-  const handleView = (user) => {
-    setSelectedUser(user);
-  };
-
-  // Close modal
+  const handleView = (user) => setSelectedUser(user);
   const closeModal = () => setSelectedUser(null);
 
   const columns = ["User ID", "Name", "Email", "Orders", "Status", "Actions"];
@@ -93,25 +104,35 @@ export default function Users() {
           />
         </div>
 
-        {/* Desktop Table */}
-        <div className="hidden md:block">
-          <AdminTable columns={columns} data={data} />
-        </div>
+        {users.length > 0 ? (
+          <>
+            {/* Desktop Table */}
+            <div className="hidden md:block">
+              <AdminTable columns={columns} data={data} />
+            </div>
 
-        {/* Mobile Cards */}
-        <div className="grid grid-cols-1 gap-4 md:hidden">
-          {users.map((user) => (
-            <UserCard
-              key={user.id}
-              user={user}
-              onView={() => handleView(user)}
-              onBan={() =>
-                user.status === "Active" ? handleBan(user.id) : handleUnban(user.id)
-              }
-              onDelete={() => handleDelete(user.id)}
-            />
-          ))}
-        </div>
+            {/* Mobile Cards */}
+            <div className="grid grid-cols-1 gap-4 md:hidden">
+              {users.map((user) => (
+                <UserCard
+                  key={user.id}
+                  user={user}
+                  onView={() => handleView(user)}
+                  onBan={() =>
+                    user.status === "Active"
+                      ? handleBan(user.id)
+                      : handleUnban(user.id)
+                  }
+                  onDelete={() => handleDelete(user.id)}
+                />
+              ))}
+            </div>
+          </>
+        ) : (
+          <p className="text-center text-gray-500 mt-10 text-lg">
+            No users available on the site at this moment.
+          </p>
+        )}
 
         {/* User Detail Modal */}
         {selectedUser && (
