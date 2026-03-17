@@ -38,6 +38,7 @@ import SellerIncomePage from "./pages/seller/SellerIncomePage";
 import SellerWithdrawPage from "./pages/seller/SellerWithdrawPage";
 import SellerProfilePage from "./pages/seller/SellerProfilePage";
 import SellerSettingsPage from "./pages/seller/SellerSettingsPage";
+import { SellerLandingPage } from "./pages/seller/SellerPage"; 
 
 // Admin Pages
 import Dashboard from "./AdminPanel/pages/Dashboard";
@@ -145,7 +146,7 @@ const App = () => {
             <Route path="/AdminPanel/logistics" element={<Logistics />} />
             <Route path="/AdminPanel/logistics/location" element={<OrderLocations />} />
             <Route path="/AdminPanel/logistics/requests" element={<LogisticsRequest />} />
-
+            <Route path="/seller" element={<SellerLandingPage />} />
             {/* SELLER AUTH */}
             <Route path="/seller-login" element={<SellerLogin />} />
             <Route path="/seller-signup" element={<SellerSignup />} />

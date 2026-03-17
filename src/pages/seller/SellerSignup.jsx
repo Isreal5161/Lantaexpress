@@ -1,7 +1,8 @@
 // src/pages/seller/SellerSignup.jsx
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useSellerAuth } from "../../context/SellerAuthContext";
+import "../../styles/globals.css"; // note the 's' in globals.css
 
 const nigeriaStates = [
   "Lagos","Abuja (FCT)","Oyo","Ogun","Rivers","Kano",
@@ -112,6 +113,21 @@ const SellerSignup = () => {
   return (
     <div className="min-h-screen flex flex-col items-center bg-green-50 px-4 py-8">
 
+      {/* Navigation Buttons */}
+<div className="flex space-x-3 mb-6 animate-fade-pulse">
+  <Link
+    to="/seller-landing"
+    className="px-4 py-1 text-sm bg-green-100 text-green-700 font-medium rounded-lg hover:bg-green-200 hover:opacity-90 transition opacity-70"
+  >
+    Back to Seller
+  </Link>
+  <Link
+    to="/"
+    className="px-4 py-1 text-sm bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 hover:opacity-90 transition opacity-70"
+  >
+    Home
+  </Link>
+</div>
       {/* Welcome Section */}
       <div className="bg-white w-full max-w-3xl p-6 rounded-3xl shadow-xl border border-green-100 flex items-center space-x-4 mb-10">
         <img src="lantalogo1.jpg" alt="LantaXeller Logo" className="w-16 h-16 object-contain" />
@@ -144,16 +160,14 @@ const SellerSignup = () => {
             <>
               <h2 className="text-2xl font-bold text-green-700 mb-4">Personal Information</h2>
               <input type="text" name="fullName" placeholder="Full Name"
-                value={formData.fullName} onChange={handleChange}
-                required className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none" />
-
+                value={formData.fullName} onChange={handleChange} required
+                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none" />
               <input type="email" name="email" placeholder="Email"
-                value={formData.email} onChange={handleChange}
-                required className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none" />
-
+                value={formData.email} onChange={handleChange} required
+                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none" />
               <input type="tel" name="phone" placeholder="Phone Number"
-                value={formData.phone} onChange={handleChange}
-                required className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none" />
+                value={formData.phone} onChange={handleChange} required
+                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none" />
             </>
           )}
 
@@ -161,41 +175,30 @@ const SellerSignup = () => {
           {step === 2 && (
             <>
               <h2 className="text-2xl font-bold text-green-700 mb-4">Brand Information</h2>
-
               <input type="text" name="brandName" placeholder="Brand Name"
-                value={formData.brandName} onChange={handleChange}
-                required className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none" />
-
+                value={formData.brandName} onChange={handleChange} required
+                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none" />
               <textarea name="description" placeholder="Store Description"
                 value={formData.description} onChange={handleChange}
                 className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none" />
-
               <div>
                 <p className="font-medium mb-2 text-green-800">Select Categories</p>
                 <div className="grid grid-cols-2 gap-3">
                   {categoriesList.map((cat) => (
                     <label key={cat} className="flex items-center space-x-2 cursor-pointer hover:text-green-700 transition">
-                      <input
-                        type="checkbox"
-                        checked={formData.categories.includes(cat)}
-                        onChange={() => handleCategoryChange(cat)}
-                        className="accent-green-600"
-                      />
+                      <input type="checkbox" checked={formData.categories.includes(cat)}
+                        onChange={() => handleCategoryChange(cat)} className="accent-green-600" />
                       <span>{cat}</span>
                     </label>
                   ))}
                 </div>
               </div>
-
               <div>
                 <p className="font-medium mb-2 text-green-800">Upload Brand Logo</p>
                 <input type="file" accept="image/*" onChange={handleLogoUpload} className="mb-2" />
                 {formData.logoPreview && (
-                  <img
-                    src={formData.logoPreview}
-                    alt="Preview"
-                    className="mt-2 h-28 w-28 object-cover rounded-full border-2 border-green-200 shadow"
-                  />
+                  <img src={formData.logoPreview} alt="Preview"
+                    className="mt-2 h-28 w-28 object-cover rounded-full border-2 border-green-200 shadow" />
                 )}
               </div>
             </>
@@ -205,10 +208,8 @@ const SellerSignup = () => {
           {step === 3 && (
             <>
               <h2 className="text-2xl font-bold text-green-700 mb-4">Location & Security</h2>
-
-              <input type="text" value="Nigeria"
-                disabled className="w-full border rounded-xl px-4 py-3 bg-green-50 text-green-700" />
-
+              <input type="text" value="Nigeria" disabled
+                className="w-full border rounded-xl px-4 py-3 bg-green-50 text-green-700" />
               <select name="state" value={formData.state} onChange={handleChange} required
                 className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none">
                 <option value="">Select State</option>
@@ -216,24 +217,19 @@ const SellerSignup = () => {
                   <option key={state}>{state}</option>
                 ))}
               </select>
-
               <input type="text" name="address" placeholder="Business Address"
-                value={formData.address} onChange={handleChange}
-                required className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none" />
-
+                value={formData.address} onChange={handleChange} required
+                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none" />
               <input type="password" name="password" placeholder="Password"
-                value={formData.password} onChange={handleChange}
-                required className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none" />
-
+                value={formData.password} onChange={handleChange} required
+                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none" />
               <input type="password" name="confirmPassword" placeholder="Confirm Password"
-                value={formData.confirmPassword} onChange={handleChange}
-                required className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none" />
-
+                value={formData.confirmPassword} onChange={handleChange} required
+                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none" />
               <label className="flex items-center space-x-2">
                 <input type="checkbox" name="agree"
                   checked={formData.agree} onChange={handleChange}
-                  className="accent-green-600"
-                />
+                  className="accent-green-600" />
                 <span className="text-green-800">I agree to Seller Terms & Policy</span>
               </label>
             </>
@@ -262,6 +258,7 @@ const SellerSignup = () => {
               </button>
             )}
           </div>
+
         </form>
       </div>
     </div>

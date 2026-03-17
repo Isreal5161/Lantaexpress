@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { MdStorefront, MdClose } from "react-icons/md";
+import { Link } from "react-router-dom";
 
 export const BecomeSeller = ({ position = "left", offsetBottom = 80 }) => {
   const [visible, setVisible] = useState(true);
@@ -24,10 +25,8 @@ export const BecomeSeller = ({ position = "left", offsetBottom = 80 }) => {
         </button>
 
         {/* Main Circular Button */}
-        <a
-          href="https://whatsapp.com/channel/0029Vb7MQdK3LdQNcnvMxE3h"
-          target="_blank"
-          rel="noopener noreferrer"
+        <Link
+          to="/seller"
           className="w-16 h-16 rounded-full bg-green-600 text-white shadow-lg flex items-center justify-center relative hover:scale-110 transition-transform"
           title="Become a Seller"
         >
@@ -53,7 +52,7 @@ export const BecomeSeller = ({ position = "left", offsetBottom = 80 }) => {
               </textPath>
             </text>
           </svg>
-        </a>
+        </Link>
       </div>
     </div>
   );
