@@ -116,10 +116,10 @@ const SellerSignup = () => {
       {/* Navigation Buttons */}
 <div className="flex space-x-3 mb-6 animate-fade-pulse">
   <Link
-    to="/seller"
+    to="/seller-login"
     className="px-4 py-1 text-sm bg-green-100 text-green-700 font-medium rounded-lg hover:bg-green-200 hover:opacity-90 transition opacity-70"
   >
-    Back to Seller
+    Sign In
   </Link>
   <Link
     to="/"
