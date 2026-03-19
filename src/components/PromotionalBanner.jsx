@@ -3,99 +3,119 @@ import { Link } from "./Link";
 import { motion, AnimatePresence } from "framer-motion";
 
 const PromotionalBanner = ({
-  mode = "image", // 'image' or 'text'
+  mode = "image",
   images = ["/banner1.jpg"],
   interval = 4500,
   link = "/promotions",
-  heightClasses = "h-36 sm:h-40 md:h-44",
-  // text mode props
+  heightClasses = "h-40 sm:h-44 md:h-52",
+
+  // text mode
   headline = "Exclusive Deals",
   subheadline = "Tap to see today's offers",
   ctaText = "Shop now",
   bgGradient = "bg-gradient-to-r from-yellow-400 to-yellow-500",
   textColor = "text-slate-900",
-  // optional flyer image
+
+  // flyer
   flyerImage = null,
   flyerAlt = "Promotional flyer",
-  flyerWidthClasses = "w-36 sm:w-44 md:w-56",
-  // slides: array of { headline, subheadline, ctaText, flyerImage, bgGradient, textColor }
+
+  // slides
   slides = null,
   slideInterval = 4000,
 }) => {
   const [index, setIndex] = useState(0);
   const [current, setCurrent] = useState(0);
 
+  // IMAGE MODE ROTATION
   useEffect(() => {
     if (mode === "image") {
       if (!images || images.length <= 1) return;
-      const t = setInterval(() => setIndex((i) => (i + 1) % images.length), interval);
+
+      const t = setInterval(() => {
+        setIndex((i) => (i + 1) % images.length);
+      }, interval);
+
       return () => clearInterval(t);
     }
-    return undefined;
   }, [images, interval, mode]);
 
-  // slide rotator for text mode
+  // TEXT MODE ROTATION
   useEffect(() => {
-    if (mode !== "text") return undefined;
+    if (mode !== "text") return;
+
     const s = slides && slides.length > 0 ? slides : null;
-    if (!s || s.length <= 1) return undefined;
-    const t = setInterval(() => setCurrent((c) => (c + 1) % s.length), slideInterval);
+    if (!s || s.length <= 1) return;
+
+    const t = setInterval(() => {
+      setCurrent((c) => (c + 1) % s.length);
+    }, slideInterval);
+
     return () => clearInterval(t);
   }, [mode, slides, slideInterval]);
 
+  // ================= TEXT MODE =================
   if (mode === "text") {
-    const s = slides && slides.length > 0 ? slides : [{ headline, subheadline, ctaText, flyerImage, bgGradient, textColor }];
+    const s =
+      slides && slides.length > 0
+        ? slides
+        : [{ headline, subheadline, ctaText, flyerImage, bgGradient, textColor }];
 
     return (
       <Link href={link} className="block">
         <div className={`w-full relative overflow-hidden ${heightClasses} ${bgGradient}`}>
-          {/* decorative shapes */}
+
+          {/* background blur shapes */}
           <div className="absolute -left-10 -top-6 w-28 h-28 bg-white/10 rounded-full blur-2xl" />
-          <div className="absolute -right-14 -bottom-8 w-32 h-32 bg-white/8 rounded-full blur-2xl" />
+          <div className="absolute -right-14 -bottom-8 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
 
           <div className="relative z-10 h-full">
-            <AnimatePresence initial={false} mode="wait">
+            <AnimatePresence mode="wait">
               <motion.div
                 key={current}
-                className="absolute inset-0 flex items-center justify-between px-4 sm:px-8"
-                initial={{ x: 120, opacity: 0 }}
+                className="absolute inset-0 flex items-center px-4 sm:px-8"
+                initial={{ x: 80, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
-                exit={{ x: -120, opacity: 0 }}
-                transition={{ type: "tween", duration: 0.5, ease: "easeOut" }}
+                exit={{ x: -80, opacity: 0 }}
+                transition={{ duration: 0.4 }}
               >
-                <div className="flex-1 pr-4">
-                  <motion.h3
-                    className={`text-lg sm:text-2xl md:text-3xl font-extrabold ${s[current].textColor || textColor}`}
-                    initial={{ x: -30, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ duration: 0.5 }}
-                    style={{ textShadow: "0 6px 18px rgba(0,0,0,0.12)" }}
-                  >
+
+                {/* TEXT */}
+                <div className="flex-1 pr-24 sm:pr-40 md:pr-56">
+                  <h3 className={`text-base sm:text-2xl font-bold ${s[current].textColor || textColor}`}>
                     {s[current].headline}
-                  </motion.h3>
+                  </h3>
 
                   {s[current].subheadline && (
-                    <motion.p
-                      className="text-xs sm:text-sm opacity-95 mt-1 text-white/95 max-w-lg"
-                      initial={{ x: -12, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      transition={{ delay: 0.12, duration: 0.45 }}
-                    >
+                    <p className="text-xs sm:text-sm mt-1 text-white/90">
                       {s[current].subheadline}
-                    </motion.p>
+                    </p>
                   )}
                 </div>
 
-                {/* flyer image - hidden on very small screens */}
+                {/* ✅ MOBILE + DESKTOP IMAGE FIXED */}
                 {s[current].flyerImage && (
-                  <motion.div className={`hidden sm:block ${s[current].flyerWidthClasses || flyerWidthClasses} h-full flex-shrink-0 ml-4`} initial={{ x: 60, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.6 }}>
-                    <img src={s[current].flyerImage} alt={s[current].flyerAlt || flyerAlt} className="w-full h-full object-cover rounded-none shadow-md" />
+                  <motion.div
+                    className="absolute right-0 bottom-0 w-24 sm:w-40 md:w-56 h-full opacity-95"
+                    initial={{ x: 40, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <img
+                      src={s[current].flyerImage}
+                      alt={s[current].flyerAlt || flyerAlt}
+                      className="w-full h-full object-cover"
+                    />
                   </motion.div>
                 )}
 
-                <motion.div className="absolute right-4 bottom-3" initial={{ y: 8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.25, duration: 0.6 }}>
-                  <motion.span className="inline-block bg-white text-green-700 px-4 py-2 text-sm sm:text-base rounded-none font-semibold shadow-sm cursor-pointer" whileHover={{ scale: 1.05 }} animate={{ scale: [1, 1.04, 1] }} transition={{ repeat: Infinity, repeatType: "reverse", duration: 1.6, delay: 0.9 }}>{s[current].ctaText || ctaText}</motion.span>
-                </motion.div>
+                {/* CTA */}
+                <div className="absolute left-4 bottom-3">
+                  <span className="bg-white text-green-700 px-3 py-1 text-xs sm:text-sm font-semibold shadow-sm">
+                    {s[current].ctaText || ctaText}
+                  </span>
+                </div>
+
               </motion.div>
             </AnimatePresence>
           </div>
@@ -104,30 +124,36 @@ const PromotionalBanner = ({
     );
   }
 
+  // ================= IMAGE MODE =================
   return (
     <Link href={link} className="block">
-      <div className={`w-full relative overflow-hidden bg-gray-100 ${heightClasses}`}>
+      <div className={`w-full relative overflow-hidden ${heightClasses}`}>
+
         {images.map((src, i) => (
           <motion.img
-            key={`${src}-${i}`}
+            key={i}
             src={src}
             alt={`promo-${i}`}
-            className="w-full h-full object-contain object-center absolute inset-0 bg-gray-100"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: i === index ? 1 : 0 }}
-            transition={{ duration: 0.6 }}
-            style={{ position: "absolute" }}
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
+              i === index ? "opacity-100 z-10" : "opacity-0 z-0"
+            }`}
           />
         ))}
 
-        {/* subtle gradient overlay + small CTA (sharp corners) */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
-        <div className="absolute left-4 bottom-3 text-white pointer-events-none">
-          <h3 className="text-sm sm:text-base font-semibold">Exclusive Deals</h3>
-          <p className="text-xs opacity-90">Tap to see today's offers</p>
+        {/* overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent z-20" />
+
+        {/* text */}
+        <div className="absolute left-3 bottom-3 text-white z-30">
+          <h3 className="text-sm sm:text-base font-semibold">{headline}</h3>
+          <p className="text-xs opacity-90">{subheadline}</p>
         </div>
-        <div className="absolute right-3 bottom-3">
-          <span className="inline-block bg-green-600 text-white px-3 py-1 text-xs rounded-none">Shop now</span>
+
+        {/* CTA */}
+        <div className="absolute right-3 bottom-3 z-30">
+          <span className="bg-green-600 text-white px-3 py-1 text-xs">
+            {ctaText}
+          </span>
         </div>
       </div>
     </Link>

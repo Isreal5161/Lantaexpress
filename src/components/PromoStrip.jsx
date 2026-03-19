@@ -39,7 +39,7 @@ const PromoStrip = ({ items }) => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="bg-gradient-to-r from-green-600 to-green-500 p-3 rounded-none">{/* green brand strip */}
+      <div className="bg-gradient-to-r from-green-700 to-green-700 p-3 rounded-none">{/* green brand strip */}
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-white font-semibold">Featured</h3>
           <div className="text-sm text-white/90">See all</div>
