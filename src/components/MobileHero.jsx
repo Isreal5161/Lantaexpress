@@ -79,7 +79,7 @@ export const MobileHero = () => {
   };
 
   return (
-    <section className="relative bg-slate-50 pt-3 md:pt-5">
+    <section className="relative bg-white pt-3 md:pt-5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
