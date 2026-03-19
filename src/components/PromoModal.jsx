@@ -21,7 +21,8 @@ const PromoModal = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (isOpen) {
       setShowConfetti(true);
-      const timer = setTimeout(() => setShowConfetti(false), 4000);
+      // Keep confetti short and limited to reduce performance impact on mobile
+      const timer = setTimeout(() => setShowConfetti(false), 2000);
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
@@ -59,12 +60,14 @@ const PromoModal = ({ isOpen, onClose }) => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
-          {showConfetti && (
+          {showConfetti && windowSize.width >= 640 && (
             <Confetti
               width={windowSize.width}
               height={windowSize.height}
-              numberOfPieces={100}
-              gravity={0.25}
+              numberOfPieces={40}
+              gravity={0.22}
+              recycle={false}
+              run={showConfetti}
             />
           )}
 
@@ -81,7 +84,7 @@ const PromoModal = ({ isOpen, onClose }) => {
               <motion.div
                 className="flex gap-1"
                 animate={{ x: ["0%", "-50%"] }}
-                transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
+                transition={{ repeat: Infinity, duration: 6, ease: "linear" }}
               >
                 {[...products, ...products].map((product, index) => (
                   <div key={index} className="min-w-[60px] bg-white p-1 text-center shadow-sm rounded-lg">
@@ -109,14 +112,6 @@ const PromoModal = ({ isOpen, onClose }) => {
               <motion.button
                 onClick={handleRedirect}
                 whileTap={{ scale: 0.95 }}
-                animate={{
-                  boxShadow: [
-                    "0px 0px 0px rgba(34,197,94,0.4)",
-                    "0px 0px 10px rgba(34,197,94,0.8)",
-                    "0px 0px 0px rgba(34,197,94,0.4)",
-                  ],
-                }}
-                transition={{ repeat: Infinity, duration: 1.5 }}
                 className="bg-green-600 text-white w-full py-1.5 text-xs font-semibold rounded-lg"
               >
                 Shop Now
@@ -129,8 +124,6 @@ const PromoModal = ({ isOpen, onClose }) => {
           {/* Close Button OUTSIDE the Modal with Bounce Animation */}
           <motion.button
             onClick={onClose}
-            animate={{ y: [0, -6, 0] }} // subtle bounce
-            transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
             whileTap={{ scale: 0.9 }}
             className="mt-3 bg-white w-10 h-10 rounded-full shadow-md flex items-center justify-center text-lg font-bold border"
           >
