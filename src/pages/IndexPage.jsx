@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useCart } from "../context/CartContextTemp";
 import { Button } from "../components/Button";
 import { Icon } from "../components/Icon";
 import { Image } from "../components/Image";
 import { Header } from "../components/header";
 import { Footer } from "../components/footer";
-import { Link as RouterLink } from 'react-router-dom';
 import { Link } from "../components/Link";
 import { Text } from "../components/Text";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -15,55 +14,37 @@ import "swiper/css";
 import "swiper/css/pagination";
 import { ProductCard } from "../components/ProductCard";
 import Modal from "../components/Modal";
-import { MobileHero as MobileHero } from "../components/MobileHero"; // rename to avoid conflict
+import { MobileHero } from "../components/MobileHero";
 import { BecomeSeller } from "../components/BecomeSeller";
-
-// Import your product service
+import PromotionalBanner from "../components/PromotionalBanner";
+import PromoStrip from "../components/PromoStrip";
 import { getProducts } from "../service/ProductService";
+import { motion } from "framer-motion";
 
 export const IndexPage = ({ className, children, variant, contentKey, ...props }) => {
   const { cartItems, addToCart } = useCart();
   const [isModalOpen, setIsModalOpen] = useState(true);
+  const promoBannerRef = useRef(null);
+  const promoStripRef = useRef(null);
+  const categoryTargetRef = useRef(null);
+  const [bannerSticky, setBannerSticky] = useState(true);
+  const [stripSticky, setStripSticky] = useState(false);
 
-  // Start with an empty array or dummy array
   const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: "Wireless Headphones",
-      price: 120,
-      image:
-        "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80",
-    },
-    {
-      id: 2,
-      name: "Smart Watch",
-      price: 250,
-      image:
-        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80",
-    },
-    {
-      id: 3,
-      name: "Designer Handbag",
-      price: 180,
-      image:
-        "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=500&q=80",
-    },
-    {
-      id: 4,
-      name: "Gaming Mouse",
-      price: 60,
-      image:
-        "https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=500&q=80",
-    },
+    { id: 1, name: "Wireless Headphones", price: 120, image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80" },
+    { id: 2, name: "Smart Watch", price: 250, image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80" },
+    { id: 3, name: "Designer Handbag", price: 180, image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=500&q=80" },
+    { id: 4, name: "Gaming Mouse", price: 60, image: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=500&q=80" },
+    { id: 5, name: "Leather Wallet", price: 45, image: "https://images.unsplash.com/photo-1600185366207-3f7ee2c2c7c2?auto=format&fit=crop&w=500&q=80" },
+    { id: 6, name: "Bluetooth Speaker", price: 80, image: "https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&w=500&q=80" },
   ]);
 
-  // Fetch products from backend/service on component mount
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const data = await getProducts();
         if (data && data.length > 0) {
-          setProducts(data); // update products state with fetched data
+          setProducts(prev => [...data, ...prev]);
         }
       } catch (error) {
         console.error("Failed to fetch products:", error);
@@ -71,276 +52,231 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
     };
     fetchProducts();
   }, []);
-{categories.map((category) => (
-  <section key={category.id} className="py-12 bg-white-50">
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-      {/* Category Title with Gradient Border */}
-      <div className={`w-full p-[1px] bg-gradient-to-r ${category.gradientFrom} ${category.gradientTo} mb-6`}>
-        <h2 className={`text-lg sm:text-xl font-heading font-semibold ${category.bgColor} ${category.textColor} px-4 py-1.5 text-left`}>
-          {category.title}
-        </h2>
-      </div>
 
-      {/* Products Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-        {category.products.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            addToCart={addToCart}
-          />
-        ))}
-      </div>
-    </div>
-  </section>
-))}
-    return (
-      
+  const padProducts = (list) => {
+    const padded = [...list];
+    while (padded.length < 6) {
+      padded.push({ id: `dummy-${padded.length}`, name: "Coming Soon", price: 0, image: "/default-product.jpg" });
+    }
+    return padded;
+  };
+
+  const hotDealProducts = padProducts(products.slice(0, 6));
+  const trendingProducts = padProducts(products.slice(0, 6));
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+  };
+
+  // Observe when promo strip enters view -> hide banner (remove stickiness)
+  useEffect(() => {
+    if (!promoStripRef.current) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setBannerSticky(false);
+        } else {
+          setBannerSticky(true);
+        }
+      },
+      { root: null, rootMargin: '-80px 0px 0px 0px', threshold: 0 }
+    );
+    obs.observe(promoStripRef.current);
+    return () => obs.disconnect();
+  }, []);
+
+  // Make promo strip sticky while in view until user reaches 4th category
+  useEffect(() => {
+    if (!promoStripRef.current) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        setStripSticky(entry.isIntersecting);
+      },
+      { root: null, rootMargin: '-80px 0px 0px 0px', threshold: 0 }
+    );
+    obs.observe(promoStripRef.current);
+    return () => obs.disconnect();
+  }, []);
+
+  // When the 4th category (index 3) appears, remove promo strip stickiness
+  useEffect(() => {
+    if (!categoryTargetRef.current) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setStripSticky(false);
+      },
+      { root: null, rootMargin: '-80px 0px 0px 0px', threshold: 0.2 }
+    );
+    obs.observe(categoryTargetRef.current);
+    return () => obs.disconnect();
+  }, [categoryTargetRef]);
+
+  return (
     <div className="font-body text-slate-600 antialiased bg-white">
-       
-     
-      < Header /> 
-      {/* Mobile Hero - only show on small screens */}
-<div className="block md:hidden">
-  <MobileHero />
-</div>
-       {/* Modal Pop */}
-     <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-  <img
-    src="/banner6.jpg"
-    alt="Promotional Flyer"
-    className="w-full shadow-2xl"
-  />
-</Modal>
-      <>
-<div className="pb-20 md:pb-0">
-  {/* Desktop / Laptop Hero */}
-<div className="hidden md:block">
-  <div id="hero" className="relative bg-slate-50 overflow-hidden">
-    <div className="max-w-7xl mx-auto">
-      <Swiper
-        modules={[Autoplay, Pagination]}
-        slidesPerView={1}
-        autoplay={{ delay: 4000, disableOnInteraction: false }}
-        pagination={{ clickable: true }}
-        loop={true}
-        className="w-full"
-      >
-        {/* Slide 1 */}
-        <SwiperSlide>
-          <div className="grid lg:grid-cols-2 items-center min-h-[350px] px-4 sm:px-6 lg:px-8">
-            <div className="text-center lg:text-left">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-slate-900">
-                <span>Your Marketplace, </span>
-                <span className="text-green-700">Your Way</span>
-              </h1>
-              <p className="mt-4 text-lg text-slate-500">
-                Connect with buyers, sell with ease, and let Lanta Express handle the logistics from pickup to delivery.
-              </p>
-              <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start gap-3">
-                <Link
-                  className="px-8 py-3 bg-green-600 text-white font-medium hover:bg-green-700 transition-colors"
-                  href="shop.html"
-                >
-                  Shop Collection
-                </Link>
-              </div>
+      <Header />
+
+      {/* Mobile Hero */}
+      <div className="block md:hidden">
+        <MobileHero />
+      </div>
+
+      {/* Modal */}
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <img src="/banner6.jpg" alt="Promotional Flyer" className="w-full shadow-2xl" />
+      </Modal>
+
+      <div className="pb-20 md:pb-0">
+
+        {/* Desktop Hero */}
+        <div className="hidden md:block">
+          {/* Add Swiper slides if needed */}
+        </div>
+
+        {/* Shop By Category */}
+        <section id="shop_by_category" className="py-12 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="w-full p-[3px] bg-green-700 mb-2">
+              <h2 className="text-sm sm:text-base font-heading font-semibold bg-green-700 text-white px-4 py-2 text-left">
+                Shop by Category
+              </h2>
             </div>
+            <Swiper
+              modules={[Autoplay, Pagination]}
+              slidesPerView={2}
+              spaceBetween={12}
+              autoplay={{ delay: 3000, disableOnInteraction: false }}
+              pagination={{ clickable: true }}
+              loop={true}
+              className="w-full"
+            >
+              {categories.map(cat => (
+                <SwiperSlide key={cat.id}>
+                  <Link href={`/shop?category=${encodeURIComponent(cat.title)}`} className="group relative overflow-hidden h-48 block">
+                    <Image
+                      variant="cover"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-md"
+                      src={cat.products?.[0]?.image || "/default-category.jpg"}
+                      alt={cat.title}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex items-end p-4 rounded-md">
+                      <h3 className="text-white font-semibold text-sm sm:text-base">{cat.title}</h3>
+                    </div>
+                  </Link>
+                </SwiperSlide>
+              ))}
+            </Swiper>
           </div>
-        </SwiperSlide>
+        </section>
+        {/* Promotion Banner (between Shop by Category and Hot Deals) */}
+        <div ref={promoBannerRef} className={`${bannerSticky ? 'sticky top-16 z-50' : ''} max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-4`}>
+          <PromotionalBanner
+            mode="text"
+            slides={[
+              {
+                headline: "Limited Time Offers",
+                subheadline: "Free delivery on selected items this week",
+                ctaText: "Explore",
+                flyerImage: categories?.[0]?.products?.[0]?.image || "/banner-flyer.jpg",
+                bgGradient: "bg-gradient-to-r from-green-600 to-green-500",
+                textColor: "text-white",
+                flyerWidthClasses: "w-36 sm:w-44",
+              },
+              {
+                headline: "Flash Sales — Up to 50%",
+                subheadline: "Hurry, sale ends tonight!",
+                ctaText: "Shop Flash",
+                flyerImage: categories?.[1]?.products?.[0]?.image || "/banner-flyer-2.jpg",
+                bgGradient: "bg-gradient-to-r from-green-700 to-green-500",
+                textColor: "text-white",
+                flyerWidthClasses: "w-36 sm:w-44",
+              },
+            ]}
+            slideInterval={4200}
+            heightClasses="h-28 sm:h-32"
+            link="/promotions"
+          />
+        </div>
 
-        {/* Slide 2 */}
-        <SwiperSlide>
-          <div className="grid lg:grid-cols-2 items-center min-h-[350px] px-4 sm:px-6 lg:px-8">
-            <div className="text-center lg:text-left">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-slate-900">
-                <span>Fast Delivery, </span>
-                <span className="text-green-700">All State</span>
-              </h1>
-              <p className="mt-4 text-lg text-slate-500">
-                Reliable logistics from pickup to doorstep. Wherever you are, we deliver your orders safely and on time
-              </p>
-              <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start gap-3">
-                <Link
-                  className="px-8 py-3 bg-primary-100 text-green-700 font-medium hover:bg-primary-200 transition-colors"
-                  href="/track"
-                >
-                  Track Your Order
-                </Link>
-              </div>
+        {/* Hot Deals */}
+        <section id="Hot-deal" className="py-6 bg-white-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="w-full p-[2px] bg-green-700 mb-1 rounded-sm">
+              <h2 className="text-sm sm:text-base font-heading font-semibold bg-green-700 text-white px-4 py-1 text-left">
+                Hot Deals
+              </h2>
             </div>
+            <motion.div
+              className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 -mt-1"
+              initial="hidden"
+              animate="visible"
+              variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+            >
+              {hotDealProducts.map(p => (
+                <motion.div key={p.id} variants={cardVariants}>
+                  <ProductCard product={p} addToCart={addToCart} />
+                </motion.div>
+              ))}
+            </motion.div>
           </div>
-        </SwiperSlide>
+        </section>
 
-        {/* Slide 3 */}
-        <SwiperSlide>
-          <div className="grid lg:grid-cols-2 items-center min-h-[350px] px-4 sm:px-6 lg:px-8">
-            <div className="text-center lg:text-left">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-slate-900">
-                <span>Shop Smart, </span>
-                <span className="text-green-700">Live Better</span>
-              </h1>
-              <p className="mt-4 text-lg text-slate-500">
-                Discover trending products at unbeatable prices. Upgrade your lifestyle with just a few clicks.
-              </p>
-              <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start gap-3">
-                <Link
-                  className="px-8 py-3 bg-green-600 text-white font-medium hover:bg-green-700 transition-colors"
-                  href="shop.html"
-                >
-                  Shop Now
-                </Link>
-              </div>
-            </div>
-          </div>
-        </SwiperSlide>
-      </Swiper>
-    </div>
+        {/* Jumia-style promo strip (uses category images where available) */}
+        <div ref={promoStripRef} className={`${stripSticky ? 'sticky top-16 z-40' : ''} mt-3 mb-3`}>
+          <PromoStrip items={categories.map(cat => ({
+            title: cat.title,
+            subtitle: cat.products?.[0]?.name || '',
+            link: `/shop?category=${encodeURIComponent(cat.title)}`,
+            image: cat.products?.[0]?.image || null,
+          }))} />
+        </div>
 
-    <div className="relative lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2 h-64 sm:h-80 md:h-96 lg:h-full">
-      <Swiper
-        modules={[Autoplay, Pagination]}
-        slidesPerView={1}
-        autoplay={{ delay: 3000, disableOnInteraction: false }}
-        pagination={{ clickable: true }}
-        loop={true}
-        grabCursor={true}
-        className="w-full h-full"
-      >
-        <SwiperSlide>
-          <img
-            src="/BANNER4.jpg"
-            alt="Slide 1"
-            className="w-full h-full object-cover"
-          />
-        </SwiperSlide>
-        <SwiperSlide>
-          <img
-            src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1350&q=80.jpg"
-            alt="Slide 2"
-            className="w-full h-full object-cover"
-          />
-        </SwiperSlide>
-        <SwiperSlide>
-          <img
-            src="/lantaexpressimage1.jpg"
-            alt="Slide 3"
-            className="w-full h-full object-cover"
-          />
-        </SwiperSlide>
-      </Swiper>
-    </div>
-  </div>
-</div>
-    {/* Shop By Category */}
-<section id="shop_by_category" className="py-12 bg-white">
+{/* Trending Now */}
+      <section id="Trending-Now" className="py-4 bg-white-50">
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div className="w-full p-[3px] bg-green-700 mb-6">
-      <h2 className="text-sm sm:text-base font-heading font-semibold bg-green-700 text-white px-4 py-2 text-left">
-        Shop by Category
-      </h2>
-    </div>
-
-    <Swiper
-      modules={[Autoplay, Pagination]}
-      slidesPerView={2}
-      spaceBetween={12}
-      autoplay={{ delay: 3000, disableOnInteraction: false }}
-      pagination={{ clickable: true }}
-      loop={true}
-      className="w-full"
-    >
-      {categories.map((category) => (
-        <SwiperSlide key={category.id}>
-          <Link
-            href={`/shop?category=${encodeURIComponent(category.title)}`}
-            className="group relative overflow-hidden h-48  block"
-          >
-            <Image
-              variant="cover"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-md"
-              src={category.products?.[0]?.image || "/default-category.jpg"}
-              alt={category.title}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex items-end p-4 rounded-md">
-              <h3 className="text-white font-semibold text-sm sm:text-base">
-                {category.title}
-              </h3>
-            </div>
-          </Link>
-        </SwiperSlide>
-      ))}
-    </Swiper>
-  </div>
-</section>
-
-{/* Hot Deal Section */}
-<section id="Hot-deal" className="py-12 bg-white-50">
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    {/* Wider green border */}
-    <div className="w-full p-[3px] bg-green-700 mb-6 rounded-sm">
-      <h2 className="text-sm sm:text-base font-heading font-semibold bg-green-700 text-white px-4 py-2 text-left">
-        Hot Deals
-      </h2>
-    </div>
-
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} addToCart={addToCart} />
-      ))}
-    </div>
-  </div>
-</section>
-
-{/* Trending Now Section */}
-<section id="Trending-Now" className="py-12 bg-white-50">
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    {/* Wider green border */}
-    <div className="w-full p-[3px] bg-green-700 mb-6 rounded-sm">
-      <h2 className="text-sm sm:text-base font-heading font-semibold bg-green-700 text-white px-4 py-2 text-left">
+    <div className="w-full p-[2px] bg-green-700 mb-1 rounded-sm">
+              <h2 className="text-sm sm:text-base font-heading font-semibold bg-green-700 text-white px-4 py-1 text-left">
         Trending Now
       </h2>
     </div>
-
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} addToCart={addToCart} />
+    <motion.div
+      className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 -mt-1"
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+      variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+    >
+      {trendingProducts.map(p => (
+        <motion.div key={p.id} variants={cardVariants}>
+          <ProductCard product={p} addToCart={addToCart} />
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   </div>
 </section>
- {/* Dynamic Categories from `categories` array */}
-{categories.map((category) => (
-  <section key={category.id} className="py-12 bg-white-50">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      
-      {/* Same Green Header Style as Trending & Hot Deals */}
-      <div className="w-full p-[3px] bg-green-700 mb-6 rounded-sm">
-        <h2 className="text-sm sm:text-base font-heading font-semibold bg-green-700 text-white px-4 py-2 text-left">
-          {category.title}
-        </h2>
-      </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-        {category.products.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            addToCart={addToCart}
-          />
+        {/* Dynamic Categories */}
+        {categories.map((cat, idx) => (
+          <section key={cat.id} ref={idx === 3 ? categoryTargetRef : null} className="py-6 bg-white-50">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="w-full p-[2px] bg-green-700 mb-1 rounded-sm">
+                <h2 className="text-sm sm:text-base font-heading font-semibold bg-green-700 text-white px-4 py-1 text-left">
+                  {cat.title}
+                </h2>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 -mt-1">
+                {cat.products.map(p => (
+                  <ProductCard key={p.id} product={p} addToCart={addToCart} />
+                ))}
+              </div>
+            </div>
+          </section>
         ))}
+
       </div>
 
-    </div>
-  </section>
-))}
-
-         </div>
-         <BecomeSeller position="right" offsetBottom="100" />
-       <Footer />
-        </>
-
+      <BecomeSeller position="right" offsetBottom="100" />
+      <Footer />
     </div>
   );
 };
-

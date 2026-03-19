@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import AdminLayout from "../Layout/AdminLayout";
 import StatCard from "../components/StatCard";
 import { FaUsers, FaShoppingCart, FaStore, FaBoxOpen } from "react-icons/fa";
-import { categories } from "../../service/dummyCategories";
 
 export default function Dashboard() {
   const [totalUsers, setTotalUsers] = useState(0);
@@ -15,11 +14,16 @@ export default function Dashboard() {
 
   const formatPrice = (value) => {
     if (!value) return "₦0";
-    return new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN" }).format(value);
+    return new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: "NGN"
+    }).format(value);
   };
 
   useEffect(() => {
-    // Users
+    // -----------------------------
+    // USERS
+    // -----------------------------
     const users = JSON.parse(localStorage.getItem("users")) || [
       { name: "John Doe", createdAt: new Date().toISOString() },
       { name: "Aisha Bello", createdAt: new Date().toISOString() },
@@ -28,18 +32,24 @@ export default function Dashboard() {
     setTotalUsers(users.length);
     setNewUsers(users.slice(-5).reverse()); // last 5 users
 
-    // Orders
+    // -----------------------------
+    // SELLERS
+    // -----------------------------
+    const sellers = JSON.parse(localStorage.getItem("sellers")) || [];
+    setTotalSellers(sellers.length);
+
+    // -----------------------------
+    // ORDERS
+    // -----------------------------
     const orders = JSON.parse(localStorage.getItem("user_orders")) || [];
     const today = new Date().toISOString().split("T")[0];
     const todaysOrders = orders.filter(o => o.date?.startsWith(today));
     setOrdersToday(todaysOrders.length);
     setRecentOrders(orders.slice(-5).reverse()); // last 5 orders
 
-    // Sellers / Brands
-    const brandsSet = new Set(orders.map(o => o.brand));
-    setTotalSellers(brandsSet.size || categories.length);
-
-    // Pending products
+    // -----------------------------
+    // PENDING PRODUCTS
+    // -----------------------------
     const pendingCount = orders.filter(o => o.status === "Pending").length;
     setPendingProducts(pendingCount);
   }, []);
@@ -47,6 +57,7 @@ export default function Dashboard() {
   return (
     <AdminLayout>
       <main className="p-6">
+        {/* PAGE TITLE */}
         <h1 className="text-xl sm:text-2xl font-bold text-slate-800 mb-6">
           Dashboard Overview
         </h1>
@@ -61,6 +72,7 @@ export default function Dashboard() {
 
         {/* LOWER SECTION */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          
           {/* RECENT ORDERS */}
           <div className="xl:col-span-2 bg-white border shadow-sm p-4 sm:p-6 overflow-hidden">
             <h2 className="font-semibold text-slate-800 mb-4">Recent Orders</h2>

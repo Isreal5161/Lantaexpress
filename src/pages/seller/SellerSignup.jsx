@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useSellerAuth } from "../../context/SellerAuthContext";
-import "../../styles/globals.css"; // note the 's' in globals.css
+import "../../styles/globals.css";
 
 const nigeriaStates = [
   "Lagos","Abuja (FCT)","Oyo","Ogun","Rivers","Kano",
@@ -10,16 +10,8 @@ const nigeriaStates = [
 ];
 
 const categoriesList = [
-  "Fashion",
-  "Electronics",
-  "Beauty",
-  "Home & Kitchen",
-  "Groceries",
-  "Phones & Accessories",
-  "Computers",
-  "Baby Products",
-  "Sports",
-  "Health"
+  "Fashion","Electronics","Beauty","Home & Kitchen","Groceries",
+  "Phones & Accessories","Computers","Baby Products","Sports","Health"
 ];
 
 const SellerSignup = () => {
@@ -84,29 +76,51 @@ const SellerSignup = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords do not match");
       return;
     }
+
     if (!formData.agree) {
       alert("You must agree to the terms");
       return;
     }
 
-    const sellerData = {
+    const sellers = JSON.parse(localStorage.getItem("sellers")) || [];
+
+    // prevent duplicate
+    if (sellers.some((s) => s.email === formData.email)) {
+      alert("Seller already exists");
+      return;
+    }
+
+    const newSeller = {
+      id: Date.now(),
       fullName: formData.fullName,
-      brandName: formData.brandName,
       email: formData.email,
+      password: formData.password,
+
+      brandName: formData.brandName,
       phone: formData.phone,
       description: formData.description,
       categories: formData.categories,
-      logoPreview: formData.logoPreview,
+      logo: formData.logoPreview,
       country: formData.country,
       state: formData.state,
       address: formData.address,
+
+      createdAt: new Date().toISOString(),
     };
 
-    login(sellerData);
+    sellers.push(newSeller);
+    localStorage.setItem("sellers", JSON.stringify(sellers));
+
+    // session
+    localStorage.setItem("currentSeller", JSON.stringify(newSeller));
+    localStorage.setItem("sellerToken", "dummy-token");
+
+    login(newSeller);
     navigate("/seller-dashboard");
   };
 

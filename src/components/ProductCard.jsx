@@ -67,7 +67,7 @@ export const ProductCard = ({ product, userCurrency = "NGN" }) => {
   return (
     <div
       ref={cardRef}
-      className="relative border border-gray-200 bg-white overflow-hidden group flex flex-col"
+      className="relative border border-gray-200 bg-white overflow-hidden group flex flex-col mt-0 first:mt-0"
       onMouseEnter={() => !isTouchDevice && setShowButton(true)}
       onMouseLeave={() => !isTouchDevice && setShowButton(false)}
       onClick={handleMobileTap}
@@ -113,7 +113,7 @@ export const ProductCard = ({ product, userCurrency = "NGN" }) => {
         </Icon>
       </div>
 
-      <div className="px-2 py-3 relative">
+      <div className="px-2 py-2 relative">
         <h3 className="text-sm text-slate-700 font-medium line-clamp-2">{product.name}</h3>
         <p className="text-xs text-gray-500 mt-1">Brand: {product.brand}</p>
         <p className="mt-1 text-base font-semibold text-slate-900">{price}</p>
