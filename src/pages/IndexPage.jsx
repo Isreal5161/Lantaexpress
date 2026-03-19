@@ -116,10 +116,10 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
     <div className="font-body text-slate-600 antialiased bg-white">
       <Header />
 
-      {/* Mobile Hero */}
-      <div className="block md:hidden">
-        <MobileHero />
-      </div>
+    
+   <MobileHero />
+
+      
 
       {/* Modal */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
@@ -128,10 +128,7 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
 
       <div className="pb-20 md:pb-0">
 
-        {/* Desktop Hero */}
-        <div className="hidden md:block">
-          {/* Add Swiper slides if needed */}
-        </div>
+       
 
         {/* Shop By Category */}
         <section id="shop_by_category" className="py-12 bg-white">
