@@ -10,7 +10,7 @@ import {
   FaCamera,
 } from "react-icons/fa";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = "http://localhost:5000/api, https://lantaxpressbackend.onrender.com";
 
 const AccountDashboard = () => {
   const navigate = useNavigate();

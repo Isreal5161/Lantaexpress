@@ -5,7 +5,7 @@ import AccountHeader from "../components/AccountHeader";
 import AccountSidebar from "../components/AccountSidebar";
 import { Footer } from "../components/footer";
 
-const API_URL = "http://localhost:5000/api"; // adjust if needed
+const API_URL = "http://localhost:5000/api, https://lantaxpressbackend.onrender.com"; // adjust if needed
 
 const AccountPage = ({ onSignOut }) => {
   const location = useLocation();
