@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaEye, FaEyeSlash } from "react-icons/fa";
+import { registerUser } from "../api/auth";
 
 export default function SignupPage() {
   const navigate = useNavigate();
@@ -10,9 +11,9 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [acceptPrivacy, setAcceptPrivacy] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
 
     if (!acceptPrivacy) {
@@ -20,20 +21,27 @@ export default function SignupPage() {
       return;
     }
 
-    const users = JSON.parse(localStorage.getItem("users")) || [];
+    setLoading(true);
 
-    if (users.some((u) => u.email === email)) {
-      alert("Email already registered. Please login.");
-      return;
+    try {
+      const data = await registerUser({ name, email, password, role: "user" });
+
+      if (data.token) {
+        // Save token & user info
+        localStorage.setItem("authToken", data.token);
+        localStorage.setItem("currentUser", JSON.stringify(data.user));
+
+        alert("Registration successful!");
+        navigate("/account"); // redirect to account/dashboard
+      } else {
+        alert(data.message || "Something went wrong. Try again.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Server error. Try again later.");
+    } finally {
+      setLoading(false);
     }
-
-    const newUser = { name, email, password };
-    users.push(newUser);
-    localStorage.setItem("users", JSON.stringify(users));
-    localStorage.setItem("currentUser", JSON.stringify(newUser));
-    localStorage.setItem("authToken", "dummy-token");
-
-    setShowSuccess(true);
   };
 
   return (
@@ -116,32 +124,33 @@ export default function SignupPage() {
               </div>
 
               {/* Privacy & Policy */}
-             <div className="flex items-center gap-2">
-               <input
-  type="checkbox"
-  id="acceptPolicy"
-  checked={acceptPrivacy}
-  onChange={(e) => setAcceptPrivacy(e.target.checked)}
-  className="w-4 h-4 accent-green-600"
-  required
-/>
-            <label htmlFor="acceptPolicy" className="text-sm text-gray-600">
-            I accept the{" "}
-            <Link
-            to="/privacy-policy"
-            className="text-green-600 hover:underline"
-            target="_blank"
-             >
-            Privacy & Policy
-    </Link>
-  </label>
-</div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="acceptPolicy"
+                  checked={acceptPrivacy}
+                  onChange={(e) => setAcceptPrivacy(e.target.checked)}
+                  className="w-4 h-4 accent-green-600"
+                  required
+                />
+                <label htmlFor="acceptPolicy" className="text-sm text-gray-600">
+                  I accept the{" "}
+                  <Link
+                    to="/privacy-policy"
+                    className="text-green-600 hover:underline"
+                    target="_blank"
+                  >
+                    Privacy & Policy
+                  </Link>
+                </label>
+              </div>
 
               <button
                 type="submit"
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-md transition duration-300"
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-md transition duration-300 disabled:opacity-50"
+                disabled={loading}
               >
-                Sign Up
+                {loading ? "Creating Account..." : "Sign Up"}
               </button>
             </form>
 
@@ -162,25 +171,6 @@ export default function SignupPage() {
       <footer className="bg-slate-100 text-gray-500 text-center py-4 text-sm">
         © 2026 Lanta Express. All rights reserved.
       </footer>
-
-      {/* Success Modal */}
-      {showSuccess && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white w-[90%] max-w-sm rounded-xl p-8 text-center shadow-2xl animate-scaleIn">
-            <div className="text-green-600 text-4xl mb-4">🎉</div>
-            <h3 className="text-xl font-bold mb-2">Registration Successful!</h3>
-            <p className="text-gray-600 mb-6 text-sm">
-              Your account has been created successfully.
-            </p>
-            <button
-              onClick={() => navigate("/account")}
-              className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-md transition"
-            >
-              Continue to Account
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

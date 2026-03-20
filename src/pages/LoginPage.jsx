@@ -2,32 +2,44 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaEye, FaEyeSlash } from "react-icons/fa";
+import { loginUser } from "../api/auth";
 
 export default function LoginPage({ onLogin }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-    const user = users.find(
-      (u) => u.email === email && u.password === password
-    );
+    setLoading(true);
 
-    if (!user) {
-      alert("Invalid email or password");
-      return;
+    try {
+      const data = await loginUser({ email, password });
+
+      if (data.token) {
+        // Save token and user info
+        localStorage.setItem("authToken", data.token);
+        localStorage.setItem("currentUser", JSON.stringify(data.user));
+
+        alert(`Welcome back, ${data.user.name}!`);
+
+        if (onLogin) onLogin(true);
+
+        // Redirect based on role (optional)
+        if (data.user.role === "user") navigate("/account");
+        else if (data.user.role === "seller") navigate("/seller-dashboard");
+        else if (data.user.role === "admin") navigate("/admin-dashboard");
+      } else {
+        alert(data.message || "Invalid credentials, try again.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Server error. Try again later.");
+    } finally {
+      setLoading(false);
     }
-
-    localStorage.setItem("currentUser", JSON.stringify(user));
-    localStorage.setItem("authToken", "dummy-token");
-
-    if (onLogin) onLogin(true);
-
-    setShowSuccess(true);
   };
 
   return (
@@ -108,9 +120,10 @@ export default function LoginPage({ onLogin }) {
 
               <button
                 type="submit"
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-md transition duration-300"
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-md transition duration-300 disabled:opacity-50"
+                disabled={loading}
               >
-                Login
+                {loading ? "Logging in..." : "Login"}
               </button>
             </form>
 
@@ -131,25 +144,6 @@ export default function LoginPage({ onLogin }) {
       <footer className="bg-slate-100 text-gray-500 text-center py-4 text-sm">
         © 2026 Lanta Express. All rights reserved.
       </footer>
-
-      {/* Success Modal */}
-      {showSuccess && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white w-[90%] max-w-sm rounded-xl p-8 text-center shadow-2xl animate-scaleIn">
-            <div className="text-green-600 text-4xl mb-4">👋</div>
-            <h3 className="text-xl font-bold mb-2">Welcome Back!</h3>
-            <p className="text-gray-600 mb-6 text-sm">
-              You have successfully logged in.
-            </p>
-            <button
-              onClick={() => navigate("/account")}
-              className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-md transition"
-            >
-              Continue to Account
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
