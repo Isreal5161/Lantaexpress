@@ -12,7 +12,7 @@ const SellerHeader = ({ toggleSidebar }) => {
 
   const handleLogout = () => {
     localStorage.removeItem("currentSeller");
-    navigate("/");
+    navigate("/seller-login");
   };
 
   return (

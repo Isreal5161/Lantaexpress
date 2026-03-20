@@ -10,6 +10,11 @@ import { useSellerAuth } from "../../context/SellerAuthContext";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import axios from "axios";
 
+const API_URL =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:5000/api"
+    : "https://lantaxpressbackend.onrender.com/api";
+
 const SellerDashboardHome = () => {
   const { seller } = useSellerAuth();
   const [stats, setStats] = useState({
@@ -26,10 +31,12 @@ const SellerDashboardHome = () => {
 
     const fetchDashboard = async () => {
       try {
-        // -----------------------------
-        // Backend fetch ready
-        // -----------------------------
-        const response = await axios.get(`/api/seller/dashboard/${seller.email}`);
+        const token = localStorage.getItem("sellerToken");
+
+        const response = await axios.get(`${API_URL}/seller/dashboard`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
         const data = response.data;
 
         if (data) {
@@ -53,7 +60,6 @@ const SellerDashboardHome = () => {
       const allOrders = JSON.parse(localStorage.getItem("user_orders")) || [];
       const sellerOrders = allOrders.filter(o => o.sellerEmail === seller.email);
 
-      // Stats
       const totalRevenue = sellerOrders.reduce((acc, curr) => acc + (curr.amount || curr.price || 0), 0);
       const totalOrders = sellerOrders.length;
       const pendingOrders = sellerOrders.filter(o => o.status === "Pending").length;
@@ -71,9 +77,6 @@ const SellerDashboardHome = () => {
         recentOrders,
       });
 
-      // -----------------------------
-      // Build chart data: daily revenue last 7 days
-      // -----------------------------
       const today = new Date();
       const last7Days = Array.from({ length: 7 }).map((_, i) => {
         const d = new Date();
@@ -107,6 +110,7 @@ const SellerDashboardHome = () => {
 
       {/* Stats Cards */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Total Revenue */}
         <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
@@ -121,6 +125,7 @@ const SellerDashboardHome = () => {
           </div>
         </div>
 
+        {/* Total Orders */}
         <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
@@ -133,6 +138,7 @@ const SellerDashboardHome = () => {
           </div>
         </div>
 
+        {/* Products Listed */}
         <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
@@ -145,6 +151,7 @@ const SellerDashboardHome = () => {
           </div>
         </div>
 
+        {/* Pending Orders */}
         <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer">
           <div className="flex items-center justify-between">
             <div>

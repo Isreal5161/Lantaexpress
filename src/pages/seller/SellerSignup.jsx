@@ -14,10 +14,19 @@ const categoriesList = [
   "Phones & Accessories","Computers","Baby Products","Sports","Health"
 ];
 
+// Auto-detect backend URL
+const getApiUrl = () => {
+  if (process.env.NODE_ENV === "development") {
+    return "http://localhost:5000/api/auth";
+  }
+  return "https://lantaxpressbackend.onrender.com/api/auth";
+};
+
 const SellerSignup = () => {
   const navigate = useNavigate();
   const { login } = useSellerAuth();
   const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -34,6 +43,8 @@ const SellerSignup = () => {
     password: "",
     confirmPassword: "",
     agree: false,
+    showPassword: false,
+    showConfirmPassword: false,
   });
 
   const handleChange = (e) => {
@@ -46,17 +57,12 @@ const SellerSignup = () => {
   };
 
   const handleCategoryChange = (category) => {
-    if (formData.categories.includes(category)) {
-      setFormData({
-        ...formData,
-        categories: formData.categories.filter((c) => c !== category),
-      });
-    } else {
-      setFormData({
-        ...formData,
-        categories: [...formData.categories, category],
-      });
-    }
+    setFormData(prev => ({
+      ...prev,
+      categories: prev.categories.includes(category)
+        ? prev.categories.filter(c => c !== category)
+        : [...prev.categories, category]
+    }));
   };
 
   const handleLogoUpload = (e) => {
@@ -66,15 +72,15 @@ const SellerSignup = () => {
         alert("Logo must be under 1MB");
         return;
       }
-      setFormData({
-        ...formData,
+      setFormData(prev => ({
+        ...prev,
         logo: file,
         logoPreview: URL.createObjectURL(file),
-      });
+      }));
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
@@ -87,61 +93,71 @@ const SellerSignup = () => {
       return;
     }
 
-    const sellers = JSON.parse(localStorage.getItem("sellers")) || [];
+    setLoading(true);
 
-    // prevent duplicate
-    if (sellers.some((s) => s.email === formData.email)) {
-      alert("Seller already exists");
-      return;
+    try {
+      const formPayload = new FormData();
+      formPayload.append("name", formData.fullName);
+      formPayload.append("email", formData.email);
+      formPayload.append("phone", formData.phone);
+      formPayload.append("password", formData.password);
+      formPayload.append("role", "seller");
+      formPayload.append("brandName", formData.brandName);
+      formPayload.append("description", formData.description);
+      formPayload.append("categories", JSON.stringify(formData.categories));
+      formPayload.append("state", formData.state);
+      formPayload.append("address", formData.address);
+      if (formData.logo) {
+        formPayload.append("logo", formData.logo);
+      }
+
+      const res = await fetch(`${getApiUrl()}/register`, {
+        method: "POST",
+        body: formPayload,
+      });
+
+      // Check if response is JSON
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error(`Unexpected response from server: ${await res.text()}`);
+      }
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || "Registration failed");
+
+      // Save token & seller info
+      localStorage.setItem("sellerToken", data.token);
+      localStorage.setItem("currentSeller", JSON.stringify(data.user));
+
+      login(data.user);
+      navigate("/seller-dashboard");
+    } catch (err) {
+      alert(err.message);
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
-
-    const newSeller = {
-      id: Date.now(),
-      fullName: formData.fullName,
-      email: formData.email,
-      password: formData.password,
-
-      brandName: formData.brandName,
-      phone: formData.phone,
-      description: formData.description,
-      categories: formData.categories,
-      logo: formData.logoPreview,
-      country: formData.country,
-      state: formData.state,
-      address: formData.address,
-
-      createdAt: new Date().toISOString(),
-    };
-
-    sellers.push(newSeller);
-    localStorage.setItem("sellers", JSON.stringify(sellers));
-
-    // session
-    localStorage.setItem("currentSeller", JSON.stringify(newSeller));
-    localStorage.setItem("sellerToken", "dummy-token");
-
-    login(newSeller);
-    navigate("/seller-dashboard");
   };
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-green-50 px-4 py-8">
-
       {/* Navigation Buttons */}
-<div className="flex space-x-3 mb-6 animate-fade-pulse">
-  <Link
-    to="/seller-login"
-    className="px-4 py-1 text-sm bg-green-100 text-green-700 font-medium rounded-lg hover:bg-green-200 hover:opacity-90 transition opacity-70"
-  >
-    Sign In
-  </Link>
-  <Link
-    to="/"
-    className="px-4 py-1 text-sm bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 hover:opacity-90 transition opacity-70"
-  >
-    Home
-  </Link>
-</div>
+      <div className="flex space-x-3 mb-6 animate-fade-pulse">
+        <Link
+          to="/seller-login"
+          className="px-4 py-1 text-sm bg-green-100 text-green-700 font-medium rounded-lg hover:bg-green-200 hover:opacity-90 transition opacity-70"
+        >
+          Sign In
+        </Link>
+        <Link
+          to="/"
+          className="px-4 py-1 text-sm bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 hover:opacity-90 transition opacity-70"
+        >
+          Home
+        </Link>
+      </div>
+
       {/* Welcome Section */}
       <div className="bg-white w-full max-w-3xl p-6 rounded-3xl shadow-xl border border-green-100 flex items-center space-x-4 mb-10">
         <img src="lantalogo1.jpg" alt="LantaXeller Logo" className="w-16 h-16 object-contain" />
@@ -153,7 +169,6 @@ const SellerSignup = () => {
 
       {/* Signup Form Card */}
       <div className="bg-white w-full max-w-3xl p-10 rounded-3xl shadow-xl border border-green-100">
-
         {/* Stepper */}
         <div className="flex justify-between mb-10">
           {[1,2,3].map((num) => (
@@ -168,7 +183,6 @@ const SellerSignup = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-
           {/* Step 1 */}
           {step === 1 && (
             <>
@@ -223,23 +237,59 @@ const SellerSignup = () => {
             <>
               <h2 className="text-2xl font-bold text-green-700 mb-4">Location & Security</h2>
               <input type="text" value="Nigeria" disabled
-                className="w-full border rounded-xl px-4 py-3 bg-green-50 text-green-700" />
+                className="w-full border rounded-xl px-4 py-3 bg-green-50 text-green-700 mb-4" />
+
               <select name="state" value={formData.state} onChange={handleChange} required
-                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none">
+                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none mb-4">
                 <option value="">Select State</option>
                 {nigeriaStates.map((state) => (
                   <option key={state}>{state}</option>
                 ))}
               </select>
+
               <input type="text" name="address" placeholder="Business Address"
                 value={formData.address} onChange={handleChange} required
-                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none" />
-              <input type="password" name="password" placeholder="Password"
-                value={formData.password} onChange={handleChange} required
-                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none" />
-              <input type="password" name="confirmPassword" placeholder="Confirm Password"
-                value={formData.confirmPassword} onChange={handleChange} required
-                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none" />
+                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none mb-4" />
+
+              {/* Password Fields */}
+              <div className="relative mb-4">
+                <input
+                  type={formData.showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none pr-12"
+                />
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, showPassword: !formData.showPassword })}
+                  className="absolute right-3 top-3 text-gray-500 hover:text-gray-700"
+                >
+                  {formData.showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+
+              <div className="relative mb-4">
+                <input
+                  type={formData.showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  placeholder="Confirm Password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required
+                  className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none pr-12"
+                />
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, showConfirmPassword: !formData.showConfirmPassword })}
+                  className="absolute right-3 top-3 text-gray-500 hover:text-gray-700"
+                >
+                  {formData.showConfirmPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+
               <label className="flex items-center space-x-2">
                 <input type="checkbox" name="agree"
                   checked={formData.agree} onChange={handleChange}
@@ -268,11 +318,10 @@ const SellerSignup = () => {
             ) : (
               <button type="submit"
                 className="ml-auto px-6 py-2 rounded-xl bg-green-700 text-white font-semibold hover:bg-green-800 transition">
-                Create Seller Account
+                {loading ? "Registering..." : "Create Seller Account"}
               </button>
             )}
           </div>
-
         </form>
       </div>
     </div>
