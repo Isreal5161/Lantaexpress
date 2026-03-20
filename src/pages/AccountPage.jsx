@@ -1,3 +1,4 @@
+// src/pages/account/AccountPage.jsx
 import React, { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { FaSignOutAlt, FaArrowLeft } from "react-icons/fa";
@@ -5,7 +6,11 @@ import AccountHeader from "../components/AccountHeader";
 import AccountSidebar from "../components/AccountSidebar";
 import { Footer } from "../components/footer";
 
-const API_URL = "http://localhost:5000/api, https://lantaxpressbackend.onrender.com"; // adjust if needed
+// API URL - local in dev, Render in production
+const API_URL =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:5000/api"
+    : "https://lantaxpressbackend.onrender.com/api";
 
 const AccountPage = ({ onSignOut }) => {
   const location = useLocation();
@@ -13,16 +18,15 @@ const AccountPage = ({ onSignOut }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Determine visibility of buttons
-  const showBackButton = location.pathname !== "/account"; // Only show back on nested pages
-  const showSignOutButton = location.pathname === "/account"; // Only show sign out on dashboard
+  const showBackButton = location.pathname !== "/account";
+  const showSignOutButton = location.pathname === "/account";
 
-  // Fetch current user info from backend using JWT token
+  // Fetch user
   useEffect(() => {
     const fetchUser = async () => {
       const token = localStorage.getItem("authToken");
       if (!token) {
-        navigate("/login"); // redirect if not logged in
+        navigate("/login");
         return;
       }
 
@@ -38,12 +42,9 @@ const AccountPage = ({ onSignOut }) => {
 
         const data = await res.json();
         setUser(data.user);
-        localStorage.setItem("currentUser", JSON.stringify(data.user)); // save for fallback
+        localStorage.setItem("currentUser", JSON.stringify(data.user));
       } catch (err) {
         console.error(err);
-        alert("Failed to fetch user info. Using local data if available.");
-
-        // Fallback to localStorage if backend fails
         const localUser = JSON.parse(localStorage.getItem("currentUser"));
         if (localUser) {
           setUser(localUser);
@@ -59,16 +60,11 @@ const AccountPage = ({ onSignOut }) => {
     fetchUser();
   }, [navigate]);
 
-  // Sign Out Handler
+  // Sign out handler
   const handleSignOut = () => {
-    // Clear all relevant auth info
     localStorage.removeItem("currentUser");
     localStorage.removeItem("authToken");
-
-    // Notify parent about logout
     if (onSignOut) onSignOut(false);
-
-    // Navigate to login page
     navigate("/login", { replace: true });
   };
 
@@ -84,21 +80,18 @@ const AccountPage = ({ onSignOut }) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
-      {/* Header */}
       <AccountHeader />
 
       <div className="flex-1 pb-24">
-        {/* Main content */}
         <div className="flex-1 flex flex-col md:flex-row">
-          {/* Sidebar for desktop */}
+          {/* Sidebar */}
           <div className="hidden md:block md:w-1/4">
             <AccountSidebar user={user} />
           </div>
 
-          {/* Main content area */}
+          {/* Main content */}
           <div className="flex-1 p-4 md:p-8 flex justify-center">
             <div className="w-full max-w-3xl">
-              {/* Back button for nested routes */}
               {showBackButton && (
                 <button
                   onClick={() => navigate("/account")}
@@ -109,15 +102,13 @@ const AccountPage = ({ onSignOut }) => {
                 </button>
               )}
 
-              {/* Welcome message on dashboard */}
               {showSignOutButton && (
                 <h1 className="text-2xl font-bold mb-6">Welcome, {userName}!</h1>
               )}
 
-              {/* Nested account pages */}
-              <Outlet />
+              {/* Pass user to nested routes (Dashboard) via context or props */}
+              <Outlet context={{ user, setUser, API_URL }} />
 
-              {/* Sign Out button on dashboard */}
               {showSignOutButton && (
                 <button
                   onClick={handleSignOut}
@@ -131,7 +122,6 @@ const AccountPage = ({ onSignOut }) => {
           </div>
         </div>
 
-        {/* Footer */}
         <Footer />
       </div>
     </div>

@@ -1,69 +1,17 @@
 // src/pages/account/AccountDashboard.jsx
-import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import {
-  FaUser,
-  FaBell,
-  FaMapMarkerAlt,
-  FaLock,
-  FaEnvelope,
-  FaCamera,
-} from "react-icons/fa";
-
-const API_URL = "http://localhost:5000/api, https://lantaxpressbackend.onrender.com";
+import React, { useState } from "react";
+import { Link, useOutletContext } from "react-router-dom";
+import { FaUser, FaBell, FaMapMarkerAlt, FaLock, FaEnvelope, FaCamera } from "react-icons/fa";
 
 const AccountDashboard = () => {
-  const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, setUser, API_URL } = useOutletContext(); // Get from AccountPage
   const [uploading, setUploading] = useState(false);
-  const [preview, setPreview] = useState(null); // temporary preview for selected file
+  const [preview, setPreview] = useState(null);
 
-  // Fetch current user info from backend
-  useEffect(() => {
-    const fetchUser = async () => {
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        navigate("/login");
-        return;
-      }
-
-      try {
-        const res = await fetch(`${API_URL}/auth/me`, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!res.ok) throw new Error("Failed to fetch user info");
-
-        const data = await res.json();
-        setUser(data.user);
-        localStorage.setItem("currentUser", JSON.stringify(data.user));
-      } catch (err) {
-        console.error(err);
-        const localUser = JSON.parse(localStorage.getItem("currentUser"));
-        if (localUser) {
-          setUser(localUser);
-        } else {
-          localStorage.removeItem("authToken");
-          navigate("/login");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUser();
-  }, [navigate]);
-
-  // Handle profile image upload
   const handleUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Show preview immediately
     const reader = new FileReader();
     reader.onloadend = () => setPreview(reader.result);
     reader.readAsDataURL(file);
@@ -86,40 +34,31 @@ const AccountDashboard = () => {
       if (!res.ok) throw new Error("Failed to upload image");
 
       const data = await res.json();
-
-      // Update user state & global localStorage
       setUser(data.user);
       localStorage.setItem("currentUser", JSON.stringify(data.user));
-      setPreview(null); // remove preview after upload
+      setPreview(null);
     } catch (err) {
       console.error(err);
-      alert("Failed to upload image. Try again.");
+      alert("Failed to upload image.");
       setPreview(null);
     } finally {
       setUploading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen text-green-600 font-bold text-xl">
-        Loading your account...
-      </div>
-    );
-  }
-
   if (!user) return null;
 
-  // Avatar content: preview > uploaded avatar > fallback first letter
-  const avatarContent = preview ? (
+  const avatarURL = preview
+    ? preview
+    : user.avatar
+    ? user.avatar.startsWith("http")
+      ? user.avatar
+      : `${API_URL.replace("/api", "")}${user.avatar}`
+    : null;
+
+  const avatarContent = avatarURL ? (
     <img
-      src={preview}
-      alt="Preview"
-      className="w-24 h-24 rounded-full border-4 border-green-100 object-cover"
-    />
-  ) : user.avatar ? (
-    <img
-      src={`http://localhost:5000${user.avatar}`}
+      src={avatarURL}
       alt="Profile"
       className="w-24 h-24 rounded-full border-4 border-green-100 object-cover"
     />
@@ -131,12 +70,9 @@ const AccountDashboard = () => {
 
   return (
     <div className="max-w-3xl mx-auto p-6">
-      {/* Profile Section */}
       <div className="flex flex-col items-center bg-white rounded-2xl shadow p-6">
         <div className="relative">
           {avatarContent}
-
-          {/* Upload button */}
           <label
             className={`absolute bottom-1 right-1 bg-green-600 p-2 rounded-full text-white cursor-pointer flex items-center justify-center ${
               uploading ? "opacity-50 cursor-not-allowed" : ""
@@ -157,15 +93,10 @@ const AccountDashboard = () => {
         <p className="text-gray-500 text-sm capitalize">{user.role}</p>
       </div>
 
-      {/* Menu Links */}
       <div className="mt-8 space-y-3">
         <MenuLink to="edit-profile" icon={<FaUser />} label="Edit Profile" />
         <MenuLink to="notifications" icon={<FaBell />} label="Notifications" />
-        <MenuLink
-          to="shipping"
-          icon={<FaMapMarkerAlt />}
-          label="Shipping Address"
-        />
+        <MenuLink to="shipping" icon={<FaMapMarkerAlt />} label="Shipping Address" />
         <MenuLink to="password" icon={<FaLock />} label="Change Password" />
         <MenuLink to="email" icon={<FaEnvelope />} label="Email Address" />
       </div>
