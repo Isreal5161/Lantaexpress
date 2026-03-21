@@ -10,6 +10,8 @@ export default function LoginPage({ onLogin }) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [roleChoiceVisible, setRoleChoiceVisible] = useState(false);
+  const [pendingUser, setPendingUser] = useState(null); // store seller data temporarily
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -18,28 +20,50 @@ export default function LoginPage({ onLogin }) {
     try {
       const data = await loginUser({ email, password });
 
-      if (data.token) {
-        // Save token and user info
-        localStorage.setItem("authToken", data.token);
-        localStorage.setItem("currentUser", JSON.stringify(data.user));
-
-        alert(`Welcome back, ${data.user.name}!`);
-
-        if (onLogin) onLogin(true);
-
-        // Redirect based on role (optional)
-        if (data.user.role === "user") navigate("/account");
-        else if (data.user.role === "seller") navigate("/seller-dashboard");
-        else if (data.user.role === "admin") navigate("/admin-dashboard");
-      } else {
+      if (!data.token) {
         alert(data.message || "Invalid credentials, try again.");
+        return;
       }
+
+      // If seller, show role choice modal
+      if (data.user.role === "seller") {
+        setPendingUser(data); // store login info temporarily
+        setRoleChoiceVisible(true);
+        return;
+      }
+
+      // Normal login for user/admin
+      completeLogin(data);
     } catch (err) {
       console.error(err);
       alert("Server error. Try again later.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const completeLogin = (data, roleOverride = null) => {
+    const activeRole = roleOverride || data.user.role;
+
+    // Save token and user info
+    localStorage.setItem("authToken", data.token);
+    localStorage.setItem("currentUser", JSON.stringify(data.user));
+    localStorage.setItem("activeRole", activeRole); // store selected role
+
+    if (onLogin) onLogin(true);
+
+    // Redirect based on role
+    if (activeRole === "user") navigate("/account");
+    else if (activeRole === "seller") navigate("/seller-dashboard");
+    else if (activeRole === "admin") navigate("/admin-dashboard");
+  };
+
+  const handleRoleChoice = (choice) => {
+    if (!pendingUser) return;
+
+    setRoleChoiceVisible(false);
+    completeLogin(pendingUser, choice);
+    setPendingUser(null);
   };
 
   return (
@@ -144,6 +168,32 @@ export default function LoginPage({ onLogin }) {
       <footer className="bg-slate-100 text-gray-500 text-center py-4 text-sm">
         © 2026 Lanta Express. All rights reserved.
       </footer>
+
+      {/* Role Choice Modal */}
+      {roleChoiceVisible && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl p-8 w-96 text-center">
+            <h3 className="text-xl font-bold mb-4">Select Your Role</h3>
+            <p className="mb-6 text-gray-700">
+              This account is registered as a seller. How would you like to continue?
+            </p>
+            <div className="flex flex-col gap-4">
+              <button
+                onClick={() => handleRoleChoice("seller")}
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold transition"
+              >
+                Continue as Seller
+              </button>
+              <button
+                onClick={() => handleRoleChoice("user")}
+                className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 rounded-xl font-semibold transition"
+              >
+                Continue as User
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
