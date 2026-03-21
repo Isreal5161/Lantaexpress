@@ -11,28 +11,45 @@ export default function LoginPage({ onLogin }) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [roleChoiceVisible, setRoleChoiceVisible] = useState(false);
-  const [pendingUser, setPendingUser] = useState(null); // store seller data temporarily
+  const [pendingUser, setPendingUser] = useState(null);
+
+  // Detect backend URL
+  const getApiUrl = () => {
+    if (process.env.NODE_ENV === "development") {
+      // Replace with your laptop's LAN IP for mobile testing
+      return "http://192.168.1.100:5000/api/auth";
+    }
+    return "https://lantaxpressbackend.onrender.com/api/auth";
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const data = await loginUser({ email, password });
+      const res = await fetch(`${getApiUrl()}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-      if (!data.token) {
-        alert(data.message || "Invalid credentials, try again.");
-        return;
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error(`Unexpected response from server: ${await res.text()}`);
       }
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || "Login failed");
 
       // If seller, show role choice modal
       if (data.user.role === "seller") {
-        setPendingUser(data); // store login info temporarily
+        setPendingUser(data);
         setRoleChoiceVisible(true);
         return;
       }
 
-      // Normal login for user/admin
+      // Normal login
       completeLogin(data);
     } catch (err) {
       console.error(err);
@@ -45,10 +62,9 @@ export default function LoginPage({ onLogin }) {
   const completeLogin = (data, roleOverride = null) => {
     const activeRole = roleOverride || data.user.role;
 
-    // Save token and user info
     localStorage.setItem("authToken", data.token);
     localStorage.setItem("currentUser", JSON.stringify(data.user));
-    localStorage.setItem("activeRole", activeRole); // store selected role
+    localStorage.setItem("activeRole", activeRole);
 
     if (onLogin) onLogin(true);
 
@@ -60,7 +76,6 @@ export default function LoginPage({ onLogin }) {
 
   const handleRoleChoice = (choice) => {
     if (!pendingUser) return;
-
     setRoleChoiceVisible(false);
     completeLogin(pendingUser, choice);
     setPendingUser(null);
@@ -73,9 +88,7 @@ export default function LoginPage({ onLogin }) {
         <div className="hidden md:flex w-1/2 bg-green-600 text-white items-center justify-center p-12">
           <div>
             <h1 className="text-4xl font-bold mb-4">Welcome Back</h1>
-            <p className="text-lg">
-              Shop smart. Shop easy. Discover amazing deals every day.
-            </p>
+            <p className="text-lg">Shop smart. Shop easy. Discover amazing deals every day.</p>
           </div>
         </div>
 
@@ -97,9 +110,7 @@ export default function LoginPage({ onLogin }) {
 
             <form className="space-y-5" onSubmit={handleLogin}>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Email
-                </label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Email</label>
                 <input
                   type="email"
                   value={email}
@@ -111,9 +122,7 @@ export default function LoginPage({ onLogin }) {
               </div>
 
               <div className="relative">
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Password
-                </label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Password</label>
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
@@ -131,7 +140,6 @@ export default function LoginPage({ onLogin }) {
                 </button>
               </div>
 
-              {/* Forgot Password Link */}
               <div className="text-right">
                 <button
                   type="button"
@@ -153,10 +161,7 @@ export default function LoginPage({ onLogin }) {
 
             <p className="text-sm text-center mt-6 text-gray-600">
               Don't have an account?{" "}
-              <Link
-                to="/signup"
-                className="text-green-600 font-medium hover:underline"
-              >
+              <Link to="/signup" className="text-green-600 font-medium hover:underline">
                 Sign Up
               </Link>
             </p>
@@ -164,7 +169,6 @@ export default function LoginPage({ onLogin }) {
         </div>
       </div>
 
-      {/* Minimal Footer */}
       <footer className="bg-slate-100 text-gray-500 text-center py-4 text-sm">
         © 2026 Lanta Express. All rights reserved.
       </footer>
