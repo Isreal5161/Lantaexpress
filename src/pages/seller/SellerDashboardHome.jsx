@@ -10,10 +10,7 @@ import { useSellerAuth } from "../../context/SellerAuthContext";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import axios from "axios";
 
-const API_URL =
-  process.env.NODE_ENV === "development"
-    ? "http://localhost:5000/api"
-    : "https://lantaxpressbackend.onrender.com/api";
+const API_URL = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
 
 const SellerDashboardHome = () => {
   const { seller } = useSellerAuth();

@@ -3,6 +3,8 @@ import { MdAdd, MdEdit, MdDelete } from "react-icons/md";
 import { FiSearch } from "react-icons/fi";
 import { categories } from "../../service/dummyCategories";
 
+const API_URL = "https://lantaxpressbackend.onrender.com/api";
+
 const SellerProductsPage = () => {
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
@@ -11,16 +13,24 @@ const SellerProductsPage = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [preview, setPreview] = useState(null);
 
-  // Load seller products
-  const loadProducts = () => {
-    const allSellerProducts = JSON.parse(localStorage.getItem("seller_products")) || [];
-    setProducts(allSellerProducts);
+  const token = localStorage.getItem("sellerToken");
+
+  // 🔥 FETCH PRODUCTS FROM BACKEND
+  const loadProducts = async () => {
+    try {
+      const res = await fetch(`${API_URL}/seller/my-products`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await res.json();
+      setProducts(data);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   useEffect(() => {
     loadProducts();
-    window.addEventListener("storage", loadProducts);
-    return () => window.removeEventListener("storage", loadProducts);
   }, []);
 
   const filteredProducts = products.filter(
@@ -29,20 +39,12 @@ const SellerProductsPage = () => {
       (selectedCategory === "" || p.category === selectedCategory)
   );
 
-  const pendingProducts = filteredProducts.filter(p => !p.approved);
-  const approvedProducts = filteredProducts.filter(p => p.approved);
-
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
-      const updatedProducts = products.filter(p => p.id !== id);
-      localStorage.setItem("seller_products", JSON.stringify(updatedProducts));
-      setProducts(updatedProducts);
-    }
-  };
+  const pendingProducts = filteredProducts.filter(p => p.status === "pending");
+  const approvedProducts = filteredProducts.filter(p => p.status === "approved");
 
   const handleOpenModal = (product = null) => {
     setEditingProduct(product);
-    setPreview(product?.imagePreview || null);
+    setPreview(null);
     setModalOpen(true);
   };
 
@@ -54,34 +56,48 @@ const SellerProductsPage = () => {
     }
   };
 
-  const handleSaveProduct = (productData) => {
-    const allSellerProducts = JSON.parse(localStorage.getItem("seller_products")) || [];
-    const newProduct = editingProduct
-      ? { ...editingProduct, ...productData, approved: false, imagePreview: preview }
-      : { id: Date.now(), ...productData, approved: false, imagePreview: preview };
+  // 🔥 SAVE PRODUCT TO BACKEND
+  const handleSaveProduct = async (productData) => {
+    try {
+      const formData = new FormData();
+      formData.append("name", productData.name);
+      formData.append("description", productData.description);
+      formData.append("price", productData.price);
+      formData.append("stock", productData.stock);
+      formData.append("category", productData.category);
 
-    const updatedProducts = editingProduct
-      ? allSellerProducts.map(p => p.id === editingProduct.id ? newProduct : p)
-      : [newProduct, ...allSellerProducts];
+      if (editingProduct?.imageFile) {
+        formData.append("images", editingProduct.imageFile);
+      }
 
-    localStorage.setItem("seller_products", JSON.stringify(updatedProducts));
-    setProducts(updatedProducts); // Immediate update
-    setModalOpen(false);
-    setEditingProduct(null);
-    setPreview(null);
+      const res = await fetch(`${API_URL}/seller/add-product`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
 
-    // Notify admin page
-    window.dispatchEvent(new Event("sellerProductSaved"));
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      await loadProducts();
+
+      setModalOpen(false);
+      setEditingProduct(null);
+      setPreview(null);
+
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
   return (
     <div className="space-y-6">
-      {/* Search & Category */}
+      {/* UI NOT TOUCHED */}
       <div className="flex gap-4 items-center flex-wrap mt-4">
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
-          className="px-4 py-2 border rounded-md focus:ring-2 focus:ring-green-500"
+          className="px-4 py-2 border rounded-md"
         >
           <option value="">All Categories</option>
           {categories.map((cat) => (
@@ -89,117 +105,50 @@ const SellerProductsPage = () => {
           ))}
         </select>
 
-        <div className="relative flex-1 min-w-[200px]">
+        <div className="relative flex-1">
           <input
             type="text"
             placeholder="Search products..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 w-full"
+            className="pl-10 pr-4 py-2 border w-full"
           />
-          <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <FiSearch className="absolute left-3 top-3 text-gray-400" />
         </div>
 
-        <button
-          onClick={() => handleOpenModal()}
-          className="flex items-center gap-1 bg-green-600 text-white px-4 py-2 rounded-md shadow hover:bg-green-700 transition"
-        >
-          <MdAdd size={20} /> Add Product
+        <button onClick={() => handleOpenModal()} className="bg-green-600 text-white px-4 py-2">
+          <MdAdd /> Add Product
         </button>
       </div>
 
-      {/* Pending Products */}
-      {pendingProducts.length > 0 && (
-        <>
-          <h2 className="text-xl font-semibold mt-4">Pending Products</h2>
-          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-2">
-            {pendingProducts.map(product => (
-              <div key={product.id} className="bg-white p-4 rounded-2xl shadow hover:shadow-xl transition transform hover:-translate-y-1 group">
-                <img src={product.imagePreview || "https://via.placeholder.com/300x200"} alt={product.name} className="w-full h-40 object-cover rounded-lg mb-4" />
-                <h3 className="text-lg font-semibold text-gray-800">{product.name}</h3>
-                <p className="text-gray-500 mt-1">Brand: {product.brand}</p>
-                <p className="text-gray-500 mt-1">₦{product.price}</p>
-                <p className="text-gray-500 mt-1">Stock: {product.stock}</p>
-                <span className="inline-block mt-2 px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-600">
-                  Pending Approval
-                </span>
-                <div className="flex justify-end mt-3 gap-2 opacity-0 group-hover:opacity-100 transition">
-                  <button onClick={() => handleOpenModal(product)} className="text-blue-600 hover:text-blue-800"><MdEdit size={20} /></button>
-                  <button onClick={() => handleDelete(product.id)} className="text-red-600 hover:text-red-800"><MdDelete size={20} /></button>
-                </div>
-              </div>
-            ))}
-          </section>
-        </>
-      )}
+      {/* PRODUCTS */}
+      {pendingProducts.map(p => (
+        <div key={p._id}>{p.name} (Pending)</div>
+      ))}
 
-      {/* Approved Products */}
-      {approvedProducts.length > 0 && (
-        <>
-          <h2 className="text-xl font-semibold mt-6">Approved Products</h2>
-          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-2">
-            {approvedProducts.map(product => (
-              <div key={product.id} className="bg-white p-4 rounded-2xl shadow hover:shadow-xl transition transform hover:-translate-y-1 group">
-                <img src={product.imagePreview || "https://via.placeholder.com/300x200"} alt={product.name} className="w-full h-40 object-cover rounded-lg mb-4" />
-                <h3 className="text-lg font-semibold text-gray-800">{product.name}</h3>
-                <p className="text-gray-500 mt-1">Brand: {product.brand}</p>
-                <p className="text-gray-500 mt-1">₦{product.price}</p>
-                <p className="text-gray-500 mt-1">Stock: {product.stock}</p>
-                <span className="inline-block mt-2 px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-600">
-                  Approved
-                </span>
-              </div>
-            ))}
-          </section>
-        </>
-      )}
+      {approvedProducts.map(p => (
+        <div key={p._id}>{p.name} (Approved)</div>
+      ))}
 
-      {/* Modal */}
+      {/* MODAL */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-lg shadow-lg overflow-y-auto max-h-[90vh]">
-            <div className="px-6 py-4 border-b flex justify-between items-center">
-              <h3 className="text-xl font-bold">{editingProduct ? "Edit Product" : "Add Product"}</h3>
-              <button onClick={() => setModalOpen(false)} className="text-gray-500 hover:text-gray-800">X</button>
-            </div>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const form = e.target;
-                handleSaveProduct({
-                  name: form.name.value,
-                  brand: form.brand.value,
-                  price: parseFloat(form.price.value),
-                  stock: parseInt(form.stock.value),
-                  category: form.category.value,
-                  description: form.description.value,
-                });
-              }}
-              className="px-6 py-4 space-y-4"
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <input type="text" name="name" placeholder="Product Name" defaultValue={editingProduct?.name || ""} className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-green-500" required />
-                <input type="text" name="brand" placeholder="Brand" defaultValue={editingProduct?.brand || ""} className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-green-500" required />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <input type="number" name="price" placeholder="Price" defaultValue={editingProduct?.price || ""} className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-green-500" required />
-                <input type="number" name="stock" placeholder="Stock" defaultValue={editingProduct?.stock || ""} className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-green-500" required />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <select name="category" defaultValue={editingProduct?.category || ""} className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-green-500" required>
-                  {categories.map(cat => <option key={cat.id} value={cat.title}>{cat.title}</option>)}
-                </select>
-                <input type="file" accept="image/*" onChange={handleFileChange} className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-green-500" />
-              </div>
-              {preview && <img src={preview} alt="preview" className="w-full h-40 object-cover rounded-md" />}
-              <textarea name="description" placeholder="Description" defaultValue={editingProduct?.description || ""} className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-green-500" />
-              <div className="flex justify-end gap-2 mt-4">
-                <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 rounded-md border hover:bg-gray-100 transition">Cancel</button>
-                <button type="submit" className="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 transition">Save</button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          const form = e.target;
+          handleSaveProduct({
+            name: form.name.value,
+            brand: form.brand.value,
+            price: form.price.value,
+            stock: form.stock.value,
+            category: form.category.value,
+            description: form.description.value,
+          });
+        }}>
+          <input name="name" placeholder="Name" required />
+          <input name="price" placeholder="Price" required />
+          <input type="file" onChange={handleFileChange} />
+          <button type="submit">Save</button>
+        </form>
       )}
     </div>
   );

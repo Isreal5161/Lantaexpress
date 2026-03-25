@@ -14,13 +14,7 @@ const categoriesList = [
   "Phones & Accessories","Computers","Baby Products","Sports","Health"
 ];
 
-// Auto-detect backend URL
-const getApiUrl = () => {
-  if (process.env.NODE_ENV === "development") {
-    return "http://localhost:5000/api/auth";
-  }
-  return "https://lantaxpressbackend.onrender.com/api/auth";
-};
+const API_AUTH = process.env.REACT_APP_API_URL || "https://lantaxpressbackend.onrender.com/api/auth";
 
 const SellerSignup = () => {
   const navigate = useNavigate();
@@ -111,7 +105,7 @@ const SellerSignup = () => {
         formPayload.append("logo", formData.logo);
       }
 
-      const res = await fetch(`${getApiUrl()}/register`, {
+      const res = await fetch(`${API_AUTH}/register`, {
         method: "POST",
         body: formPayload,
       });

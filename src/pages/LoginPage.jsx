@@ -13,34 +13,16 @@ export default function LoginPage({ onLogin }) {
   const [roleChoiceVisible, setRoleChoiceVisible] = useState(false);
   const [pendingUser, setPendingUser] = useState(null);
 
-  // Detect backend URL
-  const getApiUrl = () => {
-    if (process.env.NODE_ENV === "development") {
-      // Replace with your laptop's LAN IP for mobile testing
-      return "http://192.168.1.100:5000/api/auth";
-    }
-    return "https://lantaxpressbackend.onrender.com/api/auth";
-  };
-
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const res = await fetch(`${getApiUrl()}/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const data = await loginUser({ email, password });
 
-      const contentType = res.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error(`Unexpected response from server: ${await res.text()}`);
+      if (!data || data.message === "Invalid credentials") {
+        throw new Error(data?.message || "Login failed");
       }
-
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.message || "Login failed");
 
       // If seller, show role choice modal
       if (data.user.role === "seller") {

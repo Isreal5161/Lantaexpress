@@ -3,13 +3,7 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useSellerAuth } from "../../context/SellerAuthContext";
 
-// Auto-detect backend URL
-const getApiUrl = () => {
-  if (process.env.NODE_ENV === "development") {
-    return "http://localhost:5000/api/auth";
-  }
-  return "https://lantaxpressbackend.onrender.com/api/auth";
-};
+const API_AUTH = process.env.REACT_APP_API_URL || "https://lantaxpressbackend.onrender.com/api/auth";
 
 const SellerLogin = () => {
   const navigate = useNavigate();
@@ -34,7 +28,7 @@ const SellerLogin = () => {
     setError(""); // clear previous error
 
     try {
-      const res = await fetch(`${getApiUrl()}/login`, {
+      const res = await fetch(`${API_AUTH}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

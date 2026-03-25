@@ -6,11 +6,8 @@ import AccountHeader from "../components/AccountHeader";
 import AccountSidebar from "../components/AccountSidebar";
 import { Footer } from "../components/footer";
 
-// API URL - local in dev, Render in production
-const API_URL =
-  process.env.NODE_ENV === "development"
-    ? "http://localhost:5000/api"
-    : "https://lantaxpressbackend.onrender.com/api";
+// API base URL (use REACT_APP_API_BASE to override)
+const API_URL = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
 
 const AccountPage = ({ onSignOut }) => {
   const location = useLocation();

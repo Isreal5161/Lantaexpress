@@ -47,15 +47,14 @@ import Sellers from "./AdminPanel/pages/Sellers";
 import Products from "./AdminPanel/pages/Products";
 import Logistics from "./AdminPanel/pages/Logistics";
 import SellerDetailPage from "./AdminPanel/components/SellerDetails";
+import AdminLogin from "./AdminPanel/AdminLogin";
 
 // Admin Submenu Pages
 import UserTracking from "./AdminPanel/pages/UserTracking";
-
 import SellerOrdersAdmin from "./AdminPanel/pages/SellerOrdersAdmin";
 import SellerProductsAdmin from "./AdminPanel/pages/SellerProductsAdmin";
 import SellerPayments from "./AdminPanel/pages/SellerPayments";
 import SellerRequests from "./AdminPanel/pages/SellerRequests";
-
 import OrderLocations from "./AdminPanel/pages/OrderLocations";
 import LogisticsRequest from "./AdminPanel/pages/LogisticsRequest";
 import SellerOrders from "./AdminPanel/pages/SellerOrders";
@@ -63,6 +62,30 @@ import SellerOrders from "./AdminPanel/pages/SellerOrders";
 // Context & Routes
 import { SellerAuthProvider } from "./context/SellerAuthContext";
 import ProtectedSellerRoute from "./routes/ProtectedSellerRoute";
+
+// ✅ ADMIN ROUTE PROTECTION
+const AdminRoute = ({ children }) => {
+  let user = null;
+
+  const storedUser = localStorage.getItem("user");
+
+  // Only parse if it exists and is not "undefined"
+  if (storedUser && storedUser !== "undefined") {
+    try {
+      user = JSON.parse(storedUser);
+    } catch (err) {
+      console.error("Corrupted user data, clearing...");
+      localStorage.removeItem("user");
+      user = null;
+    }
+  }
+
+  if (!user || user.role !== "admin") {
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  return children;
+};
 
 const App = () => {
   const [showSplash, setShowSplash] = useState(false);
@@ -113,40 +136,43 @@ const App = () => {
             <Route path="/track" element={<TrackorderPage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
 
-            {/* ADMIN PANEL ROUTES */}
-            <Route path="/AdminPanel/dashboard" element={<Dashboard />} />
+            {/* ADMIN LOGIN */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+
+            {/* 🔐 ADMIN PANEL (PROTECTED) */}
+            <Route path="/AdminPanel/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
 
             {/* USERS */}
-            <Route path="/AdminPanel/users" element={<Users />} />
-            
-            <Route path="/AdminPanel/users/tracking" element={<UserTracking />} />
+            <Route path="/AdminPanel/users" element={<AdminRoute><Users /></AdminRoute>} />
+            <Route path="/AdminPanel/users/tracking" element={<AdminRoute><UserTracking /></AdminRoute>} />
 
             {/* SELLERS */}
-            <Route path="/AdminPanel/sellers" element={<Sellers />} />
-            <Route path="/AdminPanel/sellers/orders" element={<SellerOrdersAdmin />} />
+            <Route path="/AdminPanel/sellers" element={<AdminRoute><Sellers /></AdminRoute>} />
+            <Route path="/AdminPanel/sellers/orders" element={<AdminRoute><SellerOrdersAdmin /></AdminRoute>} />
 
-            {/* BRAND ORDERS DETAILS - using sellerBrand */}
             <Route
               path="/AdminPanel/sellers/orders/:sellerBrand"
-              element={<SellerOrders />}
+              element={<AdminRoute><SellerOrders /></AdminRoute>}
             />
 
-            <Route path="/AdminPanel/sellers/products" element={<SellerProductsAdmin />} />
-            <Route path="/AdminPanel/sellers/payments" element={<SellerPayments />} />
-            <Route path="/AdminPanel/sellers/requests" element={<SellerRequests />} />
+            <Route path="/AdminPanel/sellers/products" element={<AdminRoute><SellerProductsAdmin /></AdminRoute>} />
+            <Route path="/AdminPanel/sellers/payments" element={<AdminRoute><SellerPayments /></AdminRoute>} />
+            <Route path="/AdminPanel/sellers/requests" element={<AdminRoute><SellerRequests /></AdminRoute>} />
 
             {/* SELLER DETAILS */}
-            <Route path="/sellers" element={<Sellers />} />
-            <Route path="/sellers/:sellerId" element={<SellerDetailPage />} />
+            <Route path="/sellers" element={<AdminRoute><Sellers /></AdminRoute>} />
+            <Route path="/sellers/:sellerId" element={<AdminRoute><SellerDetailPage /></AdminRoute>} />
 
             {/* PRODUCTS */}
-            <Route path="/AdminPanel/products" element={<Products />} />
+            <Route path="/AdminPanel/products" element={<AdminRoute><Products /></AdminRoute>} />
 
             {/* LOGISTICS */}
-            <Route path="/AdminPanel/logistics" element={<Logistics />} />
-            <Route path="/AdminPanel/logistics/location" element={<OrderLocations />} />
-            <Route path="/AdminPanel/logistics/requests" element={<LogisticsRequest />} />
+            <Route path="/AdminPanel/logistics" element={<AdminRoute><Logistics /></AdminRoute>} />
+            <Route path="/AdminPanel/logistics/location" element={<AdminRoute><OrderLocations /></AdminRoute>} />
+            <Route path="/AdminPanel/logistics/requests" element={<AdminRoute><LogisticsRequest /></AdminRoute>} />
+
             <Route path="/seller" element={<SellerLandingPage />} />
+
             {/* SELLER AUTH */}
             <Route path="/seller-login" element={<SellerLogin />} />
             <Route path="/seller-signup" element={<SellerSignup />} />
@@ -180,6 +206,7 @@ const App = () => {
                 )
               }
             />
+
             <Route
               path="/signup"
               element={
@@ -218,6 +245,7 @@ const App = () => {
 
             {/* FALLBACK */}
             <Route path="*" element={<Navigate to="/" replace />} />
+
           </Routes>
         </Router>
       </div>
