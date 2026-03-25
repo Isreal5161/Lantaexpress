@@ -21,37 +21,41 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    // -----------------------------
-    // USERS
-    // -----------------------------
-    const users = JSON.parse(localStorage.getItem("users")) || [
-      { name: "John Doe", createdAt: new Date().toISOString() },
-      { name: "Aisha Bello", createdAt: new Date().toISOString() },
-      { name: "Michael James", createdAt: new Date().toISOString() },
-    ];
-    setTotalUsers(users.length);
-    setNewUsers(users.slice(-5).reverse()); // last 5 users
+    const fetchDashboard = async () => {
+      try {
+        const token = localStorage.getItem("token") || localStorage.getItem("authToken");
+        const headers = token ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
 
-    // -----------------------------
-    // SELLERS
-    // -----------------------------
-    const sellers = JSON.parse(localStorage.getItem("sellers")) || [];
-    setTotalSellers(sellers.length);
+        // Users
+        const usersRes = await fetch(`${process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api"}/admin/users`, { headers });
+        if (usersRes.ok) {
+          const usersJson = await usersRes.json();
+          const users = usersJson.users || [];
+          setTotalUsers(users.length);
+          setNewUsers(users.slice(0,5));
+          setTotalSellers(users.filter(u => u.role === "seller").length);
+        }
 
-    // -----------------------------
-    // ORDERS
-    // -----------------------------
-    const orders = JSON.parse(localStorage.getItem("user_orders")) || [];
-    const today = new Date().toISOString().split("T")[0];
-    const todaysOrders = orders.filter(o => o.date?.startsWith(today));
-    setOrdersToday(todaysOrders.length);
-    setRecentOrders(orders.slice(-5).reverse()); // last 5 orders
+        // Orders today
+        const ordersRes = await fetch(`${process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api"}/admin/orders/today`, { headers });
+        if (ordersRes.ok) {
+          const ordersJson = await ordersRes.json();
+          setOrdersToday(ordersJson.totalOrders || 0);
+          setRecentOrders((ordersJson.orders || []).slice(-5).reverse());
+        }
 
-    // -----------------------------
-    // PENDING PRODUCTS
-    // -----------------------------
-    const pendingCount = orders.filter(o => o.status === "Pending").length;
-    setPendingProducts(pendingCount);
+        // Pending products
+        const pendingRes = await fetch(`${process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api"}/admin/products/pending`, { headers });
+        if (pendingRes.ok) {
+          const pending = await pendingRes.json();
+          setPendingProducts((pending || []).length);
+        }
+      } catch (err) {
+        console.error('Failed to load admin dashboard data', err);
+      }
+    };
+
+    fetchDashboard();
   }, []);
 
   return (
