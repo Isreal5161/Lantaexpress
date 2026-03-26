@@ -18,8 +18,37 @@ export default function SellerProductsAdmin() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const allProducts = categories.flatMap((cat) => cat.products);
-    setProducts(allProducts);
+    const API_BASE = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
+    const fetchPending = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${API_BASE}/admin/products/pending`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok) {
+          // Map backend product shape to UI shape used elsewhere
+          const mapped = data.map(p => ({
+            id: p._id,
+            name: p.name,
+            brand: p.seller?.brandName || p.brand || "",
+            category: p.category || "Uncategorized",
+            stock: p.stock || 0,
+            price: p.price || 0,
+            image: (p.images && p.images[0]) || "/default-product.jpg",
+            description: p.description || "",
+            status: p.status || "pending",
+          }));
+          setProducts(mapped);
+        } else {
+          console.error("Failed to fetch pending products:", data);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchPending();
   }, []);
 
   const handleEditClick = (product) => {
@@ -92,12 +121,62 @@ export default function SellerProductsAdmin() {
                     >
                       <FaEdit /> Edit
                     </button>
-                    <button
-                      onClick={() => handleDelete(product.id)}
-                      className="flex items-center gap-1 px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
-                    >
-                      <FaTrash /> Delete
-                    </button>
+
+                    {/* Approve / Reject for pending products */}
+                    {product.status === "pending" && (
+                      <>
+                        <button
+                          onClick={async () => {
+                            const API_BASE = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
+                            const token = localStorage.getItem("token");
+                            try {
+                              const res = await fetch(`${API_BASE}/admin/products/${product.id}/approve`, {
+                                method: "PUT",
+                                headers: { Authorization: `Bearer ${token}` },
+                              });
+                              const resp = await res.json();
+                              if (res.ok) {
+                                setProducts(prev => prev.filter(p => p.id !== product.id));
+                                alert("Product approved");
+                              } else {
+                                throw new Error(resp.message || 'Failed');
+                              }
+                            } catch (err) {
+                              alert(err.message || 'Approve failed');
+                            }
+                          }}
+                          className="flex items-center gap-1 px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+                        >
+                          Approve
+                        </button>
+
+                        <button
+                          onClick={async () => {
+                            const API_BASE = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
+                            const token = localStorage.getItem("token");
+                            try {
+                              const res = await fetch(`${API_BASE}/admin/products/${product.id}/reject`, {
+                                method: "PUT",
+                                headers: { Authorization: `Bearer ${token}` },
+                              });
+                              const resp = await res.json();
+                              if (res.ok) {
+                                setProducts(prev => prev.filter(p => p.id !== product.id));
+                                alert("Product rejected");
+                              } else {
+                                throw new Error(resp.message || 'Failed');
+                              }
+                            } catch (err) {
+                              alert(err.message || 'Reject failed');
+                            }
+                          }}
+                          className="flex items-center gap-1 px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
+
                     <button
                       onClick={() =>
                         navigate(`/AdminPanel/sellers/orders/${encodeURIComponent(product.brand)}`)

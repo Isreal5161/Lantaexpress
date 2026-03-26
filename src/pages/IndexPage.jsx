@@ -44,7 +44,35 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
       try {
         const data = await getProducts();
         if (data && data.length > 0) {
+          // merge approved products into the local products state
           setProducts(prev => [...data, ...prev]);
+
+          // Also merge approved products into the categories list so category sections show them
+          try {
+            // mutate imported categories to include approved products matching by category title
+            data.forEach(p => {
+              if (!p || !p.category) return;
+              const cat = categories.find(c => c.title === p.category);
+              const mapped = {
+                id: p.id,
+                name: p.name,
+                brand: p.brand || "",
+                stock: p.stock || 0,
+                price: p.price || 0,
+                image: p.image || "/default-product.jpg",
+                category: p.category,
+                description: p.description || "",
+              };
+              if (cat) {
+                // avoid duplicates
+                if (!cat.products.some(x => x.id && x.id.toString() === mapped.id.toString())) {
+                  cat.products.unshift(mapped);
+                }
+              }
+            });
+          } catch (err) {
+            console.warn('Failed to merge products into categories', err);
+          }
         }
       } catch (error) {
         console.error("Failed to fetch products:", error);

@@ -1,54 +1,49 @@
 // src/service/ProductService.js
-import { categories } from "./dummyCategories";
+const API_BASE = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
 
-// Flatten all products from all categories
-const allProducts = categories.flatMap(category => category.products);
+async function fetchJson(url, options = {}) {
+  const res = await fetch(url, options);
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Request failed: ${res.status}`);
+  }
+  return res.json();
+}
 
-/**
- * Fetch all products
- */
+const mapProduct = (p) => ({
+  id: p._id,
+  name: p.name,
+  description: p.description,
+  price: p.price,
+  category: p.category || "Uncategorized",
+  image: (p.images && p.images[0]) || "/placeholder.png",
+  brand: p.seller?.brandName || p.brand || "",
+  stock: p.stock || 0,
+  status: p.status || "approved",
+});
+
 export const getProducts = async () => {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(allProducts), 100);
-  });
+  const products = await fetchJson(`${API_BASE}/user/products`);
+  return (products || []).map(mapProduct);
 };
 
-/**
- * Fetch single product by ID
- */
 export const getProductById = async (id) => {
-  return new Promise((resolve) => {
-    const product = allProducts.find(p => p.id.toString() === id.toString());
-    resolve(product || null);
-  });
+  const products = await getProducts();
+  return products.find(p => p.id.toString() === id.toString()) || null;
 };
 
-/**
- * Fetch products by category
- */
 export const getProductsByCategory = async (categoryName) => {
-  return new Promise((resolve) => {
-    if (categoryName === "All Products") {
-      resolve(allProducts);
-    } else {
-      const filtered = allProducts.filter(p => p.category === categoryName);
-      resolve(filtered);
-    }
-  });
+  const all = await getProducts();
+  if (!categoryName || categoryName === "All" || categoryName === "All Products") return all;
+  return all.filter(p => p.category === categoryName);
 };
 
-/**
- * Fetch Hot Deals (4 newest products)
- */
 export const getHotDeals = async () => {
-  const sorted = [...allProducts].sort((a, b) => b.id - a.id); // newest first by id
-  return sorted.slice(0, 4);
+  const all = await getProducts();
+  return all.slice(0, 4);
 };
 
-/**
- * Fetch Trending Now (4 newest products)
- */
 export const getTrendingNow = async () => {
-  const sorted = [...allProducts].sort((a, b) => b.id - a.id); // newest first by id
-  return sorted.slice(0, 4);
+  const all = await getProducts();
+  return all.slice(0, 4);
 };
