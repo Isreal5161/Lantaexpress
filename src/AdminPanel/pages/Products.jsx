@@ -6,52 +6,94 @@ export default function AdminProductsPage() {
   const [allProducts, setAllProducts] = useState([]);
   const [pendingProducts, setPendingProducts] = useState([]);
   const [filteredCategory, setFilteredCategory] = useState("All");
+  const API_BASE = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
+  const token = localStorage.getItem('token');
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [editForm, setEditForm] = useState({ name: '', price: '', stock: '', category: '', brand: '', description: '' });
 
-  // Load products from localStorage
-  const loadProducts = () => {
-    const sellerProducts = JSON.parse(localStorage.getItem("seller_products")) || [];
-    const approved = sellerProducts.filter(p => p.approved);
-    const pending = sellerProducts.filter(p => !p.approved);
+  // Load products from backend
+  const loadProducts = async () => {
+    try {
+      const resAll = await fetch(`${API_BASE}/admin/products`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const all = await resAll.json();
 
-    // Include admin manual products
-    const adminProducts = categories.flatMap(cat =>
-      cat.products?.map(prod => ({ ...prod, category: cat.title, approved: true })) || []
-    );
+      const resPending = await fetch(`${API_BASE}/admin/products/pending`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const pending = await resPending.json();
 
-    setAllProducts([...adminProducts, ...approved]);
-    setPendingProducts(pending);
+      // Map shapes to UI expected fields
+      const mappedAll = (all || []).map(p => ({
+        id: p._id,
+        name: p.name,
+        brand: p.brand || p.seller?.brandName || '',
+        category: p.category || '',
+        stock: p.stock || 0,
+        price: p.price || 0,
+        image: (p.images && p.images[0]) || '/default-product.jpg',
+        status: p.status || 'approved',
+        raw: p,
+      }));
+
+      const mappedPending = (pending || []).map(p => ({
+        id: p._id,
+        name: p.name,
+        brand: p.brand || p.seller?.brandName || '',
+        category: p.category || '',
+        stock: p.stock || 0,
+        price: p.price || 0,
+        image: (p.images && p.images[0]) || '/default-product.jpg',
+        status: p.status || 'pending',
+        raw: p,
+      }));
+
+      setAllProducts(mappedAll);
+      setPendingProducts(mappedPending);
+    } catch (err) {
+      console.error('Failed to load products', err);
+    }
   };
 
   useEffect(() => {
     loadProducts();
-
-    // Listen for seller saving a new product
-    const handleSellerProductSaved = () => loadProducts();
-    window.addEventListener("sellerProductSaved", handleSellerProductSaved);
-
-    return () => window.removeEventListener("sellerProductSaved", handleSellerProductSaved);
+    const interval = setInterval(loadProducts, 7000);
+    return () => clearInterval(interval);
   }, []);
 
-  // Approve seller product
-  const handleApprove = (product) => {
-    const updated = { ...product, approved: true };
-    setPendingProducts(pendingProducts.filter(p => p.id !== product.id));
-    setAllProducts([updated, ...allProducts]);
-
-    const sellerProducts = JSON.parse(localStorage.getItem("seller_products")) || [];
-    const updatedStorage = sellerProducts.map(p => (p.id === product.id ? updated : p));
-    localStorage.setItem("seller_products", JSON.stringify(updatedStorage));
-    window.dispatchEvent(new Event("storage"));
+  // Approve seller product (call backend)
+  const handleApprove = async (product) => {
+    try {
+      const res = await fetch(`${API_BASE}/admin/products/${product.id}/approve`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Approve failed');
+      await loadProducts();
+      alert('Product approved');
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Approve failed');
+    }
   };
 
   // Decline seller product
-  const handleDecline = (product) => {
-    setPendingProducts(pendingProducts.filter(p => p.id !== product.id));
-
-    const sellerProducts = JSON.parse(localStorage.getItem("seller_products")) || [];
-    const updatedStorage = sellerProducts.filter(p => p.id !== product.id);
-    localStorage.setItem("seller_products", JSON.stringify(updatedStorage));
-    window.dispatchEvent(new Event("storage"));
+  const handleDecline = async (product) => {
+    try {
+      const res = await fetch(`${API_BASE}/admin/products/${product.id}/reject`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Reject failed');
+      await loadProducts();
+      alert('Product rejected');
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Reject failed');
+    }
   };
 
   const displayedProducts =
@@ -122,11 +164,61 @@ export default function AdminProductsPage() {
                 <p className="text-sm text-gray-500">Category: {product.category}</p>
                 <p className="text-sm text-gray-500">Stock: {product.stock}</p>
                 <p className="text-sm font-medium mt-1">₦{product.price}</p>
+                <div className="flex gap-2 mt-3">
+                  <button onClick={() => {
+                    setEditingProduct(product);
+                    setEditForm({ name: product.name, price: product.price, stock: product.stock, category: product.category, brand: product.brand, description: product.description || '' });
+                  }} className="px-3 py-1 bg-blue-600 text-white rounded text-sm">Edit</button>
+                  <button onClick={async () => {
+                    if (!confirm('Delete this product?')) return;
+                    try {
+                      const res = await fetch(`${API_BASE}/admin/products/${product.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+                      const data = await res.json();
+                      if (!res.ok) throw new Error(data.message || 'Delete failed');
+                      await loadProducts();
+                      alert('Product deleted');
+                    } catch (err) { alert(err.message || 'Delete failed'); }
+                  }} className="px-3 py-1 bg-red-600 text-white rounded text-sm">Delete</button>
+                </div>
               </div>
             ))}
           </div>
         )}
       </section>
+
+      {/* Edit Modal */}
+      {editingProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg w-full max-w-2xl p-6">
+            <h3 className="text-lg font-semibold mb-3">Edit Product</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <input value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="border p-2" />
+              <input type="number" value={editForm.price} onChange={e => setEditForm({...editForm, price: e.target.value})} className="border p-2" />
+              <input type="number" value={editForm.stock} onChange={e => setEditForm({...editForm, stock: e.target.value})} className="border p-2" />
+              <input value={editForm.category} onChange={e => setEditForm({...editForm, category: e.target.value})} className="border p-2" />
+              <input value={editForm.brand} onChange={e => setEditForm({...editForm, brand: e.target.value})} className="border p-2" />
+              <textarea value={editForm.description} onChange={e => setEditForm({...editForm, description: e.target.value})} className="border p-2 md:col-span-2" />
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <button onClick={() => setEditingProduct(null)} className="px-3 py-2 bg-gray-300 rounded">Cancel</button>
+              <button onClick={async () => {
+                try {
+                  const res = await fetch(`${API_BASE}/admin/products/${editingProduct.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    body: JSON.stringify(editForm),
+                  });
+                  const data = await res.json();
+                  if (!res.ok) throw new Error(data.message || 'Update failed');
+                  setEditingProduct(null);
+                  await loadProducts();
+                  alert('Product updated');
+                } catch (err) { alert(err.message || 'Update failed'); }
+              }} className="px-3 py-2 bg-green-600 text-white rounded">Save</button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 }

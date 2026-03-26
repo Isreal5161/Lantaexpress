@@ -44,17 +44,26 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
       try {
         const data = await getProducts();
         if (data && data.length > 0) {
-          // merge approved products into the local products state
-          setProducts(prev => [...data, ...prev]);
+          // merge approved products into the local products state and deduplicate by id
+          setProducts(prev => {
+            const combined = [...data, ...prev];
+            const map = new Map();
+            for (const item of combined) {
+              if (!item) continue;
+              const id = (item.id || item._id || '').toString();
+              if (!id) continue;
+              if (!map.has(id)) map.set(id, { ...item, id });
+            }
+            return Array.from(map.values());
+          });
 
           // Also merge approved products into the categories list so category sections show them
           try {
-            // mutate imported categories to include approved products matching by category title
             data.forEach(p => {
               if (!p || !p.category) return;
               const cat = categories.find(c => c.title === p.category);
               const mapped = {
-                id: p.id,
+                id: (p.id || p._id || '').toString(),
                 name: p.name,
                 brand: p.brand || "",
                 stock: p.stock || 0,
@@ -64,8 +73,8 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
                 description: p.description || "",
               };
               if (cat) {
-                // avoid duplicates
-                if (!cat.products.some(x => x.id && x.id.toString() === mapped.id.toString())) {
+                // avoid duplicates by string id
+                if (!cat.products.some(x => (x.id || '').toString() === mapped.id.toString())) {
                   cat.products.unshift(mapped);
                 }
               }

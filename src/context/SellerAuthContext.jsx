@@ -5,12 +5,14 @@ const SellerAuthContext = createContext();
 
 export const SellerAuthProvider = ({ children }) => {
   const [seller, setSeller] = useState(null);
+  const [initialized, setInitialized] = useState(false);
 
   // Load seller from localStorage on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedSeller = localStorage.getItem("currentSeller");
       if (storedSeller) setSeller(JSON.parse(storedSeller));
+      setInitialized(true);
     }
   }, []);
 
@@ -34,7 +36,7 @@ export const SellerAuthProvider = ({ children }) => {
   const isLoggedIn = !!seller;
 
   return (
-    <SellerAuthContext.Provider value={{ seller, login, logout, isLoggedIn }}>
+    <SellerAuthContext.Provider value={{ seller, login, logout, isLoggedIn, initialized }}>
       {children}
     </SellerAuthContext.Provider>
   );

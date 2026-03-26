@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { MdAdd, MdEdit, MdDelete } from "react-icons/md";
 import { FiSearch } from "react-icons/fi";
 import { categories } from "../../service/dummyCategories";
+import ConfirmationModal from "../../components/ConfirmationModal";
 
 const API_URL = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
 
@@ -13,6 +14,10 @@ const SellerProductsPage = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [previewList, setPreviewList] = useState([]);
   const [imageFiles, setImageFiles] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     brand: "",
@@ -85,6 +90,7 @@ const SellerProductsPage = () => {
   // Save product to backend (create or edit)
   const handleSaveProduct = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
       const fd = new FormData();
       fd.append('name', formData.name);
@@ -132,11 +138,20 @@ const SellerProductsPage = () => {
       console.error(err);
       alert(err.message || 'Save failed');
     }
+    setSubmitting(false);
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this product? This action cannot be undone.')) return;
+    setConfirmTarget(id);
+    setConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    const id = confirmTarget;
+    setConfirmOpen(false);
+    if (!id) return;
     try {
+      setDeleting(true);
       const res = await fetch(`${API_URL}/seller/products/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
@@ -148,6 +163,9 @@ const SellerProductsPage = () => {
     } catch (err) {
       console.error(err);
       alert(err.message || 'Delete failed');
+    } finally {
+      setConfirmTarget(null);
+      setDeleting(false);
     }
   };
 
@@ -316,12 +334,22 @@ const SellerProductsPage = () => {
 
               <div className="col-span-1 md:col-span-2 flex justify-end gap-2 mt-4">
                 <button type="button" onClick={() => { setModalOpen(false); setEditingProduct(null); }} className="px-4 py-2 bg-gray-300 rounded">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded">{editingProduct ? 'Save Changes' : 'Submit for Approval'}</button>
+                <button type="submit" disabled={submitting} className="px-4 py-2 bg-green-600 text-white rounded">{submitting ? 'Submitting...' : (editingProduct ? 'Save Changes' : 'Submit for Approval')}</button>
               </div>
             </form>
           </div>
         </div>
       )}
+      <ConfirmationModal
+        isOpen={confirmOpen}
+        title="Confirm Delete"
+        message="Delete this product? This action cannot be undone."
+        onCancel={() => { setConfirmOpen(false); setConfirmTarget(null); }}
+        onConfirm={confirmDelete}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        loading={deleting}
+      />
     </div>
   );
 };

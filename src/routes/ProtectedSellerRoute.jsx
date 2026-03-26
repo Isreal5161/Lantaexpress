@@ -4,9 +4,12 @@ import { Navigate } from "react-router-dom";
 import { useSellerAuth } from "../context/SellerAuthContext";
 
 const ProtectedSellerRoute = ({ children }) => {
-  const { seller } = useSellerAuth();
+  const { seller, initialized } = useSellerAuth();
 
-  // If no seller is logged in, redirect to seller login page
+  // While we haven't checked localStorage yet, don't redirect — render nothing (or a loader)
+  if (!initialized) return null;
+
+  // If no seller is logged in after initialization, redirect to seller login page
   if (!seller) {
     return <Navigate to="/seller-login" replace />;
   }
