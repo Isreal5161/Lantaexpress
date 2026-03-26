@@ -18,6 +18,7 @@ const SellerDashboardHome = () => {
     totalRevenue: 0,
     totalOrders: 0,
     productsListed: 0,
+    productsPending: 0,
     pendingOrders: 0,
     recentOrders: [],
   });
@@ -41,6 +42,7 @@ const SellerDashboardHome = () => {
             totalRevenue: data.totalRevenue || 0,
             totalOrders: data.totalOrders || 0,
             productsListed: data.productsListed || 0,
+            productsPending: data.productsPending || 0,
             pendingOrders: data.pendingOrders || 0,
             recentOrders: data.recentOrders || [],
           });
@@ -63,6 +65,7 @@ const SellerDashboardHome = () => {
 
       const allProducts = JSON.parse(localStorage.getItem("products")) || [];
       const productsListed = allProducts.filter(p => p.sellerEmail === seller.email).length;
+      const productsPending = allProducts.filter(p => p.sellerEmail === seller.email && p.status === 'pending').length;
 
       const recentOrders = sellerOrders.slice(-5).reverse();
 
@@ -70,6 +73,7 @@ const SellerDashboardHome = () => {
         totalRevenue,
         totalOrders,
         productsListed,
+        productsPending,
         pendingOrders,
         recentOrders,
       });
@@ -148,12 +152,12 @@ const SellerDashboardHome = () => {
           </div>
         </div>
 
-        {/* Pending Orders */}
+        {/* Pending Products */}
         <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-500 text-sm">Pending Orders</p>
-              <h3 className="text-2xl font-bold mt-2 text-gray-800">{stats.pendingOrders}</h3>
+              <p className="text-gray-500 text-sm">Pending Products</p>
+              <h3 className="text-2xl font-bold mt-2 text-gray-800">{stats.productsPending ?? 0}</h3>
             </div>
             <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-yellow-100 text-yellow-600 text-2xl group-hover:scale-110 transition">
               <MdPendingActions />
