@@ -1,13 +1,11 @@
 // src/pages/ShopPage.jsx
 import React, { useEffect, useState } from "react";
-// <-- add useState & useEffect
 import { useCart } from '../context/CartContextTemp';
 import { ProductCard } from '../components/ProductCard';
 import { getProductsByCategory } from "../service/ProductService"; // use new category fetch
 import { Header } from '../components/header';
 import { Footer } from '../components/footer';
 import { Link } from '../components/Link';
-import { Text } from '../components/Text';
 import BannerCarousel from '../components/BannerCarousel';
 import { useLocation } from "react-router-dom";
 import PromoModal from "../components/PromoModal";
@@ -29,14 +27,16 @@ export const ShopPage = () => {
     "Fashion", "Electronics","Sports & Fitness","Toys & Hobbies",
     "Automotive & Accessories","Books & Stationery","Used Materials", "Cereals"
   ];
-const location = useLocation();
-useEffect(() => {
-  const params = new URLSearchParams(location.search);
-  const categoryParam = params.get("category");
-  if (categoryParam && categories.includes(categoryParam)) {
-    setActiveCategory(categoryParam);
-  }
-}, [location.search]);
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const categoryParam = params.get("category");
+    if (categoryParam && categories.includes(categoryParam)) {
+      setActiveCategory(categoryParam);
+    }
+  }, [location.search]);
+
   // Fetch products whenever category changes
   useEffect(() => {
     const fetchProducts = async () => {

@@ -33,7 +33,7 @@ const fallbackProducts = [
 ];
 
 export const IndexPage = ({ className, children, variant, contentKey, ...props }) => {
-  const { cartItems, addToCart } = useCart();
+  const { addToCart } = useCart();
   const { isOpen: isModalOpen, closeModal: closeHomePromo } = useSessionModal({
     storageKey: "lantaxpress:index-promo-seen",
   });
