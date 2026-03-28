@@ -1,34 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Confetti from "react-confetti";
 import { useNavigate } from "react-router-dom";
 
 const PromoModal = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState(3600);
-  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
-  const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {
-    const handleResize = () => {
-      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
-    if (isOpen) {
-      setShowConfetti(true);
-      // Keep confetti short and limited to reduce performance impact on mobile
-      const timer = setTimeout(() => setShowConfetti(false), 2000);
-      return () => clearTimeout(timer);
+    if (!isOpen) {
+      setTimeLeft(3600);
+      return undefined;
     }
-  }, [isOpen]);
 
-  useEffect(() => {
-    if (!isOpen) return;
     const timer = setInterval(() => setTimeLeft(prev => (prev > 0 ? prev - 1 : 0)), 1000);
     return () => clearInterval(timer);
   }, [isOpen]);
@@ -55,80 +38,92 @@ const PromoModal = ({ isOpen, onClose }) => {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center z-50 px-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 backdrop-blur-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          onClick={onClose}
         >
-          {showConfetti && windowSize.width >= 640 && (
-            <Confetti
-              width={windowSize.width}
-              height={windowSize.height}
-              numberOfPieces={40}
-              gravity={0.22}
-              recycle={false}
-              run={showConfetti}
-            />
-          )}
-
-          {/* Modal Card */}
           <motion.div
-            initial={{ scale: 0.6, y: -100 }}
+            initial={{ opacity: 0, y: 24, scale: 0.96 }}
             animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.6, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 250, damping: 12 }}
-            className="relative w-[80%] max-w-[260px] bg-white rounded-2xl shadow-2xl overflow-visible pb-12"
+            exit={{ opacity: 0, y: 18, scale: 0.96 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+            onClick={(event) => event.stopPropagation()}
+            className="relative w-full max-w-md overflow-hidden rounded-[28px] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.28)]"
           >
-            {/* Sliding Products */}
-            <div className="bg-gray-100 p-1 overflow-hidden rounded-t-2xl">
-              <motion.div
-                className="flex gap-1"
-                animate={{ x: ["0%", "-50%"] }}
-                transition={{ repeat: Infinity, duration: 6, ease: "linear" }}
-              >
-                {[...products, ...products].map((product, index) => (
-                  <div key={index} className="min-w-[60px] bg-white p-1 text-center shadow-sm rounded-lg">
-                    <img src={product.img} alt="product" className="w-12 h-12 object-cover mx-auto rounded-md" />
-                    <p className="text-[9px] font-semibold mt-1">{product.price}</p>
-                    <p className="text-[8px] text-yellow-500">⭐ {product.rating}</p>
-                  </div>
-                ))}
-              </motion.div>
+            <motion.div
+              className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-emerald-200/70 blur-3xl"
+              animate={{ scale: [1, 1.08, 1], opacity: [0.45, 0.75, 0.45] }}
+              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div
+              className="absolute -bottom-14 -left-10 h-36 w-36 rounded-full bg-amber-200/70 blur-3xl"
+              animate={{ scale: [1.04, 0.94, 1.04], opacity: [0.4, 0.7, 0.4] }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            />
+
+            <button
+              onClick={onClose}
+              className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-lg font-semibold text-slate-600 shadow-sm transition hover:scale-105 hover:text-slate-900"
+              aria-label="Close promotional modal"
+            >
+              ×
+            </button>
+
+            <div className="relative border-b border-emerald-100 bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.18),_transparent_60%)] px-6 pb-5 pt-6">
+              <span className="inline-flex rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-white">
+                Flash picks
+              </span>
+              <h2 className="mt-4 max-w-xs text-2xl font-bold leading-tight text-slate-900">
+                Fast deals without the heavy popout.
+              </h2>
+              <p className="mt-2 max-w-sm text-sm leading-6 text-slate-600">
+                Jump into today&apos;s best-value products before the timer runs out.
+              </p>
             </div>
 
-            {/* Header */}
-            <div className="bg-green-600 text-white p-2 text-center rounded-b-xl">
-              <h2 className="text-sm font-bold">Hot Flash Deals 🔥</h2>
-              <p className="text-[9px] mt-1">Earn & Buy FREE</p>
-            </div>
-
-            {/* Body */}
-            <div className="p-2 text-center">
-              <div className="bg-black text-white py-1 mb-2 text-[9px] font-semibold rounded">
-                Ends In: <div className="text-xs">{formatTime(timeLeft)}</div>
+            <div className="relative px-6 py-5">
+              <div className="rounded-2xl bg-slate-950 px-4 py-3 text-white shadow-lg">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-emerald-200">
+                  Offer closes in
+                </p>
+                <div className="mt-2 text-3xl font-bold tracking-[0.2em]">
+                  {formatTime(timeLeft)}
+                </div>
               </div>
 
-              {/* CTA */}
-              <motion.button
-                onClick={handleRedirect}
-                whileTap={{ scale: 0.95 }}
-                className="bg-green-600 text-white w-full py-1.5 text-xs font-semibold rounded-lg"
-              >
-                Shop Now
-              </motion.button>
+              <div className="mt-4 grid grid-cols-3 gap-3">
+                {products.map((product) => (
+                  <div key={product.id} className="rounded-2xl border border-slate-100 bg-white p-2 shadow-sm">
+                    <img src={product.img} alt="Featured product" className="h-20 w-full rounded-xl object-cover" />
+                    <p className="mt-2 text-xs font-semibold text-slate-900">{product.price}</p>
+                    <p className="text-[11px] text-amber-500">★ {product.rating}</p>
+                  </div>
+                ))}
+              </div>
 
-              <p className="text-[8px] text-gray-500 mt-1">Limited time 🚀</p>
+              <div className="mt-5 flex gap-3">
+                <motion.button
+                  onClick={handleRedirect}
+                  whileTap={{ scale: 0.97 }}
+                  className="flex-1 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-600/25"
+                >
+                  See deals
+                </motion.button>
+                <button
+                  onClick={onClose}
+                  className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+                >
+                  Not now
+                </button>
+              </div>
+
+              <p className="mt-3 text-xs text-slate-500">
+                This promo now opens once per visit to keep the shop page lighter.
+              </p>
             </div>
           </motion.div>
-
-          {/* Close Button OUTSIDE the Modal with Bounce Animation */}
-          <motion.button
-            onClick={onClose}
-            whileTap={{ scale: 0.9 }}
-            className="mt-3 bg-white w-10 h-10 rounded-full shadow-md flex items-center justify-center text-lg font-bold border"
-          >
-            ✕
-          </motion.button>
         </motion.div>
       )}
     </AnimatePresence>

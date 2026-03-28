@@ -21,6 +21,7 @@ import PromoStrip from "../components/PromoStrip";
 import { getProducts } from "../service/ProductService";
 import { motion } from "framer-motion";
 import { ProductGridSkeleton } from "../components/LoadingSkeletons";
+import { useSessionModal } from "../hooks/useSessionModal";
 
 const fallbackProducts = [
   { id: 1, name: "Wireless Headphones", price: 120, image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80" },
@@ -33,7 +34,9 @@ const fallbackProducts = [
 
 export const IndexPage = ({ className, children, variant, contentKey, ...props }) => {
   const { cartItems, addToCart } = useCart();
-  const [isModalOpen, setIsModalOpen] = useState(true);
+  const { isOpen: isModalOpen, closeModal: closeHomePromo } = useSessionModal({
+    storageKey: "lantaxpress:index-promo-seen",
+  });
   const promoBannerRef = useRef(null);
   const promoStripRef = useRef(null);
   const categoryTargetRef = useRef(null);
@@ -166,7 +169,7 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
       
 
       {/* Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+      <Modal isOpen={isModalOpen} onClose={closeHomePromo}>
         <img src="/banner6.jpg" alt="Promotional Flyer" className="w-full shadow-2xl" />
       </Modal>
 

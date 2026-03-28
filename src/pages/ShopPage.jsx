@@ -12,12 +12,17 @@ import BannerCarousel from '../components/BannerCarousel';
 import { useLocation } from "react-router-dom";
 import PromoModal from "../components/PromoModal";
 import { ProductGridSkeleton } from "../components/LoadingSkeletons";
+import { useSessionModal } from "../hooks/useSessionModal";
 
 export const ShopPage = () => {
   const { addToCart } = useCart();
   const [products, setProducts] = useState([]);
   const [activeCategory, setActiveCategory] = useState("All Products");
   const [loading, setLoading] = useState(false);
+  const { isOpen, closeModal: closeShopPromo } = useSessionModal({
+    storageKey: "lantaxpress:shop-promo-seen",
+    delay: 1200,
+  });
 
   const categories = [
     "All Products", "Phone/Device", "Perfumes & Cosmetics","Home & Living", "Agriculture & Livestocks",
@@ -42,16 +47,6 @@ useEffect(() => {
     };
     fetchProducts();
   }, [activeCategory]);
-  const [isOpen, setIsOpen] = useState(false);
-
-  // Auto open after 2 seconds
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsOpen(true);
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, []);
 
 
   return (
@@ -98,7 +93,7 @@ useEffect(() => {
           </div>
         </div>
 
-        <PromoModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
+        <PromoModal isOpen={isOpen} onClose={closeShopPromo} />
       </div>
 
       <main className="pb-20 md:pb-0">
