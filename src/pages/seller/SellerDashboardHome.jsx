@@ -9,6 +9,7 @@ import {
 import { useSellerAuth } from "../../context/SellerAuthContext";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import axios from "axios";
+import { DashboardOverviewSkeleton } from "../../components/LoadingSkeletons";
 
 const API_URL = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
 
@@ -23,11 +24,16 @@ const SellerDashboardHome = () => {
     recentOrders: [],
   });
   const [chartData, setChartData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!seller?.email) return;
+    if (!seller?.email) {
+      setLoading(false);
+      return;
+    }
 
     const fetchDashboard = async () => {
+      setLoading(true);
       try {
         const token = localStorage.getItem("sellerToken");
 
@@ -47,66 +53,115 @@ const SellerDashboardHome = () => {
             recentOrders: data.recentOrders || [],
           });
           setChartData(data.dailyRevenue || []);
-          return;
+        } else {
+          const allOrders = JSON.parse(localStorage.getItem("user_orders")) || [];
+          const sellerBrand = (seller?.brandName || "").trim().toLowerCase();
+          const sellerEmail = (seller?.email || "").trim().toLowerCase();
+          const sellerOrders = allOrders.filter((order) => {
+            const orderBrand = (order.brand || order.sellerBrand || "").trim().toLowerCase();
+            const orderSellerEmail = (order.sellerEmail || "").trim().toLowerCase();
+
+            if (sellerBrand && orderBrand === sellerBrand) return true;
+            if (sellerEmail && orderSellerEmail === sellerEmail) return true;
+
+            return false;
+          });
+
+          const totalRevenue = sellerOrders.reduce((acc, curr) => acc + (curr.amount || curr.price || 0), 0);
+          const totalOrders = sellerOrders.length;
+          const pendingOrders = sellerOrders.filter(o => o.status === "Pending").length;
+
+          const allProducts = JSON.parse(localStorage.getItem("products")) || [];
+          const productsListed = allProducts.filter(p => p.sellerEmail === seller.email).length;
+          const productsPending = allProducts.filter(p => p.sellerEmail === seller.email && p.status === 'pending').length;
+
+          const recentOrders = sellerOrders.slice(-5).reverse();
+
+          setStats({
+            totalRevenue,
+            totalOrders,
+            productsListed,
+            productsPending,
+            pendingOrders,
+            recentOrders,
+          });
+
+          const today = new Date();
+          const last7Days = Array.from({ length: 7 }).map((_, i) => {
+            const d = new Date();
+            d.setDate(today.getDate() - i);
+            return d.toISOString().split("T")[0];
+          }).reverse();
+
+          const dailyRevenue = last7Days.map(day => {
+            const dayRevenue = sellerOrders
+              .filter(o => o.date?.startsWith(day))
+              .reduce((acc, curr) => acc + (curr.amount || curr.price || 0), 0);
+            return { date: day, revenue: dayRevenue }; 
+          });
+
+          setChartData(dailyRevenue);
         }
       } catch (error) {
         console.warn("Backend not ready, falling back to localStorage", error);
+        const allOrders = JSON.parse(localStorage.getItem("user_orders")) || [];
+        const sellerBrand = (seller?.brandName || "").trim().toLowerCase();
+        const sellerEmail = (seller?.email || "").trim().toLowerCase();
+        const sellerOrders = allOrders.filter((order) => {
+          const orderBrand = (order.brand || order.sellerBrand || "").trim().toLowerCase();
+          const orderSellerEmail = (order.sellerEmail || "").trim().toLowerCase();
+
+          if (sellerBrand && orderBrand === sellerBrand) return true;
+          if (sellerEmail && orderSellerEmail === sellerEmail) return true;
+
+          return false;
+        });
+
+        const totalRevenue = sellerOrders.reduce((acc, curr) => acc + (curr.amount || curr.price || 0), 0);
+        const totalOrders = sellerOrders.length;
+        const pendingOrders = sellerOrders.filter(o => o.status === "Pending").length;
+
+        const allProducts = JSON.parse(localStorage.getItem("products")) || [];
+        const productsListed = allProducts.filter(p => p.sellerEmail === seller.email).length;
+        const productsPending = allProducts.filter(p => p.sellerEmail === seller.email && p.status === 'pending').length;
+
+        const recentOrders = sellerOrders.slice(-5).reverse();
+
+        setStats({
+          totalRevenue,
+          totalOrders,
+          productsListed,
+          productsPending,
+          pendingOrders,
+          recentOrders,
+        });
+
+        const today = new Date();
+        const last7Days = Array.from({ length: 7 }).map((_, i) => {
+          const d = new Date();
+          d.setDate(today.getDate() - i);
+          return d.toISOString().split("T")[0];
+        }).reverse();
+
+        const dailyRevenue = last7Days.map(day => {
+          const dayRevenue = sellerOrders
+            .filter(o => o.date?.startsWith(day))
+            .reduce((acc, curr) => acc + (curr.amount || curr.price || 0), 0);
+          return { date: day, revenue: dayRevenue };
+        });
+
+        setChartData(dailyRevenue);
+      } finally {
+        setLoading(false);
       }
-
-      // -----------------------------
-      // Fallback to localStorage
-      // -----------------------------
-      const allOrders = JSON.parse(localStorage.getItem("user_orders")) || [];
-      const sellerBrand = (seller?.brandName || "").trim().toLowerCase();
-      const sellerEmail = (seller?.email || "").trim().toLowerCase();
-      const sellerOrders = allOrders.filter((order) => {
-        const orderBrand = (order.brand || order.sellerBrand || "").trim().toLowerCase();
-        const orderSellerEmail = (order.sellerEmail || "").trim().toLowerCase();
-
-        if (sellerBrand && orderBrand === sellerBrand) return true;
-        if (sellerEmail && orderSellerEmail === sellerEmail) return true;
-
-        return false;
-      });
-
-      const totalRevenue = sellerOrders.reduce((acc, curr) => acc + (curr.amount || curr.price || 0), 0);
-      const totalOrders = sellerOrders.length;
-      const pendingOrders = sellerOrders.filter(o => o.status === "Pending").length;
-
-      const allProducts = JSON.parse(localStorage.getItem("products")) || [];
-      const productsListed = allProducts.filter(p => p.sellerEmail === seller.email).length;
-      const productsPending = allProducts.filter(p => p.sellerEmail === seller.email && p.status === 'pending').length;
-
-      const recentOrders = sellerOrders.slice(-5).reverse();
-
-      setStats({
-        totalRevenue,
-        totalOrders,
-        productsListed,
-        productsPending,
-        pendingOrders,
-        recentOrders,
-      });
-
-      const today = new Date();
-      const last7Days = Array.from({ length: 7 }).map((_, i) => {
-        const d = new Date();
-        d.setDate(today.getDate() - i);
-        return d.toISOString().split("T")[0];
-      }).reverse();
-
-      const dailyRevenue = last7Days.map(day => {
-        const dayRevenue = sellerOrders
-          .filter(o => o.date?.startsWith(day))
-          .reduce((acc, curr) => acc + (curr.amount || curr.price || 0), 0);
-        return { date: day, revenue: dayRevenue };
-      });
-
-      setChartData(dailyRevenue);
     };
 
     fetchDashboard();
   }, [seller]);
+
+  if (loading) {
+    return <DashboardOverviewSkeleton />;
+  }
 
   return (
     <div className="space-y-8">

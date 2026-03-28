@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import AdminLayout from "../Layout/AdminLayout";
 import StatCard from "../components/StatCard";
 import { FaUsers, FaShoppingCart, FaStore, FaBoxOpen } from "react-icons/fa";
+import { DashboardOverviewSkeleton } from "../../components/LoadingSkeletons";
 
 export default function Dashboard() {
   const [totalUsers, setTotalUsers] = useState(0);
@@ -11,6 +12,7 @@ export default function Dashboard() {
   const [pendingProducts, setPendingProducts] = useState(0);
   const [recentOrders, setRecentOrders] = useState([]);
   const [newUsers, setNewUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const formatPrice = (value) => {
     if (!value) return "₦0";
@@ -23,6 +25,7 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
+        setLoading(true);
         const token = localStorage.getItem("token") || localStorage.getItem("authToken");
         const headers = token ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
 
@@ -52,6 +55,8 @@ export default function Dashboard() {
         }
       } catch (err) {
         console.error('Failed to load admin dashboard data', err);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -61,6 +66,10 @@ export default function Dashboard() {
   return (
     <AdminLayout>
       <main className="p-6">
+        {loading ? (
+          <DashboardOverviewSkeleton />
+        ) : (
+          <>
         {/* PAGE TITLE */}
         <h1 className="text-xl sm:text-2xl font-bold text-slate-800 mb-6">
           Dashboard Overview
@@ -134,6 +143,8 @@ export default function Dashboard() {
             </ul>
           </div>
         </div>
+          </>
+        )}
       </main>
     </AdminLayout>
   );

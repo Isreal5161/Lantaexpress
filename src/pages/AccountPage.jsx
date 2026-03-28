@@ -69,8 +69,100 @@ const AccountPage = ({ onSignOut }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen text-green-600 font-bold text-xl">
-        Loading your account...
+      <div className="min-h-screen flex flex-col bg-slate-100">
+        <div className="sticky top-0 z-20 border-b border-white/60 bg-white/80 backdrop-blur-md">
+          <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-3">
+              <div className="skeleton-shimmer h-10 w-10 rounded-full bg-slate-200" />
+              <div className="space-y-2">
+                <div className="skeleton-shimmer h-3 w-24 rounded-full bg-slate-200" />
+                <div className="skeleton-shimmer h-4 w-32 rounded-full bg-slate-200" />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="skeleton-shimmer h-10 w-10 rounded-full bg-slate-200" />
+              <div className="skeleton-shimmer h-10 w-10 rounded-full bg-slate-200" />
+              <div className="skeleton-shimmer h-10 w-10 rounded-full bg-slate-200" />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex-1 pb-24">
+          <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8 md:flex-row">
+            <aside className="hidden md:block md:w-72">
+              <div className="overflow-hidden rounded-3xl border border-white/70 bg-white/85 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur-sm">
+                <div className="mb-6 flex items-center gap-4">
+                  <div className="skeleton-shimmer h-16 w-16 rounded-2xl bg-slate-200" />
+                  <div className="flex-1 space-y-3">
+                    <div className="skeleton-shimmer h-4 w-28 rounded-full bg-slate-200" />
+                    <div className="skeleton-shimmer h-3 w-20 rounded-full bg-slate-200" />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {[1, 2, 3, 4].map((item) => (
+                    <div key={item} className="skeleton-shimmer h-11 rounded-2xl bg-slate-200" />
+                  ))}
+                </div>
+              </div>
+            </aside>
+
+            <main className="flex-1">
+              <div className="overflow-hidden rounded-[32px] border border-white/70 bg-white/85 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.1)] backdrop-blur-sm sm:p-8">
+                <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="space-y-3">
+                    <div className="skeleton-shimmer h-4 w-24 rounded-full bg-slate-200" />
+                    <div className="skeleton-shimmer h-8 w-52 rounded-full bg-slate-200" />
+                    <div className="skeleton-shimmer h-4 w-72 max-w-full rounded-full bg-slate-200" />
+                  </div>
+                  <div className="skeleton-shimmer h-11 w-36 rounded-2xl bg-slate-200" />
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {[1, 2, 3].map((item) => (
+                    <div
+                      key={item}
+                      className="rounded-3xl border border-slate-100 bg-slate-50/80 p-5"
+                    >
+                      <div className="mb-5 flex items-center justify-between">
+                        <div className="skeleton-shimmer h-4 w-24 rounded-full bg-slate-200" />
+                        <div className="skeleton-shimmer h-10 w-10 rounded-2xl bg-slate-200" />
+                      </div>
+                      <div className="space-y-3">
+                        <div className="skeleton-shimmer h-7 w-20 rounded-full bg-slate-200" />
+                        <div className="skeleton-shimmer h-3 w-28 rounded-full bg-slate-200" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-8 rounded-3xl border border-slate-100 bg-slate-50/80 p-5 sm:p-6">
+                  <div className="mb-6 flex items-center justify-between">
+                    <div className="space-y-3">
+                      <div className="skeleton-shimmer h-5 w-40 rounded-full bg-slate-200" />
+                      <div className="skeleton-shimmer h-3 w-52 rounded-full bg-slate-200" />
+                    </div>
+                    <div className="hidden sm:block skeleton-shimmer h-10 w-24 rounded-2xl bg-slate-200" />
+                  </div>
+
+                  <div className="space-y-4">
+                    {[1, 2, 3, 4].map((row) => (
+                      <div key={row} className="flex items-center gap-4 rounded-2xl bg-white px-4 py-4 shadow-sm">
+                        <div className="skeleton-shimmer h-12 w-12 rounded-2xl bg-slate-200" />
+                        <div className="flex-1 space-y-3">
+                          <div className="skeleton-shimmer h-4 w-40 rounded-full bg-slate-200" />
+                          <div className="skeleton-shimmer h-3 w-56 max-w-full rounded-full bg-slate-200" />
+                        </div>
+                        <div className="skeleton-shimmer h-9 w-20 rounded-full bg-slate-200" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </main>
+          </div>
+        </div>
       </div>
     );
   }

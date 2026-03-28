@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { FiSearch } from "react-icons/fi";
 import { useSellerAuth } from "../../context/SellerAuthContext";
 import { getSellerOrders } from "../../api/orders";
+import { OrderWorkspaceSkeleton } from "../../components/LoadingSkeletons";
 
 const orderStages = [
   "Pending",
@@ -65,17 +66,25 @@ const SellerOrdersPage = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadOrders = async () => {
       const token = localStorage.getItem("sellerToken");
-      if (!token) return;
+      if (!token) {
+        setLoading(false);
+        return;
+      }
 
-      const sellerOrders = await getSellerOrders(token);
-      setOrders(sellerOrders);
+      try {
+        const sellerOrders = await getSellerOrders(token);
+        setOrders(sellerOrders);
 
-      if (!selectedOrderId && sellerOrders.length > 0) {
-        setSelectedOrderId(sellerOrders[0].id);
+        if (!selectedOrderId && sellerOrders.length > 0) {
+          setSelectedOrderId(sellerOrders[0].id);
+        }
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -124,6 +133,9 @@ const SellerOrdersPage = () => {
         </p>
       </div>
 
+      {loading ? (
+        <OrderWorkspaceSkeleton />
+      ) : (
       <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
           <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-center">
@@ -303,6 +315,7 @@ const SellerOrdersPage = () => {
           )}
         </div>
       </div>
+      )}
     </div>
   );
 };

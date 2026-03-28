@@ -20,6 +20,16 @@ import PromotionalBanner from "../components/PromotionalBanner";
 import PromoStrip from "../components/PromoStrip";
 import { getProducts } from "../service/ProductService";
 import { motion } from "framer-motion";
+import { ProductGridSkeleton } from "../components/LoadingSkeletons";
+
+const fallbackProducts = [
+  { id: 1, name: "Wireless Headphones", price: 120, image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80" },
+  { id: 2, name: "Smart Watch", price: 250, image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80" },
+  { id: 3, name: "Designer Handbag", price: 180, image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=500&q=80" },
+  { id: 4, name: "Gaming Mouse", price: 60, image: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=500&q=80" },
+  { id: 5, name: "Leather Wallet", price: 45, image: "https://images.unsplash.com/photo-1600185366207-3f7ee2c2c7c2?auto=format&fit=crop&w=500&q=80" },
+  { id: 6, name: "Bluetooth Speaker", price: 80, image: "https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&w=500&q=80" },
+];
 
 export const IndexPage = ({ className, children, variant, contentKey, ...props }) => {
   const { cartItems, addToCart } = useCart();
@@ -30,23 +40,16 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
   const [bannerSticky, setBannerSticky] = useState(true);
   const [stripSticky, setStripSticky] = useState(false);
 
-  const [products, setProducts] = useState([
-    { id: 1, name: "Wireless Headphones", price: 120, image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80" },
-    { id: 2, name: "Smart Watch", price: 250, image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80" },
-    { id: 3, name: "Designer Handbag", price: 180, image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=500&q=80" },
-    { id: 4, name: "Gaming Mouse", price: 60, image: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=500&q=80" },
-    { id: 5, name: "Leather Wallet", price: 45, image: "https://images.unsplash.com/photo-1600185366207-3f7ee2c2c7c2?auto=format&fit=crop&w=500&q=80" },
-    { id: 6, name: "Bluetooth Speaker", price: 80, image: "https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&w=500&q=80" },
-  ]);
+  const [products, setProducts] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const data = await getProducts();
         if (data && data.length > 0) {
-          // merge approved products into the local products state and deduplicate by id
-          setProducts(prev => {
-            const combined = [...data, ...prev];
+          setProducts(() => {
+            const combined = [...data, ...fallbackProducts];
             const map = new Map();
             for (const item of combined) {
               if (!item) continue;
@@ -57,7 +60,6 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
             return Array.from(map.values());
           });
 
-          // Also merge approved products into the categories list so category sections show them
           try {
             data.forEach(p => {
               if (!p || !p.category) return;
@@ -82,9 +84,14 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
           } catch (err) {
             console.warn('Failed to merge products into categories', err);
           }
+        } else {
+          setProducts(fallbackProducts);
         }
       } catch (error) {
         console.error("Failed to fetch products:", error);
+        setProducts(fallbackProducts);
+      } finally {
+        setLoadingProducts(false);
       }
     };
     fetchProducts();
@@ -246,11 +253,17 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
               animate="visible"
               variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
             >
-              {hotDealProducts.map(p => (
-                <motion.div key={p.id} variants={cardVariants}>
-                  <ProductCard product={p} addToCart={addToCart} />
-                </motion.div>
-              ))}
+              {loadingProducts ? (
+                <div className="col-span-full">
+                  <ProductGridSkeleton count={8} imageClassName="h-44" />
+                </div>
+              ) : (
+                hotDealProducts.map(p => (
+                  <motion.div key={p.id} variants={cardVariants}>
+                    <ProductCard product={p} addToCart={addToCart} />
+                  </motion.div>
+                ))
+              )}
             </motion.div>
           </div>
         </section>
@@ -280,11 +293,17 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
       viewport={{ once: true }}
       variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
     >
-      {trendingProducts.map(p => (
-        <motion.div key={p.id} variants={cardVariants}>
-          <ProductCard product={p} addToCart={addToCart} />
-        </motion.div>
-      ))}
+      {loadingProducts ? (
+        <div className="col-span-full">
+          <ProductGridSkeleton count={8} imageClassName="h-44" />
+        </div>
+      ) : (
+        trendingProducts.map(p => (
+          <motion.div key={p.id} variants={cardVariants}>
+            <ProductCard product={p} addToCart={addToCart} />
+          </motion.div>
+        ))
+      )}
     </motion.div>
   </div>
 </section>

@@ -3,6 +3,7 @@ import { MdAdd, MdEdit, MdDelete } from "react-icons/md";
 import { FiSearch } from "react-icons/fi";
 import { categories } from "../../service/dummyCategories";
 import ConfirmationModal from "../../components/ConfirmationModal";
+import { ProductGridSkeleton } from "../../components/LoadingSkeletons";
 
 const API_URL = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
 
@@ -18,6 +19,7 @@ const SellerProductsPage = () => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [loadingProducts, setLoadingProducts] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
     brand: "",
@@ -40,6 +42,8 @@ const SellerProductsPage = () => {
       setProducts(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
+    } finally {
+      setLoadingProducts(false);
     }
   };
 
@@ -199,6 +203,9 @@ const SellerProductsPage = () => {
       </div>
 
       {/* PRODUCTS */}
+      {loadingProducts ? (
+        <ProductGridSkeleton count={6} imageClassName="h-32" cardClassName="rounded-lg" />
+      ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
         {pendingProducts.map(p => (
           <div key={p._id} className="bg-white border rounded-lg p-4">
@@ -238,6 +245,7 @@ const SellerProductsPage = () => {
           </div>
         ))}
       </div>
+      )}
 
       {/* Floating Add Product button at bottom-right */}
       <div className="fixed right-6 bottom-6 z-40">

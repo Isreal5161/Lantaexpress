@@ -9,6 +9,7 @@ import { Text } from '../components/Text';
 import { Header } from '../components/header';
 import { Footer } from '../components/footer';
 import { ProductCard } from '../components/ProductCard';
+import { ProductDetailSkeleton, ProductGridSkeleton } from '../components/LoadingSkeletons';
 
 export const ProductPage = () => {
   const { addToCart } = useCart();
@@ -16,11 +17,14 @@ export const ProductPage = () => {
   const [product, setProduct] = useState(null);
   const [exploreProducts, setExploreProducts] = useState([]);
   const [quantity, setQuantity] = useState(1);
+  const [loadingProduct, setLoadingProduct] = useState(true);
+  const [loadingExplore, setLoadingExplore] = useState(true);
 
   // Fetch main product
   useEffect(() => {
     const fetchProduct = async () => {
       try {
+        setLoadingProduct(true);
         const data = await getProductById(id);
         if (data) {
           setProduct(data);
@@ -43,6 +47,8 @@ export const ProductPage = () => {
         }
       } catch (err) {
         console.error(err);
+      } finally {
+        setLoadingProduct(false);
       }
     };
     fetchProduct();
@@ -52,24 +58,29 @@ export const ProductPage = () => {
   useEffect(() => {
     const fetchExplore = async () => {
       try {
+        setLoadingExplore(true);
         const data = await getProducts();
         // exclude current product
         const filtered = data?.filter(p => p.id.toString() !== id) || [];
         setExploreProducts(filtered);
       } catch (err) {
         console.error(err);
+      } finally {
+        setLoadingExplore(false);
       }
     };
     fetchExplore();
   }, [id]);
-
-  if (!product) return <div className="p-8 text-center">Loading...</div>;
 
   return (
     <div className="font-body text-slate-600 antialiased bg-white">
       <Header />
 
       <main className="pb-20 md:pb-0">
+        {loadingProduct || !product ? (
+          <ProductDetailSkeleton />
+        ) : (
+          <>
         {/* Breadcrumb */}
         <div className="bg-slate-50 border-b border-slate-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -178,13 +189,19 @@ export const ProductPage = () => {
           {/* Explore More */}
           <div className="mt-12 pt-8 border-t border-slate-200">
             <h3 className="text-lg font-bold text-slate-900 mb-6">Explore More</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 px-1">
-              {exploreProducts.map(p => (
-                <ProductCard key={p.id} product={p} addToCart={addToCart} />
-              ))}
-            </div>
+            {loadingExplore ? (
+              <ProductGridSkeleton count={4} imageClassName="h-40" />
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 px-1">
+                {exploreProducts.map(p => (
+                  <ProductCard key={p.id} product={p} addToCart={addToCart} />
+                ))}
+              </div>
+            )}
           </div>
         </div>
+          </>
+        )}
       </main>
 
       <Footer />

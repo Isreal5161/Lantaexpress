@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import AdminLayout from "../Layout/AdminLayout";
 import AdminTable from "../components/AdminTable";
 import SellerCard from "../components/SellerCard";
+import { SkeletonBlock, TablePanelSkeleton } from "../../components/LoadingSkeletons";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
 
@@ -133,22 +134,34 @@ export default function Sellers() {
       <div className="space-y-6">
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">
-            Sellers Management
-          </h1>
-          <div className="flex gap-3">
-            <input
-              type="text"
-              placeholder="Search sellers..."
-              className="border rounded-md px-3 py-2 text-sm w-full sm:w-64"
-            />
-            <button
-              onClick={() => setShowSellerRequests(true)}
-              className="px-3 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-sm"
-            >
-              New Seller Requests ({pendingSellers.length})
-            </button>
-          </div>
+          {loading ? (
+            <>
+              <SkeletonBlock className="h-9 w-56 rounded-full" />
+              <div className="flex gap-3">
+                <SkeletonBlock className="h-10 w-full rounded-2xl sm:w-64" />
+                <SkeletonBlock className="h-10 w-44 rounded-2xl" />
+              </div>
+            </>
+          ) : (
+            <>
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-800">
+                Sellers Management
+              </h1>
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  placeholder="Search sellers..."
+                  className="border rounded-md px-3 py-2 text-sm w-full sm:w-64"
+                />
+                <button
+                  onClick={() => setShowSellerRequests(true)}
+                  className="px-3 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-sm"
+                >
+                  New Seller Requests ({pendingSellers.length})
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         {error && (
@@ -159,7 +172,7 @@ export default function Sellers() {
 
         {/* DESKTOP TABLE */}
         {loading ? (
-          <p className="text-center text-gray-500 mt-10 text-lg">Loading sellers...</p>
+          <TablePanelSkeleton columns={7} rows={5} mobileCards={4} />
         ) : sellers.length > 0 ? (
           <div className="hidden md:block">
             <AdminTable columns={columns} data={data} />

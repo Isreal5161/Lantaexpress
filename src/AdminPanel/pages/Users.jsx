@@ -3,6 +3,7 @@ import AdminLayout from "../Layout/AdminLayout";
 import AdminTable from "../components/AdminTable";
 import UserCard from "../components/UserCard";
 import { getAdminOrders } from "../../api/orders";
+import { SkeletonBlock, TablePanelSkeleton } from "../../components/LoadingSkeletons";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
 
@@ -142,14 +143,23 @@ export default function Users() {
     <AdminLayout>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-800">
-            Users Management
-          </h1>
-          <input
-            type="text"
-            placeholder="Search users..."
-            className="border rounded-md px-3 py-2 text-sm w-full sm:w-64"
-          />
+          {loading ? (
+            <>
+              <SkeletonBlock className="h-9 w-56 rounded-full" />
+              <SkeletonBlock className="h-10 w-full rounded-2xl sm:w-64" />
+            </>
+          ) : (
+            <>
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-800">
+                Users Management
+              </h1>
+              <input
+                type="text"
+                placeholder="Search users..."
+                className="border rounded-md px-3 py-2 text-sm w-full sm:w-64"
+              />
+            </>
+          )}
         </div>
 
         {error && (
@@ -159,7 +169,7 @@ export default function Users() {
         )}
 
         {loading ? (
-          <p className="text-center text-gray-500 mt-10 text-lg">Loading users...</p>
+          <TablePanelSkeleton columns={6} rows={5} mobileCards={4} />
         ) : users.length > 0 ? (
           <>
             {/* Desktop Table */}

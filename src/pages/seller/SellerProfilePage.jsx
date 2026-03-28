@@ -4,6 +4,7 @@ import { MdDelete, MdEdit, MdStorefront } from "react-icons/md";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import { useSellerAuth } from "../../context/SellerAuthContext";
 import { categories } from "../../service/dummyCategories";
+import { ProductGridSkeleton, SellerProfileSkeleton } from "../../components/LoadingSkeletons";
 
 const API_URL = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
 const API_AUTH = process.env.REACT_APP_API_URL || "https://lantaxpressbackend.onrender.com/api/auth";
@@ -322,26 +323,19 @@ const SellerProfilePage = () => {
       </div>
 
       {/* Profile Card */}
-      <div className="bg-white rounded-xl shadow p-6 flex flex-col md:flex-row gap-6 items-center">
-        {/* Avatar or Brand Logo */}
-        <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden">
-          <img
-            src={seller.logo || "/lantalogo1.jpg"}
-            alt="Brand Logo"
-            className="w-full h-full object-cover"
-          />
-        </div>
+      {loadingProfile ? (
+        <SellerProfileSkeleton />
+      ) : (
+        <div className="bg-white rounded-xl shadow p-6 flex flex-col md:flex-row gap-6 items-center">
+          <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden">
+            <img
+              src={seller.logo || "/lantalogo1.jpg"}
+              alt="Brand Logo"
+              className="w-full h-full object-cover"
+            />
+          </div>
 
-        {/* Info */}
-        <div className="flex-1 space-y-2">
-          {loadingProfile ? (
-            <div className="space-y-2">
-              <div className="h-6 w-40 animate-pulse rounded bg-gray-200" />
-              <div className="h-4 w-56 animate-pulse rounded bg-gray-200" />
-              <div className="h-4 w-48 animate-pulse rounded bg-gray-200" />
-              <div className="h-4 w-64 animate-pulse rounded bg-gray-200" />
-            </div>
-          ) : (
+          <div className="flex-1 space-y-2">
             <>
               <h3 className="text-xl font-bold text-gray-800">{seller.brandName || seller.name || "Your Brand"}</h3>
               {seller.name && <p className="text-sm font-medium text-gray-700">Owner: {seller.name}</p>}
@@ -354,29 +348,28 @@ const SellerProfilePage = () => {
               )}
               {seller.description && <p className="text-sm text-gray-600">{seller.description}</p>}
             </>
-          )}
-        </div>
+          </div>
 
-        {/* Stats */}
-        <div className="flex gap-6 mt-4 md:mt-0">
-          <div className="text-center">
-            <p className="text-gray-500 text-sm">Products</p>
-            <p className="text-lg font-bold text-green-600 flex items-center gap-1">
-              <MdStorefront size={20} /> {approvedProducts.length}
-            </p>
-          </div>
-          <div className="text-center">
-            <p className="text-gray-500 text-sm">Balance</p>
-            <p className="text-lg font-bold text-green-600">₦{Number(seller.balance || 0).toLocaleString()}</p>
+          <div className="flex gap-6 mt-4 md:mt-0">
+            <div className="text-center">
+              <p className="text-gray-500 text-sm">Products</p>
+              <p className="text-lg font-bold text-green-600 flex items-center gap-1">
+                <MdStorefront size={20} /> {approvedProducts.length}
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-gray-500 text-sm">Balance</p>
+              <p className="text-lg font-bold text-green-600">₦{Number(seller.balance || 0).toLocaleString()}</p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Seller Products Preview */}
       <div className="bg-white rounded-xl shadow p-6">
         <h3 className="text-lg font-semibold text-gray-700 mb-4">Your Products</h3>
         {loadingProducts ? (
-          <div className="py-10 text-center text-sm text-gray-500">Loading approved products...</div>
+          <ProductGridSkeleton count={4} imageClassName="h-32" cardClassName="rounded-xl bg-gray-50" />
         ) : approvedProducts.length === 0 ? (
           <div className="py-10 text-center text-sm text-gray-500">
             No approved products yet. Products will appear here after admin approval.

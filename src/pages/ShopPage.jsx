@@ -11,6 +11,7 @@ import { Text } from '../components/Text';
 import BannerCarousel from '../components/BannerCarousel';
 import { useLocation } from "react-router-dom";
 import PromoModal from "../components/PromoModal";
+import { ProductGridSkeleton } from "../components/LoadingSkeletons";
 
 export const ShopPage = () => {
   const { addToCart } = useCart();
@@ -106,7 +107,7 @@ useEffect(() => {
               {/* Product Grid full width */}
               <div className="w-full">
               {loading ? (
-                <div className="text-center py-20 text-gray-500">Loading products...</div>
+                <ProductGridSkeleton count={8} imageClassName="h-52" />
               ) : products.length === 0 ? (
                 <div className="text-center py-20 text-gray-500 text-lg font-medium">
                   No product available yet in this category
