@@ -98,8 +98,8 @@ export default function Dashboard() {
                       </td>
                     </tr>
                   ) : (
-                    recentOrders.map(order => (
-                      <tr key={order.id} className="border-b">
+                    recentOrders.map((order, index) => (
+                      <tr key={order.recordId || order.id || `${order.userName || order.buyer || "order"}-${order.createdAt || index}`} className="border-b">
                         <td className="py-3 pr-4">#{order.id}</td>
                         <td className="pr-4">{order.userName || order.buyer}</td>
                         <td className="pr-4">{formatPrice(order.amount || order.price)}</td>
@@ -124,8 +124,8 @@ export default function Dashboard() {
               {newUsers.length === 0 ? (
                 <li className="text-gray-500">No new users</li>
               ) : (
-                newUsers.map((user, idx) => (
-                  <li key={idx} className="flex justify-between items-center">
+                newUsers.map((user) => (
+                  <li key={user._id || user.email || user.createdAt} className="flex justify-between items-center">
                     <span className="font-medium">{user.name}</span>
                     <span className="text-slate-400 text-xs sm:text-sm">{new Date(user.createdAt).toLocaleTimeString()}</span>
                   </li>

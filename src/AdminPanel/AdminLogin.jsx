@@ -48,7 +48,7 @@ const AdminLogin = () => {
 
       // SAVE TOKEN
       localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("adminUser", JSON.stringify(data.user));
 
       // REDIRECT to the AdminPanel route
       navigate("/AdminPanel/dashboard");

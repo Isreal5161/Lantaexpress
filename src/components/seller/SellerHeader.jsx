@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MdNotifications, MdMenu, MdAccountCircle } from "react-icons/md";
+import { useSellerAuth } from "../../context/SellerAuthContext";
 
 const SellerHeader = ({ toggleSidebar }) => {
   const navigate = useNavigate();
+  const { seller } = useSellerAuth();
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -31,12 +33,11 @@ const SellerHeader = ({ toggleSidebar }) => {
     return () => { mounted = false; clearInterval(interval); };
   }, []);
 
-  const seller = JSON.parse(localStorage.getItem("currentSeller")) || {
-    brandName: "Your Brand",
-  };
+  const sellerLogo = seller?.logo || null;
 
   const handleLogout = () => {
     localStorage.removeItem("currentSeller");
+    localStorage.removeItem("sellerToken");
     navigate("/seller-login");
   };
 
@@ -108,9 +109,17 @@ const SellerHeader = ({ toggleSidebar }) => {
               onClick={() => setProfileOpen(!profileOpen)}
               className="flex items-center gap-2 text-gray-700 hover:text-black"
             >
-              <MdAccountCircle size={28} />
+              {sellerLogo ? (
+                <img
+                  src={sellerLogo}
+                  alt={seller?.brandName || "Seller logo"}
+                  className="h-9 w-9 rounded-full object-cover ring-2 ring-green-100"
+                />
+              ) : (
+                <MdAccountCircle size={28} />
+              )}
               <span className="hidden md:block font-medium">
-                {seller.brandName}
+                {seller?.brandName || "Your Brand"}
               </span>
             </button>
 

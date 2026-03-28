@@ -36,7 +36,7 @@ export const CartPage = ({ userCurrency = "NGN" }) => {
   const total = subtotal + shipping + tax;
 
   const handleCheckout = () => {
-    const userRaw = localStorage.getItem("user");
+    const userRaw = localStorage.getItem("currentUser") || localStorage.getItem("user");
     let user = null;
 
     if (!userRaw) {

@@ -7,6 +7,7 @@ import { Header } from "../components/header";
 import { Footer } from "../components/footer";
 import { useNavigate } from "react-router-dom";
 import PaymentSuccessModal from "../components/PaymentSuccessModal";
+import { createOrders } from "../api/orders";
 
 // Currency helpers
 const formatCurrency = (amount, currency = "NGN") => {
@@ -40,6 +41,7 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [showSuccess, setShowSuccess] = useState(false);
   const [orderId, setOrderId] = useState("");
+  const [submittingOrder, setSubmittingOrder] = useState(false);
 
   // Totals
   const subtotal = cartItems.reduce(
@@ -53,7 +55,7 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
 
   // Load logged-in user
   useEffect(() => {
-    const userRaw = localStorage.getItem("user");
+    const userRaw = localStorage.getItem("currentUser") || localStorage.getItem("user");
 
     if (!userRaw) {
       navigate("/login");
@@ -91,49 +93,41 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
   };
 
   // Checkout
-  const handleProceedToPayment = () => {
+  const handleProceedToPayment = async () => {
     if (!shippingAddress.address || !shippingAddress.city || !shippingAddress.state || !shippingAddress.phone) {
       alert("Please complete your shipping address with all required fields.");
       return;
     }
 
-    const existingOrders =
-      JSON.parse(localStorage.getItem("user_orders")) || [];
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      alert("Please log in before placing an order.");
+      navigate("/login");
+      return;
+    }
 
-    const generatedId = generateOrderId();
+    setSubmittingOrder(true);
 
-    const newOrders = cartItems.map((item) => ({
-      id: generatedId,
-      userName: shippingAddress.name,
-      contact: shippingAddress.email,
-      phone: shippingAddress.phone,
-      productName: item.name,
-      brand: item.brand || "Generic",
-      price: convertPrice(item.price, userCurrency),
-      quantity: item.quantity,
-      description: item.description || "Product order",
-      status: "Pending",
-      createdAt: new Date().toISOString(),
-      expectedDelivery: new Date(
-        Date.now() + 7 * 24 * 60 * 60 * 1000
-      ).toISOString(),
-      shippingAddress: {
-        address: shippingAddress.address,
-        city: shippingAddress.city,
-        state: shippingAddress.state,
-        zip: shippingAddress.zip,
-        country: shippingAddress.country,
-      },
-    }));
+    try {
+      const response = await createOrders(
+        {
+          cartItems,
+          shippingAddress,
+          paymentMethod,
+          currency: userCurrency,
+        },
+        token
+      );
 
-    const updatedOrders = [...existingOrders, ...newOrders];
+      clearCart();
 
-    localStorage.setItem("user_orders", JSON.stringify(updatedOrders));
-
-    clearCart();
-
-    setOrderId(generatedId);
-    setShowSuccess(true);
+      setOrderId(response.primaryOrderNumber || generateOrderId());
+      setShowSuccess(true);
+    } catch (error) {
+      alert(error.message || "Unable to place order right now.");
+    } finally {
+      setSubmittingOrder(false);
+    }
   };
 
   // Show empty cart only if success modal not open
@@ -319,8 +313,9 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
             <Button
               className="w-full bg-green-600 text-white py-3 mt-6"
               onClick={handleProceedToPayment}
+                disabled={submittingOrder}
             >
-              Proceed to Payment
+              {submittingOrder ? "Processing Payment..." : "Proceed to Payment"}
             </Button>
           </div>
 

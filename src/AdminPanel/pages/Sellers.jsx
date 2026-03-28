@@ -3,77 +3,84 @@ import AdminLayout from "../Layout/AdminLayout";
 import AdminTable from "../components/AdminTable";
 import SellerCard from "../components/SellerCard";
 
-const LOCAL_STORAGE_KEY = "adminSellers";
+const API_BASE = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
 
 export default function Sellers() {
   const [sellers, setSellers] = useState([]);
   const [showSellerRequests, setShowSellerRequests] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  // Load sellers from localStorage
   useEffect(() => {
-    const storedSellers = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (storedSellers) {
-      setSellers(JSON.parse(storedSellers));
-    } else {
-      // No sellers yet
-      setSellers([]);
-    }
+    const loadSellers = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        setSellers([]);
+        setError("Admin login required.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError("");
+
+        const [usersRes, productsRes] = await Promise.all([
+          fetch(`${API_BASE}/admin/users`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${API_BASE}/admin/products`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+
+        const usersJson = await usersRes.json();
+        const productsJson = await productsRes.json();
+
+        if (!usersRes.ok) {
+          throw new Error(usersJson.message || "Failed to load sellers");
+        }
+
+        if (!productsRes.ok) {
+          throw new Error(productsJson.message || "Failed to load seller products");
+        }
+
+        const productCountBySeller = new Map();
+        (productsJson || []).forEach((product) => {
+          const sellerId = product.seller?._id || product.seller;
+          if (!sellerId) return;
+          productCountBySeller.set(sellerId.toString(), (productCountBySeller.get(sellerId.toString()) || 0) + 1);
+        });
+
+        const mappedSellers = (usersJson.users || [])
+          .filter((user) => user.role === "seller")
+          .map((seller) => ({
+            id: seller._id,
+            name: seller.name,
+            email: seller.email,
+            brand: seller.brandName || "No brand name",
+            phone: seller.phone || "N/A",
+            status: seller.isVerified ? "Verified" : "Pending",
+            totalProducts: productCountBySeller.get(seller._id) || 0,
+            balance: 0,
+          }));
+
+        setSellers(mappedSellers);
+      } catch (err) {
+        setSellers([]);
+        setError(err.message || "Failed to load sellers");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSellers();
   }, []);
 
-  const updateSellers = (newSellers) => {
-    setSellers(newSellers);
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newSellers));
-  };
-
-  const handleDelete = (id) => {
-    const updated = sellers.filter((s) => s.id !== id);
-    updateSellers(updated);
-  };
-
-  const handleApproveProduct = (sellerId, productId) => {
-    const updated = sellers.map((s) => {
-      if (s.id === sellerId) {
-        const newProducts = s.products.map((p) =>
-          p.id === productId ? { ...p, status: "Approved" } : p
-        );
-        return { ...s, products: newProducts };
-      }
-      return s;
-    });
-    updateSellers(updated);
-  };
-
-  const handleRejectProduct = (sellerId, productId) => {
-    const updated = sellers.map((s) => {
-      if (s.id === sellerId) {
-        const newProducts = s.products.map((p) =>
-          p.id === productId ? { ...p, status: "Rejected" } : p
-        );
-        return { ...s, products: newProducts };
-      }
-      return s;
-    });
-    updateSellers(updated);
-  };
-
-  const handleApproveSeller = (sellerId) => {
-    const updated = sellers.map((s) =>
-      s.id === sellerId ? { ...s, status: "Verified" } : s
-    );
-    updateSellers(updated);
-  };
-
-  const handleRejectSeller = (sellerId) => {
-    const updated = sellers.map((s) =>
-      s.id === sellerId ? { ...s, status: "Rejected" } : s
-    );
-    updateSellers(updated);
-  };
-
-  const refreshSellers = () => {
-    const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (stored) setSellers(JSON.parse(stored));
-  };
+  const handleDelete = () => setError("Delete seller is not connected to a backend endpoint yet.");
+  const handleApproveSeller = () => setError("Seller verification is not connected to a backend endpoint yet.");
+  const handleRejectSeller = () => setError("Seller rejection is not connected to a backend endpoint yet.");
 
   const columns = [
     "Seller ID",
@@ -100,7 +107,7 @@ export default function Sellers() {
     >
       {s.status}
     </span>,
-    s.products.length,
+    s.totalProducts,
     `₦${s.balance.toLocaleString()}`,
     <div className="flex gap-2">
       <button
@@ -144,8 +151,16 @@ export default function Sellers() {
           </div>
         </div>
 
+        {error && (
+          <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
         {/* DESKTOP TABLE */}
-        {sellers.length > 0 ? (
+        {loading ? (
+          <p className="text-center text-gray-500 mt-10 text-lg">Loading sellers...</p>
+        ) : sellers.length > 0 ? (
           <div className="hidden md:block">
             <AdminTable columns={columns} data={data} />
           </div>

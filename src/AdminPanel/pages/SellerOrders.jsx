@@ -1,5 +1,6 @@
 // src/pages/admin/AdminSellerOrders.jsx
 import React, { useState, useEffect, useRef } from "react";
+import { getAdminOrders, updateAdminOrderStatus } from "../../api/orders";
 
 const orderStages = [
   "Pending",
@@ -17,9 +18,11 @@ export default function AdminSellerOrders() {
   const [search, setSearch] = useState("");
   const previousOrderCount = useRef(0);
 
-  // Load orders from localStorage
-  const loadOrders = () => {
-    const allOrders = JSON.parse(localStorage.getItem("user_orders")) || [];
+  const loadOrders = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const allOrders = await getAdminOrders(token);
     setOrders(allOrders);
 
     // Notify if new order arrived
@@ -30,32 +33,24 @@ export default function AdminSellerOrders() {
   };
 
   useEffect(() => {
-    loadOrders();
+    loadOrders().catch((error) => console.error(error));
 
-    const handleStorageChange = (e) => {
-      if (e.key === "user_orders") loadOrders();
-    };
-    window.addEventListener("storage", handleStorageChange);
-
-    const interval = setInterval(() => loadOrders(), 3000); // auto-refresh
+    const interval = setInterval(() => {
+      loadOrders().catch((error) => console.error(error));
+    }, 5000);
     return () => {
       clearInterval(interval);
-      window.removeEventListener("storage", handleStorageChange);
     };
   }, []);
 
-  const updateStatus = (orderId, newStatus) => {
-    const allOrders = JSON.parse(localStorage.getItem("user_orders")) || [];
-    const updatedOrders = allOrders.map((order) => {
-      if (order.id === orderId) {
-        const timestamps = { ...order.stageTimestamps };
-        if (!timestamps[newStatus]) timestamps[newStatus] = new Date().toISOString();
-        return { ...order, status: newStatus, stageTimestamps: timestamps };
-      }
-      return order;
-    });
-    localStorage.setItem("user_orders", JSON.stringify(updatedOrders));
-    loadOrders();
+  const updateStatus = async (recordId, newStatus) => {
+    try {
+      const token = localStorage.getItem("token");
+      await updateAdminOrderStatus(recordId, newStatus, token);
+      await loadOrders();
+    } catch (error) {
+      alert(error.message || "Unable to update order status.");
+    }
   };
 
   const isCompleted = (order, stage) => {
@@ -166,7 +161,7 @@ export default function AdminSellerOrders() {
               <span className="text-sm text-gray-500">Update Status</span>
               <select
                 value={order.status}
-                onChange={(e) => updateStatus(order.id, e.target.value)}
+                  onChange={(e) => updateStatus(order.recordId, e.target.value)}
                 className="border rounded p-2 text-sm"
               >
                 {orderStages.map((stage) => (

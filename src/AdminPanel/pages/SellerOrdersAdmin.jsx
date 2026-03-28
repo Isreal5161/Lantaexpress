@@ -11,6 +11,7 @@ import {
 } from "react-icons/fa";
 import AdminLayout from "../Layout/AdminLayout";
 import StatCard from "../components/StatCard";
+import { getAdminOrders } from "../../api/orders";
 
 export default function SellerOrdersAdmin() {
   const navigate = useNavigate();
@@ -24,8 +25,11 @@ export default function SellerOrdersAdmin() {
     return new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN" }).format(value);
   };
 
-  const loadBrandOrders = () => {
-    const allOrders = JSON.parse(localStorage.getItem("user_orders")) || [];
+  const loadBrandOrders = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const allOrders = await getAdminOrders(token);
 
     const brandMap = allOrders.reduce((acc, order) => {
       if (!acc[order.brand]) acc[order.brand] = [];
@@ -51,8 +55,10 @@ export default function SellerOrdersAdmin() {
   };
 
   useEffect(() => {
-    loadBrandOrders();
-    const interval = setInterval(loadBrandOrders, 3000);
+    loadBrandOrders().catch((error) => console.error(error));
+    const interval = setInterval(() => {
+      loadBrandOrders().catch((error) => console.error(error));
+    }, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -61,7 +67,7 @@ export default function SellerOrdersAdmin() {
   );
 
   const handleUpdateStatus = (orderId) => {
-    navigate(`/AdminPanel/track-order/${encodeURIComponent(orderId)}`);
+    navigate("/AdminPanel/users/tracking");
   };
 
   return (

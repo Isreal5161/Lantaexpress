@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import AdminLayout from "../Layout/AdminLayout";
+import { getAdminOrders, updateAdminOrderStatus } from "../../api/orders";
 
 const orderStages = [
   "Pending",
@@ -43,11 +44,11 @@ export default function UserTracking() {
     return 0;
   };
 
-  // -------- LOAD ORDERS --------
-  const loadOrders = () => {
+  const loadOrders = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-    const savedOrders =
-      JSON.parse(localStorage.getItem("user_orders")) || [];
+    const savedOrders = await getAdminOrders(token);
 
     const sorted = savedOrders.sort(
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
@@ -70,75 +71,30 @@ export default function UserTracking() {
   };
 
   useEffect(() => {
+    loadOrders().catch((error) => console.error(error));
 
-    loadOrders();
+    const interval = setInterval(() => {
+      loadOrders().catch((error) => console.error(error));
+    }, 5000);
 
-    const handleStorageChange = (e) => {
-      if (e.key === "user_orders") {
-        loadOrders();
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-
-    return () =>
-      window.removeEventListener("storage", handleStorageChange);
+    return () => clearInterval(interval);
 
   }, []);
 
   // -------- UPDATE STATUS --------
-  const updateStatus = (orderId, newStatus) => {
-
-    const savedOrders =
-      JSON.parse(localStorage.getItem("user_orders")) || [];
-
-    const updatedOrders = savedOrders.map((order) => {
-
-      if (order.id === orderId) {
-
-        const timestamps = {
-          ...order.stageTimestamps
-        };
-
-        if (!timestamps[newStatus]) {
-          timestamps[newStatus] = new Date().toISOString();
-        }
-
-        return {
-          ...order,
-          status: newStatus,
-          stageTimestamps: timestamps
-        };
-      }
-
-      return order;
-
-    });
-
-    localStorage.setItem(
-      "user_orders",
-      JSON.stringify(updatedOrders)
-    );
-
-    loadOrders();
+  const updateStatus = async (recordId, newStatus) => {
+    try {
+      const token = localStorage.getItem("token");
+      await updateAdminOrderStatus(recordId, newStatus, token);
+      await loadOrders();
+    } catch (error) {
+      alert(error.message || "Unable to update order status.");
+    }
   };
 
   // -------- CLEAR HISTORY --------
   const clearHistory = () => {
-
-    if (!window.confirm("Clear order history?")) return;
-
-    const savedOrders =
-      JSON.parse(localStorage.getItem("user_orders")) || [];
-
-    const activeOnly = savedOrders.filter((o) => !o.received);
-
-    localStorage.setItem(
-      "user_orders",
-      JSON.stringify(activeOnly)
-    );
-
-    loadOrders();
+    loadOrders().catch((error) => console.error(error));
   };
 
   const statusColor = (status) => {
@@ -284,7 +240,7 @@ export default function UserTracking() {
                 <select
                   value={order.status}
                   onChange={(e) =>
-                    updateStatus(order.id, e.target.value)
+                    updateStatus(order.recordId, e.target.value)
                   }
                   className={`border rounded p-2 text-sm ${statusColor(
                     order.status

@@ -26,6 +26,7 @@ const sidebarLinks = [
 const SellerDashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { seller } = useSellerAuth();
+  const sellerLogo = seller?.logo || "/lantalogo1.jpg";
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -35,11 +36,20 @@ const SellerDashboardLayout = () => {
         className={`fixed md:static top-0 left-0 h-full w-64 bg-gradient-to-b from-green-50 to-white shadow-lg transform transition-transform duration-300 z-50
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
       >
-        <div className="p-6 text-center border-b">
-          <h1 className="font-extrabold text-xl text-green-700">
-            {seller?.brandName || "Your Brand"}
-          </h1>
-          <p className="text-gray-500 text-sm">Seller Dashboard</p>
+        <div className="border-b p-6">
+          <div className="flex items-center gap-3 rounded-2xl bg-white/80 p-3 shadow-sm">
+            <img
+              src={sellerLogo}
+              alt={seller?.brandName || "Seller logo"}
+              className="h-14 w-14 rounded-full object-cover ring-2 ring-green-200"
+            />
+            <div className="min-w-0 text-left">
+              <h1 className="truncate font-extrabold text-xl text-green-700">
+                {seller?.brandName || "Your Brand"}
+              </h1>
+              <p className="text-gray-500 text-sm">Seller Dashboard</p>
+            </div>
+          </div>
         </div>
 
         <nav className="flex-1 p-4 space-y-2">

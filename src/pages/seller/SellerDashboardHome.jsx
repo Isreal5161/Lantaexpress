@@ -57,7 +57,17 @@ const SellerDashboardHome = () => {
       // Fallback to localStorage
       // -----------------------------
       const allOrders = JSON.parse(localStorage.getItem("user_orders")) || [];
-      const sellerOrders = allOrders.filter(o => o.sellerEmail === seller.email);
+      const sellerBrand = (seller?.brandName || "").trim().toLowerCase();
+      const sellerEmail = (seller?.email || "").trim().toLowerCase();
+      const sellerOrders = allOrders.filter((order) => {
+        const orderBrand = (order.brand || order.sellerBrand || "").trim().toLowerCase();
+        const orderSellerEmail = (order.sellerEmail || "").trim().toLowerCase();
+
+        if (sellerBrand && orderBrand === sellerBrand) return true;
+        if (sellerEmail && orderSellerEmail === sellerEmail) return true;
+
+        return false;
+      });
 
       const totalRevenue = sellerOrders.reduce((acc, curr) => acc + (curr.amount || curr.price || 0), 0);
       const totalOrders = sellerOrders.length;

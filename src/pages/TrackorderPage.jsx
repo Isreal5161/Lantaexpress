@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Header } from "../components/header";
 import { Footer } from "../components/footer";
+import { confirmOrderReceived, submitOrderReview, trackOrder } from "../api/orders";
+import {
+  FaClipboardList,
+  FaCheckCircle,
+  FaCogs,
+  FaBoxOpen,
+  FaTruck,
+  FaMapMarkedAlt,
+  FaHome,
+  FaFlagCheckered,
+} from "react-icons/fa";
 
 const orderStages = [
   "Pending",
@@ -13,102 +25,102 @@ const orderStages = [
   "Completed"
 ];
 
+const stageIcons = {
+  Pending: FaClipboardList,
+  Approved: FaCheckCircle,
+  Processing: FaCogs,
+  Shipped: FaBoxOpen,
+  "In Transit": FaTruck,
+  "Out for Delivery": FaMapMarkedAlt,
+  Delivered: FaHome,
+  Completed: FaFlagCheckered,
+};
+
 export const TrackorderPage = () => {
+  const location = useLocation();
   const [order, setOrder] = useState(null);
   const [orderId, setOrderId] = useState("");
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
 
-  const getOrder = (id) => {
-    const orders = JSON.parse(localStorage.getItem("user_orders")) || [];
-    return orders.find((o) => o.id === id);
-  };
-
-  const trackOrder = () => {
-    if (!orderId) {
-      alert("Please enter an Order ID");
-      return;
-    }
-    const found = getOrder(orderId);
-    if (!found) {
-      alert("Order not found");
-      return;
-    }
-    // Ensure received field exists
+  const loadOrder = async (id) => {
+    const found = await trackOrder(id);
     if (found.received === undefined) found.received = false;
     setOrder(found);
   };
 
+  const handleTrackOrder = async () => {
+    if (!orderId) {
+      alert("Please enter an Order ID");
+      return;
+    }
+
+    try {
+      await loadOrder(orderId);
+    } catch (error) {
+      alert(error.message || "Order not found");
+      setOrder(null);
+    }
+  };
+
+  useEffect(() => {
+    const presetOrderId = location.state?.orderId;
+    if (presetOrderId) {
+      setOrderId(presetOrderId);
+    }
+  }, [location.state]);
+
   useEffect(() => {
     if (!orderId) return;
+
     const interval = setInterval(() => {
-      const updated = getOrder(orderId);
-      if (updated) {
-        if (updated.received === undefined) updated.received = false;
-        setOrder(updated);
-      }
+      loadOrder(orderId).catch(() => {});
     }, 3000);
+
     return () => clearInterval(interval);
   }, [orderId]);
 
-  const confirmReceived = () => {
+  useEffect(() => {
+    if (!orderId) return;
+    loadOrder(orderId).catch(() => {});
+  }, [orderId]);
+
+  const confirmReceived = async () => {
     if (!window.confirm("Confirm you have received this order?")) return;
 
-    const orders = JSON.parse(localStorage.getItem("user_orders")) || [];
-    const updatedOrders = orders.map((o) => {
-      if (o.id === order.id) {
-        return {
-          ...o,
-          status: "Completed",
-          received: true,
-          receivedAt: new Date().toISOString()
-        };
-      }
-      return o;
-    });
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      alert("Please log in to confirm delivery.");
+      return;
+    }
 
-    localStorage.setItem("user_orders", JSON.stringify(updatedOrders));
-
-    setOrder({
-      ...order,
-      status: "Completed",
-      received: true,
-      receivedAt: new Date().toISOString()
-    });
+    try {
+      const updated = await confirmOrderReceived(order.recordId, token);
+      setOrder(updated);
+    } catch (error) {
+      alert(error.message || "Unable to confirm delivery.");
+    }
   };
 
-  const submitReview = () => {
+  const handleSubmitReview = async () => {
     if (!rating || !comment) {
       alert("Please add rating and comment");
       return;
     }
 
-    const orders = JSON.parse(localStorage.getItem("user_orders")) || [];
-    const updatedOrders = orders.map((o) => {
-      if (o.id === order.id) {
-        return {
-          ...o,
-          review: {
-            rating,
-            comment,
-            date: new Date().toISOString()
-          }
-        };
-      }
-      return o;
-    });
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      alert("Please log in to submit a review.");
+      return;
+    }
 
-    localStorage.setItem("user_orders", JSON.stringify(updatedOrders));
-
-    setOrder({
-      ...order,
-      review: {
-        rating,
-        comment
-      }
-    });
-
-    alert("⭐ Thank you for your review!");
+    try {
+      const updated = await submitOrderReview(order.recordId, { rating, comment }, token);
+      setOrder(updated);
+      alert("⭐ Thank you for your review!");
+    } catch (error) {
+      alert(error.message || "Unable to save your review.");
+    }
   };
 
   const isCompleted = (stage) => {
@@ -116,6 +128,40 @@ export const TrackorderPage = () => {
     const orderIndex = orderStages.indexOf(order.status);
     const stageIndex = orderStages.indexOf(stage);
     return stageIndex <= orderIndex;
+  };
+
+  const getStageTimestamp = (stage) => {
+    if (!order) return null;
+
+    const stageTimestamp = order.stageTimestamps?.[stage];
+    if (stageTimestamp) {
+      return new Date(stageTimestamp);
+    }
+
+    if (stage === "Pending" && order.createdAt) {
+      return new Date(order.createdAt);
+    }
+
+    if (stage === "Completed" && order.receivedAt) {
+      return new Date(order.receivedAt);
+    }
+
+    return null;
+  };
+
+  const formatStageTimestamp = (stage) => {
+    const timestamp = getStageTimestamp(stage);
+    if (!timestamp || Number.isNaN(timestamp.getTime())) {
+      return isCompleted(stage) ? "Time unavailable" : "Waiting for update";
+    }
+
+    return timestamp.toLocaleString([], {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
   };
 
   const progressPercent = order
@@ -141,7 +187,7 @@ export const TrackorderPage = () => {
             className="flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 w-full"
           />
           <button
-            onClick={trackOrder}
+            onClick={handleTrackOrder}
             className="w-full sm:w-auto bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
           >
             Track
@@ -160,6 +206,9 @@ export const TrackorderPage = () => {
               <div className="flex-1 text-center sm:text-left">
                 <h3 className="font-semibold text-lg">{order.productName}</h3>
                 <p className="text-sm text-gray-500 mt-1">Order ID: {order.id}</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Ordered: {order.createdAt ? new Date(order.createdAt).toLocaleString() : "N/A"}
+                </p>
                 <span className="inline-block mt-1 bg-green-100 text-green-700 text-xs px-2 py-1 rounded">
                   {order.status}
                 </span>
@@ -178,24 +227,39 @@ export const TrackorderPage = () => {
 
             {/* Timeline */}
             <div className="space-y-3 sm:space-y-5">
-              {orderStages.map((stage) => (
-                <div key={stage} className="flex items-start gap-3">
+              {orderStages.map((stage) => {
+                const completed = isCompleted(stage);
+                const StageIcon = stageIcons[stage] || FaClipboardList;
+
+                return (
+                <div key={stage} className="flex items-start gap-3 rounded-lg border border-gray-100 px-3 py-3">
                   <div
-                    className={`w-4 h-4 mt-1 rounded-full ${
-                      isCompleted(stage) ? "bg-green-600" : "bg-gray-300"
+                    className={`mt-0.5 flex h-9 w-9 items-center justify-center rounded-full ${
+                      completed
+                        ? "bg-green-100 text-green-700"
+                        : "bg-gray-100 text-gray-400"
                     }`}
-                  />
+                  >
+                    <StageIcon className="text-sm" />
+                  </div>
                   <div>
                     <p
                       className={`font-medium ${
-                        isCompleted(stage) ? "text-black" : "text-gray-400"
+                        completed ? "text-black" : "text-gray-400"
                       }`}
                     >
                       {stage}
                     </p>
+                    <p
+                      className={`text-sm ${
+                        completed ? "text-gray-600" : "text-gray-400"
+                      }`}
+                    >
+                      {formatStageTimestamp(stage)}
+                    </p>
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
 
             {/* Confirm Button */}
@@ -235,7 +299,7 @@ export const TrackorderPage = () => {
                   rows={3}
                 />
                 <button
-                  onClick={submitReview}
+                  onClick={handleSubmitReview}
                   className="w-full sm:w-auto bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition"
                 >
                   Submit Review

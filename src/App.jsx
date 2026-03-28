@@ -66,8 +66,8 @@ import ProtectedSellerRoute from "./routes/ProtectedSellerRoute";
 // ✅ ADMIN ROUTE PROTECTION
 const AdminRoute = ({ children }) => {
   let user = null;
-
-  const storedUser = localStorage.getItem("user");
+  const token = localStorage.getItem("token");
+  const storedUser = localStorage.getItem("adminUser");
 
   // Only parse if it exists and is not "undefined"
   if (storedUser && storedUser !== "undefined") {
@@ -75,12 +75,12 @@ const AdminRoute = ({ children }) => {
       user = JSON.parse(storedUser);
     } catch (err) {
       console.error("Corrupted user data, clearing...");
-      localStorage.removeItem("user");
+      localStorage.removeItem("adminUser");
       user = null;
     }
   }
 
-  if (!user || user.role !== "admin") {
+  if (!token || !user || user.role !== "admin") {
     return <Navigate to="/admin/login" replace />;
   }
 
@@ -90,7 +90,11 @@ const AdminRoute = ({ children }) => {
 const App = () => {
   const [showSplash, setShowSplash] = useState(false);
 
-  const getIsLoggedIn = () => !!localStorage.getItem("user");
+  const getIsLoggedIn = () => {
+    const token = localStorage.getItem("authToken");
+    const storedUser = localStorage.getItem("currentUser") || localStorage.getItem("user");
+    return !!(token && storedUser && storedUser !== "undefined");
+  };
   const [isLoggedIn, setIsLoggedIn] = useState(getIsLoggedIn());
 
   useEffect(() => {
@@ -108,9 +112,14 @@ const App = () => {
   const handleLoginStateChange = (loggedIn, userData) => {
     setIsLoggedIn(loggedIn);
     if (loggedIn) {
-      localStorage.setItem("user", JSON.stringify(userData));
+      if (userData) {
+        localStorage.setItem("user", JSON.stringify(userData));
+        localStorage.setItem("currentUser", JSON.stringify(userData));
+      }
     } else {
       localStorage.removeItem("user");
+      localStorage.removeItem("currentUser");
+      localStorage.removeItem("authToken");
     }
   };
 
@@ -123,7 +132,12 @@ const App = () => {
       )}
 
       <div style={{ visibility: showSplash ? "hidden" : "visible" }}>
-        <Router>
+        <Router
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          }}
+        >
           <ScrollToTop />
           <Routes>
 

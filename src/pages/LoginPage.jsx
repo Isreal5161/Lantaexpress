@@ -46,9 +46,10 @@ export default function LoginPage({ onLogin }) {
 
     localStorage.setItem("authToken", data.token);
     localStorage.setItem("currentUser", JSON.stringify(data.user));
+    localStorage.setItem("user", JSON.stringify(data.user));
     localStorage.setItem("activeRole", activeRole);
 
-    if (onLogin) onLogin(true);
+    if (onLogin) onLogin(true, data.user);
 
     // Redirect based on role
     if (activeRole === "user") navigate("/account");
