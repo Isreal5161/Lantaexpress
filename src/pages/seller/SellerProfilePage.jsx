@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { MdDelete, MdEdit, MdStorefront } from "react-icons/md";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import { useSellerAuth } from "../../context/SellerAuthContext";
+import { getSellerFinanceSummary } from "../../api/sellerFinance";
 import { categories } from "../../service/dummyCategories";
 import { ProductGridSkeleton, SellerProfileSkeleton } from "../../components/LoadingSkeletons";
 
@@ -37,10 +38,21 @@ const categoriesList = [
   "Health",
 ];
 
+const formatCurrency = (value) =>
+  new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    maximumFractionDigits: 0,
+  }).format(Number(value) || 0);
+
 const SellerProfilePage = () => {
   const { seller: authSeller, login } = useSellerAuth();
   const [seller, setSeller] = useState({});
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [financeSummary, setFinanceSummary] = useState({
+    totalRevenue: 0,
+    withdrawableBalance: 0,
+  });
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [logoFile, setLogoFile] = useState(null);
@@ -106,16 +118,29 @@ const SellerProfilePage = () => {
     const loadProfile = async () => {
       try {
         setLoadingProfile(true);
-        const res = await fetch(`${API_AUTH}/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const [profileResponse, financeData] = await Promise.all([
+          fetch(`${API_AUTH}/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          getSellerFinanceSummary(token).catch((error) => {
+            console.error("Failed to load seller finance summary:", error);
+            return null;
+          }),
+        ]);
 
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Failed to load profile");
+        const data = await profileResponse.json();
+        if (!profileResponse.ok) throw new Error(data.message || "Failed to load profile");
 
         if (data.user) {
           syncSellerState(data.user);
           login(data.user);
+        }
+
+        if (financeData) {
+          setFinanceSummary({
+            totalRevenue: financeData.totalRevenue || 0,
+            withdrawableBalance: financeData.withdrawableBalance || 0,
+          });
         }
       } catch (error) {
         console.error("Failed to load seller profile:", error);
@@ -358,8 +383,12 @@ const SellerProfilePage = () => {
               </p>
             </div>
             <div className="text-center">
-              <p className="text-gray-500 text-sm">Balance</p>
-              <p className="text-lg font-bold text-green-600">₦{Number(seller.balance || 0).toLocaleString()}</p>
+              <p className="text-gray-500 text-sm">Received Orders</p>
+              <p className="text-lg font-bold text-green-600">{formatCurrency(financeSummary.totalRevenue)}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-gray-500 text-sm">Available to Withdraw</p>
+              <p className="text-lg font-bold text-blue-600">{formatCurrency(financeSummary.withdrawableBalance)}</p>
             </div>
           </div>
         </div>

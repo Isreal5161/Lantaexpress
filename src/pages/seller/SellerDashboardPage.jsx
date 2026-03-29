@@ -29,7 +29,7 @@ const SellerDashboardLayout = () => {
   const sellerLogo = seller?.logo || "/lantalogo1.jpg";
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen overflow-hidden bg-slate-100">
 
       {/* Sidebar */}
       <aside
@@ -83,10 +83,12 @@ const SellerDashboardLayout = () => {
       )}
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col md:ml-64">
+      <div className="flex min-w-0 flex-1 flex-col">
         <SellerHeader toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-        <main className="p-6 flex-1 overflow-y-auto">
-          <Outlet />
+        <main className="flex-1 overflow-y-auto overflow-x-hidden">
+          <div className="mx-auto w-full max-w-[1400px] p-4 sm:p-6 lg:p-8">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

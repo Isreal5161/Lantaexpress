@@ -1,15 +1,28 @@
 // src/components/Header.jsx
 import React, { useState, useEffect } from "react";
 import { useCart } from "../context/CartContextTemp";
+import { useNotification } from "../context/NotificationContext";
 import { Button } from "./Button";
 import { Icon } from "./Icon";
 import { Link } from "./Link";
+import { NotificationDropdown } from "./NotificationDropdown";
 import { Text } from "./Text";
 
 export const Header = () => {
   const { cartCount } = useCart();
+  const {
+    notifications,
+    unreadCount,
+    loading,
+    isAuthenticated,
+    refreshNotifications,
+    markNotificationRead,
+    markAllNotificationsRead,
+    clearNotifications,
+  } = useNotification("user");
 
   const [showAnnouncement, setShowAnnouncement] = useState(true);
+  const [notifOpen, setNotifOpen] = useState(false);
 
   useEffect(() => {
     // Hide after 3 seconds on first load
@@ -31,6 +44,10 @@ export const Header = () => {
       clearTimeout(initialTimer);
       clearInterval(interval);
     };
+  }, []);
+
+  useEffect(() => {
+    refreshNotifications(false);
   }, []);
 
   return (
@@ -102,18 +119,38 @@ export const Header = () => {
     )}
   </Link>
 
-  {/* Notification Icon */}
-  <Button className="text-slate-400 hover:text-slate-900 transition-colors">
-    <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 00-3 0v.68C7.64 5.36 6 7.929 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 11-6 0h6z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Icon>
-  </Button>
+  <NotificationDropdown
+    open={notifOpen}
+    onToggle={() => setNotifOpen((current) => !current)}
+    onClose={() => setNotifOpen(false)}
+    notifications={notifications}
+    unreadCount={unreadCount}
+    loading={loading}
+    isAuthenticated={isAuthenticated}
+    onMarkRead={markNotificationRead}
+    onMarkAllRead={markAllNotificationsRead}
+    onClearAll={clearNotifications}
+    mobileTopClassName={showAnnouncement ? "top-24" : "top-16"}
+    title="Alerts"
+    renderTrigger={({ unreadCount: triggerUnreadCount }) => (
+      <span className="text-slate-400 transition-colors hover:text-slate-900">
+        <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.64 5.36 6 7.929 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 1 1-6 0h6z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Icon>
+        {triggerUnreadCount > 0 && (
+          <Text className="absolute -top-1 -right-1 bg-green-800 text-xs font-semibold text-white min-w-4 h-4 px-1 rounded-full flex items-center justify-center">
+            {triggerUnreadCount}
+          </Text>
+        )}
+      </span>
+    )}
+  />
 </div>
             </div>
           </div>

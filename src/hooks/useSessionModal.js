@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
 
-export const useSessionModal = ({ storageKey, delay = 0 }) => {
+export const useSessionModal = ({ storageKey, delay = 0, persistInSession = true }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
-    if (window.sessionStorage.getItem(storageKey) === "true") return undefined;
+    if (persistInSession && storageKey && window.sessionStorage.getItem(storageKey) === "true") {
+      return undefined;
+    }
 
     const openModal = () => {
-      window.sessionStorage.setItem(storageKey, "true");
+      if (persistInSession && storageKey) {
+        window.sessionStorage.setItem(storageKey, "true");
+      }
       setIsOpen(true);
     };
 
@@ -19,7 +23,7 @@ export const useSessionModal = ({ storageKey, delay = 0 }) => {
 
     openModal();
     return undefined;
-  }, [delay, storageKey]);
+  }, [delay, persistInSession, storageKey]);
 
   const closeModal = useCallback(() => {
     setIsOpen(false);

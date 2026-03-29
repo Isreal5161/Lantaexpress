@@ -20,6 +20,7 @@ export const ShopPage = () => {
   const { isOpen, closeModal: closeShopPromo } = useSessionModal({
     storageKey: "lantaxpress:shop-promo-seen",
     delay: 1200,
+    persistInSession: false,
   });
 
   const categories = [
@@ -93,7 +94,7 @@ export const ShopPage = () => {
           </div>
         </div>
 
-        <PromoModal isOpen={isOpen} onClose={closeShopPromo} />
+        <PromoModal isOpen={isOpen} onClose={closeShopPromo} products={products} />
       </div>
 
       <main className="pb-20 md:pb-0">

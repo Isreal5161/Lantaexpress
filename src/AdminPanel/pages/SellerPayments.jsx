@@ -1,114 +1,155 @@
 // src/AdminPanel/components/SellerPayments.jsx
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import AdminLayout from "../Layout/AdminLayout";
-import { categories } from "../../service/dummyCategories";
+import { getAdminSellerPayments, updateAdminPlatformFees, updateAdminWithdrawalStatus } from "../../api/sellerFinance";
 
-// Local storage keys
-const SELLERS_KEY = "lanta_sellers";
-const ORDERS_KEY = "lanta_orders";
-const WITHDRAWALS_KEY = "lanta_withdrawals";
+const formatCurrency = (value) =>
+  new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    maximumFractionDigits: 0,
+  }).format(Number(value) || 0);
 
 export default function SellerPayments() {
   const [sellers, setSellers] = useState([]);
-  const [orders, setOrders] = useState([]);
   const [withdrawals, setWithdrawals] = useState([]);
   const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
+  const [loading, setLoading] = useState(true);
+  const [processingId, setProcessingId] = useState(null);
+  const [feeSettings, setFeeSettings] = useState({ productChargePercent: 0, withdrawalChargePercent: 0 });
+  const [savingFees, setSavingFees] = useState(false);
 
-  // Enrich sellers with brands from categories
-  const enrichSellersWithBrands = (list) =>
-    list.map((seller) => {
-      const brands = categories
-        .flatMap((cat) => cat.products)
-        .filter((p) => p.brand.toLowerCase().includes(seller.name.toLowerCase()))
-        .map((p) => p.brand);
-      return { ...seller, brands: [...new Set(brands)] };
-    });
-
-  // Load data from localStorage
   useEffect(() => {
-    const storedSellers = JSON.parse(localStorage.getItem(SELLERS_KEY)) || [];
-    const storedOrders = JSON.parse(localStorage.getItem(ORDERS_KEY)) || [];
-    const storedWithdrawals = JSON.parse(localStorage.getItem(WITHDRAWALS_KEY)) || [];
+    const loadPayments = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setLoading(false);
+        return;
+      }
 
-    setSellers(enrichSellersWithBrands(storedSellers));
-    setOrders(storedOrders);
-    setWithdrawals(storedWithdrawals);
+      try {
+        const data = await getAdminSellerPayments(token);
+        setSellers(data.sellers || []);
+        setWithdrawals(data.pendingWithdrawals || []);
+        setFeeSettings(data.feeSettings || { productChargePercent: 0, withdrawalChargePercent: 0 });
+      } catch (error) {
+        console.error("Failed to load seller payment data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPayments();
   }, []);
 
-  // Helper to persist data
-  const persistData = (key, data) => localStorage.setItem(key, JSON.stringify(data));
-
-  const calculateTotal = (order) =>
-    order.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
-  const updateProductStatus = (orderId, idx, status) => {
-    const updatedOrders = orders.map((order) => {
-      if (order.id === orderId) {
-        const items = [...order.items];
-        items[idx].status = status;
-        return { ...order, items };
-      }
-      return order;
-    });
-    setOrders(updatedOrders);
-    persistData(ORDERS_KEY, updatedOrders);
-  };
-
-  const approveOrder = (orderId) => {
-    const order = orders.find((o) => o.id === orderId);
-    if (!order.items.every((i) => i.status === "Delivered")) {
-      alert("Some products are not delivered yet!");
-      return;
-    }
-
-    // Update seller balance
-    const updatedSellers = sellers.map((s) =>
-      s.name === order.seller ? { ...s, balance: s.balance + calculateTotal(order) } : s
-    );
-    setSellers(updatedSellers);
-    persistData(SELLERS_KEY, updatedSellers);
-
-    // Update order status
-    const updatedOrders = orders.map((o) =>
-      o.id === orderId ? { ...o, status: "Approved" } : o
-    );
-    setOrders(updatedOrders);
-    persistData(ORDERS_KEY, updatedOrders);
-
-    alert(`Order ${orderId} approved!`);
-  };
-
-  const approveWithdrawal = (id) => {
-    const withdrawal = withdrawals.find((w) => w.id === id);
-    if (!withdrawal) return;
-
-    // Deduct from seller balance
-    const updatedSellers = sellers.map((s) =>
-      s.name === withdrawal.seller ? { ...s, balance: s.balance - withdrawal.amount } : s
-    );
-    setSellers(updatedSellers);
-    persistData(SELLERS_KEY, updatedSellers);
-
-    // Update withdrawal status
-    const updatedWithdrawals = withdrawals.map((w) =>
-      w.id === id ? { ...w, status: "Approved" } : w
-    );
-    setWithdrawals(updatedWithdrawals);
-    persistData(WITHDRAWALS_KEY, updatedWithdrawals);
-
-    alert(`Withdrawal ${id} approved!`);
-  };
-
-  const filteredSellers = sellers.filter((s) => {
+  const filteredSellers = useMemo(() => sellers.filter((s) => {
     const term = search.toLowerCase();
-    return s.name.toLowerCase().includes(term) || s.brands?.some((b) => b.toLowerCase().includes(term));
-  });
+    return (
+      s.sellerName?.toLowerCase().includes(term) ||
+      s.contactName?.toLowerCase().includes(term) ||
+      s.email?.toLowerCase().includes(term)
+    );
+  }), [search, sellers]);
+
+  const handleWithdrawalAction = async (withdrawalId, status) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      setProcessingId(withdrawalId);
+      await updateAdminWithdrawalStatus(withdrawalId, { status }, token);
+      const refreshed = await getAdminSellerPayments(token);
+      setSellers(refreshed.sellers || []);
+      setWithdrawals(refreshed.pendingWithdrawals || []);
+      setFeeSettings(refreshed.feeSettings || { productChargePercent: 0, withdrawalChargePercent: 0 });
+    } catch (error) {
+      console.error(error);
+      alert(error.message || `Failed to ${status.toLowerCase()} withdrawal`);
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleSaveFees = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      setSavingFees(true);
+      const updated = await updateAdminPlatformFees(feeSettings, token);
+      setFeeSettings(updated.feeSettings || { productChargePercent: 0, withdrawalChargePercent: 0 });
+      const refreshed = await getAdminSellerPayments(token);
+      setSellers(refreshed.sellers || []);
+      setWithdrawals(refreshed.pendingWithdrawals || []);
+      setFeeSettings(refreshed.feeSettings || updated.feeSettings || { productChargePercent: 0, withdrawalChargePercent: 0 });
+    } catch (error) {
+      console.error(error);
+      alert(error.message || "Failed to update platform fees");
+    } finally {
+      setSavingFees(false);
+    }
+  };
 
   return (
     <AdminLayout>
-      <h1 className="text-2xl font-bold mb-6">Seller Payments Dashboard</h1>
+      <div className="min-w-0 space-y-8">
+      <div>
+      <h1 className="mb-3 text-2xl font-bold">Seller Payments Dashboard</h1>
+      <p className="max-w-4xl text-sm text-gray-500">
+        Completed orders increase seller revenue. Revenue becomes withdrawable only after customer receipt is confirmed. Approved withdrawals reduce the seller’s available payout balance.
+      </p>
+      </div>
+
+      {loading ? <div className="rounded-2xl bg-white p-6 shadow">Loading seller payment data...</div> : (
+      <>
+
+      <section className="rounded-2xl bg-white p-6 shadow">
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold text-slate-900">Platform Fee Settings</h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Set the percentage deducted from completed product earnings and the percentage charged on withdrawal requests. Use 0 for free charges.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:max-w-3xl">
+          <label className="block text-sm text-gray-700">
+            <span className="mb-2 block font-medium">Product earnings charge (%)</span>
+            <input
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              value={feeSettings.productChargePercent}
+              onChange={(e) => setFeeSettings((current) => ({ ...current, productChargePercent: e.target.value }))}
+              className="w-full rounded-lg border px-3 py-2"
+            />
+          </label>
+          <label className="block text-sm text-gray-700">
+            <span className="mb-2 block font-medium">Withdrawal charge (%)</span>
+            <input
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              value={feeSettings.withdrawalChargePercent}
+              onChange={(e) => setFeeSettings((current) => ({ ...current, withdrawalChargePercent: e.target.value }))}
+              className="w-full rounded-lg border px-3 py-2"
+            />
+          </label>
+        </div>
+        <div className="mt-4 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleSaveFees}
+            disabled={savingFees}
+            className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700 disabled:opacity-60"
+          >
+            {savingFees ? "Saving..." : "Save Fee Settings"}
+          </button>
+          <p className="text-sm text-gray-500">
+            {Number(feeSettings.productChargePercent) > 0 ? `${feeSettings.productChargePercent}% product charge` : "Free product charge"} and {Number(feeSettings.withdrawalChargePercent) > 0 ? `${feeSettings.withdrawalChargePercent}% withdrawal charge` : "free withdrawal charge"}.
+          </p>
+        </div>
+      </section>
 
       {/* Seller Balances */}
       <section className="mb-8">
@@ -122,98 +163,67 @@ export default function SellerPayments() {
         />
 
         {filteredSellers.length > 0 ? (
-          <div className="hidden md:block bg-white rounded-lg shadow overflow-x-auto max-h-96">
+          <div className="overflow-x-auto rounded-2xl bg-white shadow">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50 sticky top-0">
                 <tr>
                   <th className="px-4 py-2 text-left text-sm text-gray-500">Seller ID</th>
                   <th className="px-4 py-2 text-left text-sm text-gray-500">Seller Name</th>
-                  <th className="px-4 py-2 text-left text-sm text-gray-500">Brands</th>
-                  <th className="px-4 py-2 text-left text-sm text-gray-500">Balance (₦)</th>
-                  <th className="px-4 py-2 text-left text-sm text-gray-500">Bank</th>
+                  <th className="px-4 py-2 text-left text-sm text-gray-500">Email</th>
+                  <th className="px-4 py-2 text-left text-sm text-gray-500">Total Revenue</th>
+                  <th className="px-4 py-2 text-left text-sm text-gray-500">Pending Balance</th>
+                  <th className="px-4 py-2 text-left text-sm text-gray-500">Withdrawable</th>
+                  <th className="px-4 py-2 text-left text-sm text-gray-500">Completed Withdrawals</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredSellers.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((s) => (
-                  <tr key={s.id}>
-                    <td className="px-4 py-2">{s.id}</td>
-                    <td className="px-4 py-2">{s.name}</td>
-                    <td className="px-4 py-2">{s.brands?.join(", ") || "-"}</td>
-                    <td className={`px-4 py-2 font-semibold ${s.balance < 10000 ? "text-red-600" : "text-gray-900"}`}>
-                      ₦{s.balance.toLocaleString()}
-                    </td>
-                    <td className="px-4 py-2">{s.bank}</td>
+                {filteredSellers.map((s) => (
+                  <tr key={s.sellerId}>
+                    <td className="px-4 py-2">{s.sellerId}</td>
+                    <td className="px-4 py-2">{s.sellerName}</td>
+                    <td className="px-4 py-2">{s.email || "-"}</td>
+                    <td className="px-4 py-2 font-semibold text-green-600">{formatCurrency(s.totalRevenue)}</td>
+                    <td className="px-4 py-2 font-semibold text-yellow-600">{formatCurrency(s.pendingBalance)}</td>
+                    <td className="px-4 py-2 font-semibold text-blue-600">{formatCurrency(s.withdrawableBalance)}</td>
+                    <td className="px-4 py-2 font-semibold text-slate-800">{formatCurrency(s.completedWithdrawals)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-
-            <div className="flex justify-end gap-2 p-2">
-              <button onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))} className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Prev</button>
-              <span>{currentPage} / {Math.ceil(filteredSellers.length / pageSize)}</span>
-              <button onClick={() => setCurrentPage((p) => Math.min(p + 1, Math.ceil(filteredSellers.length / pageSize)))} className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next</button>
-            </div>
           </div>
         ) : (
           <p className="text-center text-gray-500 mt-10 text-lg">No sellers available on the site at this moment.</p>
         )}
       </section>
 
-      {/* Pending Orders */}
       <section className="mb-8">
-        <h2 className="text-xl font-semibold mb-4">Pending Seller Orders</h2>
-        {orders.length === 0 ? (
-          <p className="text-center text-gray-500">No pending orders at the moment.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 hidden md:table">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-2 text-left text-sm text-gray-500">Order ID</th>
-                  <th className="px-4 py-2 text-left text-sm text-gray-500">Seller</th>
-                  <th className="px-4 py-2 text-left text-sm text-gray-500">Products</th>
-                  <th className="px-4 py-2 text-left text-sm text-gray-500">Total (₦)</th>
-                  <th className="px-4 py-2 text-left text-sm text-gray-500">Status</th>
-                  <th className="px-4 py-2"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {orders.map((order) => (
-                  <tr key={order.id}>
-                    <td className="px-4 py-2">{order.id}</td>
-                    <td className="px-4 py-2">{order.seller}</td>
-                    <td className="px-4 py-2">
-                      {order.items.map((item, idx) => (
-                        <div key={idx} className="flex items-center gap-2 mb-1">
-                          <img src={item.image} alt={item.name} className="w-10 h-10 object-cover rounded" />
-                          <div>
-                            <p className="text-sm">{item.name} x{item.quantity}</p>
-                            <p className="text-xs text-gray-500">₦{item.price.toLocaleString()}</p>
-                            <select value={item.status} onChange={(e) => updateProductStatus(order.id, idx, e.target.value)} className="text-xs mt-1 border px-1 rounded">
-                              <option value="Pending">Pending</option>
-                              <option value="Delivered">Delivered</option>
-                            </select>
-                          </div>
-                        </div>
-                      ))}
-                    </td>
-                    <td className="px-4 py-2">₦{calculateTotal(order).toLocaleString()}</td>
-                    <td className="px-4 py-2">{order.status}</td>
-                    <td className="px-4 py-2">
-                      <button
-                        onClick={() => approveOrder(order.id)}
-                        disabled={!order.items.every(i => i.status === "Delivered")}
-                        className={`px-3 py-1 rounded text-white transition ${order.items.every(i => i.status === "Delivered") ? "bg-green-600 hover:bg-green-700" : "bg-gray-400 cursor-not-allowed"}`}
-                      >
-                        Approve
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <h2 className="text-xl font-semibold mb-4">Seller Finance Snapshot</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="rounded-2xl bg-white p-5 shadow">
+            <p className="text-sm text-gray-500">Total Seller Revenue</p>
+            <p className="mt-2 text-2xl font-bold text-green-600">
+              {formatCurrency(filteredSellers.reduce((sum, seller) => sum + (seller.totalRevenue || 0), 0))}
+            </p>
           </div>
-        )}
+          <div className="rounded-2xl bg-white p-5 shadow">
+            <p className="text-sm text-gray-500">Pending Seller Balance</p>
+            <p className="mt-2 text-2xl font-bold text-yellow-600">
+              {formatCurrency(filteredSellers.reduce((sum, seller) => sum + (seller.pendingBalance || 0), 0))}
+            </p>
+          </div>
+          <div className="rounded-2xl bg-white p-5 shadow">
+            <p className="text-sm text-gray-500">Withdrawable Balance</p>
+            <p className="mt-2 text-2xl font-bold text-blue-600">
+              {formatCurrency(filteredSellers.reduce((sum, seller) => sum + (seller.withdrawableBalance || 0), 0))}
+            </p>
+          </div>
+          <div className="rounded-2xl bg-white p-5 shadow">
+            <p className="text-sm text-gray-500">Pending Withdrawal Requests</p>
+            <p className="mt-2 text-2xl font-bold text-amber-600">
+              {formatCurrency(withdrawals.reduce((sum, withdrawal) => sum + (withdrawal.amount || 0), 0))}
+            </p>
+          </div>
+        </div>
       </section>
 
       {/* Withdrawals */}
@@ -222,14 +232,15 @@ export default function SellerPayments() {
         {withdrawals.length === 0 ? (
           <p className="text-center text-gray-500">No withdrawal requests at the moment.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 hidden md:table">
+          <div className="overflow-x-auto rounded-2xl bg-white shadow">
+            <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-4 py-2 text-left text-sm text-gray-500">Request ID</th>
                   <th className="px-4 py-2 text-left text-sm text-gray-500">Seller</th>
                   <th className="px-4 py-2 text-left text-sm text-gray-500">Amount (₦)</th>
                   <th className="px-4 py-2 text-left text-sm text-gray-500">Bank</th>
+                  <th className="px-4 py-2 text-left text-sm text-gray-500">Requested</th>
                   <th className="px-4 py-2 text-left text-sm text-gray-500">Status</th>
                   <th className="px-4 py-2"></th>
                 </tr>
@@ -238,19 +249,34 @@ export default function SellerPayments() {
                 {withdrawals.map((w) => (
                   <tr key={w.id}>
                     <td className="px-4 py-2">{w.id}</td>
-                    <td className="px-4 py-2">{w.seller}</td>
-                    <td className="px-4 py-2">₦{w.amount.toLocaleString()}</td>
-                    <td className="px-4 py-2">{w.bank}</td>
+                    <td className="px-4 py-2">
+                      <p className="font-medium text-gray-900">{w.sellerName}</p>
+                      <p className="text-xs text-gray-500">{w.sellerEmail}</p>
+                    </td>
+                    <td className="px-4 py-2 font-semibold">{formatCurrency(w.amount)}</td>
+                    <td className="px-4 py-2">
+                      <p>{w.bankName || w.method}</p>
+                      {w.accountNumber ? <p className="text-xs text-gray-500">{w.accountNumber}</p> : null}
+                    </td>
+                    <td className="px-4 py-2">{new Date(w.requestedAt || w.createdAt).toLocaleString()}</td>
                     <td className="px-4 py-2">{w.status}</td>
                     <td className="px-4 py-2">
-                      {w.status === "Pending" && (
+                      <div className="flex gap-2">
                         <button
-                          onClick={() => approveWithdrawal(w.id)}
-                          className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                          onClick={() => handleWithdrawalAction(w.id, "Approved")}
+                          disabled={processingId === w.id}
+                          className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition disabled:opacity-60"
                         >
                           Approve
                         </button>
-                      )}
+                        <button
+                          onClick={() => handleWithdrawalAction(w.id, "Rejected")}
+                          disabled={processingId === w.id}
+                          className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition disabled:opacity-60"
+                        >
+                          Reject
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -259,6 +285,9 @@ export default function SellerPayments() {
           </div>
         )}
       </section>
+      </>
+      )}
+      </div>
     </AdminLayout>
   );
 }

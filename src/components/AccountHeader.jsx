@@ -6,7 +6,8 @@ import { Icon } from "./Icon";
 
 const AccountHeader = () => {
   const { cartCount } = useCart();
-  const { notificationCount } = useNotification();
+  const { unreadCount, notificationCount } = useNotification("user");
+  const activeNotificationCount = unreadCount ?? notificationCount;
 
   return (
     <>
@@ -59,9 +60,9 @@ const AccountHeader = () => {
                     />
                   </Icon>
 
-                  {notificationCount > 0 && (
+                  {activeNotificationCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-green-800 text-xs font-semibold text-white w-4 h-4 rounded-full flex items-center justify-center">
-                      {notificationCount}
+                      {activeNotificationCount}
                     </span>
                   )}
                 </button>

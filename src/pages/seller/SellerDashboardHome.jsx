@@ -5,13 +5,23 @@ import {
   MdShoppingCart,
   MdStorefront,
   MdPendingActions,
+  MdAccountBalanceWallet,
+  MdOutlinePayments,
 } from "react-icons/md";
 import { useSellerAuth } from "../../context/SellerAuthContext";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import axios from "axios";
 import { DashboardOverviewSkeleton } from "../../components/LoadingSkeletons";
+import { getSellerFinanceSummary } from "../../api/sellerFinance";
 
 const API_URL = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
+
+const formatCurrency = (value) =>
+  new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    maximumFractionDigits: 0,
+  }).format(Number(value) || 0);
 
 const SellerDashboardHome = () => {
   const { seller } = useSellerAuth();
@@ -22,6 +32,9 @@ const SellerDashboardHome = () => {
     productsPending: 0,
     pendingOrders: 0,
     recentOrders: [],
+    pendingBalance: 0,
+    withdrawableBalance: 0,
+    completedWithdrawals: 0,
   });
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,18 +54,23 @@ const SellerDashboardHome = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
+        const financeSummary = await getSellerFinanceSummary(token);
+
         const data = response.data;
 
         if (data) {
           setStats({
-            totalRevenue: data.totalRevenue || 0,
+            totalRevenue: financeSummary.totalRevenue || 0,
             totalOrders: data.totalOrders || 0,
             productsListed: data.productsListed || 0,
             productsPending: data.productsPending || 0,
             pendingOrders: data.pendingOrders || 0,
             recentOrders: data.recentOrders || [],
+            pendingBalance: financeSummary.pendingBalance || 0,
+            withdrawableBalance: financeSummary.withdrawableBalance || 0,
+            completedWithdrawals: financeSummary.completedWithdrawals || 0,
           });
-          setChartData(data.dailyRevenue || []);
+          setChartData(financeSummary.incomeTrend?.length ? financeSummary.incomeTrend : data.dailyRevenue || []);
         } else {
           const allOrders = JSON.parse(localStorage.getItem("user_orders")) || [];
           const sellerBrand = (seller?.brandName || "").trim().toLowerCase();
@@ -84,6 +102,9 @@ const SellerDashboardHome = () => {
             productsPending,
             pendingOrders,
             recentOrders,
+            pendingBalance: 0,
+            withdrawableBalance: totalRevenue,
+            completedWithdrawals: 0,
           });
 
           const today = new Date();
@@ -134,6 +155,9 @@ const SellerDashboardHome = () => {
           productsPending,
           pendingOrders,
           recentOrders,
+          pendingBalance: 0,
+          withdrawableBalance: totalRevenue,
+          completedWithdrawals: 0,
         });
 
         const today = new Date();
@@ -164,7 +188,7 @@ const SellerDashboardHome = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="min-w-0 space-y-8">
 
       {/* Welcome */}
       <section>
@@ -175,18 +199,54 @@ const SellerDashboardHome = () => {
       </section>
 
       {/* Stats Cards */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
         {/* Total Revenue */}
         <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-500 text-sm">Total Revenue</p>
               <h3 className="text-2xl font-bold mt-2 text-gray-800">
-                ₦{stats.totalRevenue.toLocaleString()}
+                {formatCurrency(stats.totalRevenue)}
               </h3>
             </div>
             <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-green-100 text-green-600 text-2xl group-hover:scale-110 transition">
               <MdAttachMoney />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-500 text-sm">Pending Balance</p>
+              <h3 className="text-2xl font-bold mt-2 text-gray-800">{formatCurrency(stats.pendingBalance)}</h3>
+            </div>
+            <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-yellow-100 text-yellow-600 text-2xl group-hover:scale-110 transition">
+              <MdPendingActions />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-500 text-sm">Withdrawable</p>
+              <h3 className="text-2xl font-bold mt-2 text-gray-800">{formatCurrency(stats.withdrawableBalance)}</h3>
+            </div>
+            <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 text-2xl group-hover:scale-110 transition">
+              <MdAccountBalanceWallet />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-500 text-sm">Completed Withdrawals</p>
+              <h3 className="text-2xl font-bold mt-2 text-gray-800">{formatCurrency(stats.completedWithdrawals)}</h3>
+            </div>
+            <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-blue-100 text-blue-600 text-2xl group-hover:scale-110 transition">
+              <MdOutlinePayments />
             </div>
           </div>
         </div>
@@ -233,17 +293,23 @@ const SellerDashboardHome = () => {
 
       {/* Sales Overview Chart */}
       <section className="bg-white p-6 rounded-2xl shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Sales Overview (Last 7 Days)</h3>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip formatter={(value) => `₦${value.toLocaleString()}`} />
-              <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={3} />
-            </LineChart>
-          </ResponsiveContainer>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Revenue Overview</h3>
+        <div className="min-h-[260px] h-64 w-full">
+          {chartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey={chartData[0]?.month ? "month" : "date"} />
+                <YAxis />
+                <Tooltip formatter={(value) => formatCurrency(value)} />
+                <Line type="monotone" dataKey={chartData[0]?.income != null ? "income" : "revenue"} stroke="#22c55e" strokeWidth={3} />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
+              No revenue data yet.
+            </div>
+          )}
         </div>
       </section>
 
@@ -272,7 +338,7 @@ const SellerDashboardHome = () => {
                   <tr key={idx} className="border-b hover:bg-gray-50 transition">
                     <td className="py-3 font-medium">#{order.id}</td>
                     <td>{order.userName || order.buyer}</td>
-                    <td>₦{(order.amount || order.price || 0).toLocaleString()}</td>
+                    <td>{formatCurrency(order.amount || order.price || 0)}</td>
                     <td>
                       <span className={`px-3 py-1 text-xs rounded-full ${
                         order.status === "Pending" ? "bg-yellow-100 text-yellow-600" :

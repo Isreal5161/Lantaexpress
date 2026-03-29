@@ -4,10 +4,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaEye, FaEyeSlash } from "react-icons/fa";
 import { registerUser } from "../api/auth";
 
+const countries = ["Nigeria", "United States", "United Kingdom", "Canada", "Ghana", "South Africa"];
+
 export default function SignupPage() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [country, setCountry] = useState("Nigeria");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [acceptPrivacy, setAcceptPrivacy] = useState(false);
@@ -24,7 +27,7 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const data = await registerUser({ name, email, password, role: "user" });
+      const data = await registerUser({ name, email, password, country, role: "user" });
 
       if (data.token) {
         // Save token & user info
@@ -100,6 +103,24 @@ export default function SignupPage() {
                   placeholder="Enter your email"
                   required
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Country
+                </label>
+                <select
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 outline-none bg-white"
+                  required
+                >
+                  {countries.map((countryOption) => (
+                    <option key={countryOption} value={countryOption}>
+                      {countryOption}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="relative">

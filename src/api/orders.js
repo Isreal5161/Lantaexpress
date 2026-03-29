@@ -32,8 +32,10 @@ export const getBuyerOrders = (token) =>
     headers: { Authorization: `Bearer ${token}` },
   });
 
-export const trackOrder = (orderNumber) =>
-  requestJson(`/orders/track/${encodeURIComponent(orderNumber)}`);
+export const trackOrder = (orderNumber, token) =>
+  requestJson(`/orders/track/${encodeURIComponent(orderNumber)}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
 
 export const confirmOrderReceived = (recordId, token) =>
   requestJson(`/orders/${recordId}/confirm-received`, {

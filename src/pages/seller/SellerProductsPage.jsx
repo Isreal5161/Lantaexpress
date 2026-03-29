@@ -4,6 +4,7 @@ import { FiSearch } from "react-icons/fi";
 import { categories } from "../../service/dummyCategories";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import { ProductGridSkeleton } from "../../components/LoadingSkeletons";
+import { getSellerPlatformFees } from "../../api/sellerFinance";
 
 const API_URL = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
 
@@ -20,6 +21,8 @@ const SellerProductsPage = () => {
   const [confirmTarget, setConfirmTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(true);
+  const [feeSettings, setFeeSettings] = useState({ productChargePercent: 0, withdrawalChargePercent: 0 });
+  const [productFeeModalOpen, setProductFeeModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     brand: "",
@@ -49,6 +52,18 @@ const SellerProductsPage = () => {
 
   useEffect(() => {
     loadProducts();
+    const loadFees = async () => {
+      try {
+        const data = await getSellerPlatformFees(token);
+        setFeeSettings(data || { productChargePercent: 0, withdrawalChargePercent: 0 });
+      } catch (error) {
+        console.error("Failed to load seller fee settings:", error);
+      }
+    };
+
+    if (token) {
+      loadFees();
+    }
   }, []);
 
   const filteredProducts = products.filter(
@@ -94,6 +109,10 @@ const SellerProductsPage = () => {
   // Save product to backend (create or edit)
   const handleSaveProduct = async (e) => {
     e.preventDefault();
+    setProductFeeModalOpen(true);
+  };
+
+  const submitProduct = async () => {
     setSubmitting(true);
     try {
       const fd = new FormData();
@@ -129,6 +148,7 @@ const SellerProductsPage = () => {
       await loadProducts();
       setModalOpen(false);
       setEditingProduct(null);
+      setProductFeeModalOpen(false);
       setFormData({ name: "", brand: "", category: "", price: "", stock: "", description: "" });
       setPreviewList([]);
       setImageFiles([]);
@@ -260,6 +280,11 @@ const SellerProductsPage = () => {
           <div className="bg-white rounded-lg w-full max-w-3xl p-6">
             <h2 className="text-xl font-semibold mb-4">{editingProduct ? "Edit Product" : "Add New Product"}</h2>
             <form onSubmit={handleSaveProduct} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="col-span-1 md:col-span-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                {Number(feeSettings.productChargePercent) > 0
+                  ? `Product earnings charge: ${feeSettings.productChargePercent}% will be deducted from completed sales for this product before it becomes withdrawable.`
+                  : "Product earnings charge: Free. No product charge will be deducted from completed sales for this product."}
+              </div>
               <div className="space-y-2">
                 <label className="text-sm">Product Name</label>
                 <input
@@ -357,6 +382,21 @@ const SellerProductsPage = () => {
         confirmLabel="Delete"
         cancelLabel="Cancel"
         loading={deleting}
+      />
+      <ConfirmationModal
+        isOpen={productFeeModalOpen}
+        title="Confirm Product Submission"
+        message={Number(feeSettings.productChargePercent) > 0
+          ? `${feeSettings.productChargePercent}% will be deducted from completed earnings for this product before it moves to your withdrawable balance.`
+          : "No product charge is set right now. Completed earnings for this product will move to your withdrawable balance without deduction."}
+        onCancel={() => {
+          if (submitting) return;
+          setProductFeeModalOpen(false);
+        }}
+        onConfirm={submitProduct}
+        confirmLabel={editingProduct ? "Save Changes" : "Submit Product"}
+        cancelLabel="Cancel"
+        loading={submitting}
       />
     </div>
   );

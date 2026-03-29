@@ -38,13 +38,39 @@ const AccountPage = ({ onSignOut }) => {
         if (!res.ok) throw new Error("Failed to fetch user info");
 
         const data = await res.json();
-        setUser(data.user);
-        localStorage.setItem("currentUser", JSON.stringify(data.user));
+        const storedUserRaw = localStorage.getItem("currentUser") || localStorage.getItem("user");
+        let storedUser = null;
+
+        if (storedUserRaw) {
+          try {
+            storedUser = JSON.parse(storedUserRaw);
+          } catch {
+            storedUser = null;
+          }
+        }
+
+        const mergedUser = {
+          ...(storedUser || {}),
+          ...(data.user || {}),
+          country: data.user?.country || storedUser?.country || "Nigeria",
+        };
+
+        setUser(mergedUser);
+        localStorage.setItem("currentUser", JSON.stringify(mergedUser));
+        localStorage.setItem("user", JSON.stringify(mergedUser));
       } catch (err) {
         console.error(err);
-        const localUser = JSON.parse(localStorage.getItem("currentUser"));
-        if (localUser) {
-          setUser(localUser);
+        const localUserRaw = localStorage.getItem("currentUser") || localStorage.getItem("user");
+        if (localUserRaw) {
+          try {
+            const localUser = JSON.parse(localUserRaw);
+            setUser(localUser);
+          } catch {
+            localStorage.removeItem("currentUser");
+            localStorage.removeItem("user");
+            localStorage.removeItem("authToken");
+            navigate("/login");
+          }
         } else {
           localStorage.removeItem("authToken");
           navigate("/login");

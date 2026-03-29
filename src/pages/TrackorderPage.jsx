@@ -43,8 +43,37 @@ export const TrackorderPage = () => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
 
+  const getUserToken = () => localStorage.getItem("authToken");
+
+  const getCurrentUser = () => {
+    const storedUser = localStorage.getItem("currentUser") || localStorage.getItem("user");
+    if (!storedUser) return null;
+
+    try {
+      return JSON.parse(storedUser);
+    } catch {
+      return null;
+    }
+  };
+
+  const currentUser = getCurrentUser();
+  const normalizedCurrentUserEmail = (currentUser?.email || "").trim().toLowerCase();
+  const normalizedOrderEmail = (order?.contact || order?.userEmail || "").trim().toLowerCase();
+  const canConfirmOrder = Boolean(
+    order &&
+    !order.received &&
+    order.status === "Delivered" &&
+    normalizedCurrentUserEmail &&
+    normalizedCurrentUserEmail === normalizedOrderEmail
+  );
+
   const loadOrder = async (id) => {
-    const found = await trackOrder(id);
+    const token = getUserToken();
+    if (!token) {
+      throw new Error("Please log in to track your order.");
+    }
+
+    const found = await trackOrder(id, token);
     if (found.received === undefined) found.received = false;
     setOrder(found);
   };
@@ -263,7 +292,7 @@ export const TrackorderPage = () => {
             </div>
 
             {/* Confirm Button */}
-            {!order.received && order.status === "Delivered" && (
+            {canConfirmOrder && (
               <div className="mt-6">
                 <button
                   onClick={confirmReceived}

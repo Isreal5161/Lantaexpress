@@ -65,7 +65,7 @@ export default function Dashboard() {
 
   return (
     <AdminLayout>
-      <main className="p-6">
+      <div className="min-w-0">
         {loading ? (
           <DashboardOverviewSkeleton />
         ) : (
@@ -87,7 +87,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           
           {/* RECENT ORDERS */}
-          <div className="xl:col-span-2 bg-white border shadow-sm p-4 sm:p-6 overflow-hidden">
+          <div className="xl:col-span-2 overflow-hidden rounded-2xl bg-white border shadow-sm p-4 sm:p-6">
             <h2 className="font-semibold text-slate-800 mb-4">Recent Orders</h2>
             <div className="w-full overflow-x-auto">
               <table className="w-full text-sm">
@@ -127,7 +127,7 @@ export default function Dashboard() {
           </div>
 
           {/* NEW USERS */}
-          <div className="bg-white border shadow-sm p-4 sm:p-6">
+          <div className="rounded-2xl bg-white border shadow-sm p-4 sm:p-6">
             <h2 className="font-semibold text-slate-800 mb-4">New Users</h2>
             <ul className="space-y-4">
               {newUsers.length === 0 ? (
@@ -145,7 +145,7 @@ export default function Dashboard() {
         </div>
           </>
         )}
-      </main>
+      </div>
     </AdminLayout>
   );
 }

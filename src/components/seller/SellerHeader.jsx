@@ -1,36 +1,27 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MdNotifications, MdMenu, MdAccountCircle } from "react-icons/md";
 import { useSellerAuth } from "../../context/SellerAuthContext";
+import { useNotification } from "../../context/NotificationContext";
+import { NotificationDropdown } from "../NotificationDropdown";
 
 const SellerHeader = ({ toggleSidebar }) => {
   const navigate = useNavigate();
   const { seller } = useSellerAuth();
+  const {
+    notifications,
+    unreadCount,
+    loading,
+    refreshNotifications,
+    markNotificationRead,
+    markAllNotificationsRead,
+    clearNotifications,
+  } = useNotification("seller");
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-
-  const API_BASE = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
-  const sellerToken = localStorage.getItem('sellerToken');
 
   useEffect(() => {
-    let mounted = true;
-    const fetchNotifs = async () => {
-      try {
-        if (!sellerToken) return;
-        const res = await fetch(`${API_BASE}/user/notifications`, {
-          headers: { Authorization: `Bearer ${sellerToken}` },
-        });
-        if (!mounted) return;
-        const data = await res.json();
-        setNotifications(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error('Failed to load notifications', err);
-      }
-    };
-    fetchNotifs();
-    const interval = setInterval(fetchNotifs, 10000);
-    return () => { mounted = false; clearInterval(interval); };
+    refreshNotifications(false);
   }, []);
 
   const sellerLogo = seller?.logo || null;
@@ -39,6 +30,13 @@ const SellerHeader = ({ toggleSidebar }) => {
     localStorage.removeItem("currentSeller");
     localStorage.removeItem("sellerToken");
     navigate("/seller-login");
+  };
+
+  const handleNotificationToggle = () => {
+    if (!notifOpen) {
+      refreshNotifications(true);
+    }
+    setNotifOpen((current) => !current);
   };
 
   return (
@@ -77,31 +75,30 @@ const SellerHeader = ({ toggleSidebar }) => {
         <div className="flex items-center gap-6">
 
           {/* Notifications */}
-          <div className="relative">
-            <button onClick={() => setNotifOpen(!notifOpen)} className="relative text-gray-600 hover:text-black">
-              <MdNotifications size={24} />
-              {notifications.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                  {notifications.filter(n => !n.read).length}
-                </span>
-              )}
-            </button>
-
-            {notifOpen && (
-              <div className="absolute right-0 mt-2 w-80 bg-white shadow-lg rounded-md border max-h-80 overflow-auto z-50">
-                {notifications.length === 0 ? (
-                  <div className="p-3 text-sm text-gray-500">No notifications</div>
-                ) : (
-                  notifications.map((n, i) => (
-                    <div key={i} className={`p-3 border-b ${n.read ? 'bg-white' : 'bg-green-50'}`}>
-                      <div className="text-sm text-gray-800">{n.message}</div>
-                      <div className="text-xs text-gray-500 mt-1">{new Date(n.createdAt).toLocaleString()}</div>
-                    </div>
-                  ))
+          <NotificationDropdown
+            open={notifOpen}
+            onToggle={handleNotificationToggle}
+            onClose={() => setNotifOpen(false)}
+            notifications={notifications}
+            unreadCount={unreadCount}
+            loading={loading}
+            isAuthenticated
+            onMarkRead={markNotificationRead}
+            onMarkAllRead={markAllNotificationsRead}
+            onClearAll={clearNotifications}
+            title="Seller notifications"
+            mobileTopClassName="top-16"
+            renderTrigger={({ unreadCount: triggerUnreadCount }) => (
+              <span className="text-gray-600 transition hover:text-black">
+                <MdNotifications size={24} />
+                {triggerUnreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-xs text-white">
+                    {triggerUnreadCount}
+                  </span>
                 )}
-              </div>
+              </span>
             )}
-          </div>
+          />
 
           {/* Profile Dropdown */}
           <div className="relative">
