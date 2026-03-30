@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import AdminLayout from "../Layout/AdminLayout";
 import AdminTable from "../components/AdminTable";
 import SellerCard from "../components/SellerCard";
-import { SkeletonBlock, TablePanelSkeleton } from "../../components/LoadingSkeletons";
+import { PageLoadErrorState, SkeletonBlock, TablePanelSkeleton } from "../../components/LoadingSkeletons";
 import { getSellerApprovalLabel } from "../../utils/sellerApproval";
+import { getAdminSellerPayments } from "../../api/sellerFinance";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
 
@@ -13,77 +14,92 @@ export default function Sellers() {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [pageError, setPageError] = useState(null);
 
-  useEffect(() => {
-    const loadSellers = async () => {
-      const token = localStorage.getItem("token");
+  const loadSellers = async () => {
+    const token = localStorage.getItem("token");
 
-      if (!token) {
-        setSellers([]);
-        setError("Admin login required.");
-        setLoading(false);
-        return;
+    if (!token) {
+      setSellers([]);
+      setPageError(new Error("Admin login required."));
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError("");
+      setPageError(null);
+
+      const [usersRes, productsRes, paymentsData] = await Promise.all([
+        fetch(`${API_BASE}/admin/users`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${API_BASE}/admin/products`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        getAdminSellerPayments(token),
+      ]);
+
+      const usersJson = await usersRes.json();
+      const productsJson = await productsRes.json();
+
+      if (!usersRes.ok) {
+        throw new Error(usersJson.message || "Failed to load sellers");
       }
 
-      try {
-        setLoading(true);
-        setError("");
+      if (!productsRes.ok) {
+        throw new Error(productsJson.message || "Failed to load seller products");
+      }
 
-        const [usersRes, productsRes] = await Promise.all([
-          fetch(`${API_BASE}/admin/users`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${API_BASE}/admin/products`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-        ]);
+      const productCountBySeller = new Map();
+      (productsJson || []).forEach((product) => {
+        const sellerId = product.seller?._id || product.seller;
+        if (!sellerId) return;
+        productCountBySeller.set(sellerId.toString(), (productCountBySeller.get(sellerId.toString()) || 0) + 1);
+      });
 
-        const usersJson = await usersRes.json();
-        const productsJson = await productsRes.json();
+      const paymentsBySeller = new Map(
+        (paymentsData?.sellers || []).map((sellerPayment) => [
+          sellerPayment.sellerId?.toString(),
+          sellerPayment,
+        ])
+      );
 
-        if (!usersRes.ok) {
-          throw new Error(usersJson.message || "Failed to load sellers");
-        }
+      const sellerUsers = (usersJson.users || []).filter((user) => user.role === "seller");
 
-        if (!productsRes.ok) {
-          throw new Error(productsJson.message || "Failed to load seller products");
-        }
+      const mappedSellers = sellerUsers
+        .filter((user) => user.role === "seller")
+        .map((seller) => {
+          const sellerId = seller._id?.toString();
+          const paymentSummary = paymentsBySeller.get(sellerId);
 
-        const productCountBySeller = new Map();
-        (productsJson || []).forEach((product) => {
-          const sellerId = product.seller?._id || product.seller;
-          if (!sellerId) return;
-          productCountBySeller.set(sellerId.toString(), (productCountBySeller.get(sellerId.toString()) || 0) + 1);
-        });
-
-        const sellerUsers = (usersJson.users || []).filter((user) => user.role === "seller");
-
-        const mappedSellers = sellerUsers
-          .filter((user) => user.role === "seller")
-          .map((seller) => ({
+          return {
             id: seller._id,
             name: seller.name,
             email: seller.email,
             brand: seller.brandName || "No brand name",
             phone: seller.phone || "N/A",
             status: getSellerApprovalLabel(seller),
-            totalProducts: productCountBySeller.get(seller._id) || 0,
-            balance: 0,
-          }));
+            totalProducts: productCountBySeller.get(sellerId) || 0,
+            balance: Number(paymentSummary?.withdrawableBalance) || 0,
+          };
+        });
 
-        setSellers(mappedSellers);
-        setPendingRequests(
-          sellerUsers.filter((seller) => (seller.sellerApprovalStatus || "approved") === "pending")
-        );
-      } catch (err) {
-        setSellers([]);
-        setPendingRequests([]);
-        setError(err.message || "Failed to load sellers");
-      } finally {
-        setLoading(false);
-      }
-    };
+      setSellers(mappedSellers);
+      setPendingRequests(
+        sellerUsers.filter((seller) => (seller.sellerApprovalStatus || "approved") === "pending")
+      );
+    } catch (err) {
+      setSellers([]);
+      setPendingRequests([]);
+      setPageError(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadSellers();
   }, []);
 
@@ -196,7 +212,7 @@ export default function Sellers() {
           )}
         </div>
 
-        {error && (
+        {error && !pageError && (
           <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}
           </div>
@@ -205,6 +221,8 @@ export default function Sellers() {
         {/* DESKTOP TABLE */}
         {loading ? (
           <TablePanelSkeleton columns={7} rows={5} mobileCards={4} />
+        ) : pageError ? (
+          <PageLoadErrorState error={pageError} onRefresh={loadSellers} />
         ) : sellers.length > 0 ? (
           <div className="hidden md:block">
             <AdminTable columns={columns} data={data} />

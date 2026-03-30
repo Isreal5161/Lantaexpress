@@ -1,6 +1,7 @@
 // src/pages/seller/SellerWithdrawPage.jsx
 import React, { useEffect, useState } from "react";
 import ConfirmationModal from "../../components/ConfirmationModal";
+import { DashboardOverviewSkeleton, PageLoadErrorState } from "../../components/LoadingSkeletons";
 import {
   createSellerWithdrawal,
   getSellerFinanceSummary,
@@ -29,6 +30,7 @@ const SellerWithdrawPage = () => {
   const [accountNumber, setAccountNumber] = useState("");
   const [withdrawals, setWithdrawals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pageError, setPageError] = useState(null);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [feeSettings, setFeeSettings] = useState({
@@ -38,38 +40,49 @@ const SellerWithdrawPage = () => {
   const [confirmWithdrawalOpen, setConfirmWithdrawalOpen] = useState(false);
   const [pendingWithdrawal, setPendingWithdrawal] = useState(null);
 
+  const loadFinanceData = async () => {
+    const token = localStorage.getItem("sellerToken");
+    if (!token) {
+      setLoading(false);
+      setPageError(null);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setPageError(null);
+      setError("");
+      const [summaryData, withdrawalData] = await Promise.all([
+        getSellerFinanceSummary(token),
+        getSellerWithdrawals(token),
+      ]);
+
+      setSummary({
+        withdrawableBalance: summaryData.withdrawableBalance || 0,
+        totalRevenue: summaryData.totalRevenue || 0,
+        pendingBalance: summaryData.pendingBalance || 0,
+        pendingWithdrawalRequests: summaryData.pendingWithdrawalRequests || 0,
+        completedWithdrawals: summaryData.completedWithdrawals || 0,
+      });
+      setFeeSettings(summaryData.feeSettings || { withdrawalChargePercent: 0, productChargePercent: 0 });
+      setWithdrawals(withdrawalData || []);
+    } catch (error) {
+      console.error("Failed to load withdrawal data:", error);
+      setSummary({
+        withdrawableBalance: 0,
+        totalRevenue: 0,
+        pendingBalance: 0,
+        pendingWithdrawalRequests: 0,
+        completedWithdrawals: 0,
+      });
+      setWithdrawals([]);
+      setPageError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const loadFinanceData = async () => {
-      const token = localStorage.getItem("sellerToken");
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setError("");
-        const [summaryData, withdrawalData] = await Promise.all([
-          getSellerFinanceSummary(token),
-          getSellerWithdrawals(token),
-        ]);
-
-        setSummary({
-          withdrawableBalance: summaryData.withdrawableBalance || 0,
-          totalRevenue: summaryData.totalRevenue || 0,
-          pendingBalance: summaryData.pendingBalance || 0,
-          pendingWithdrawalRequests: summaryData.pendingWithdrawalRequests || 0,
-          completedWithdrawals: summaryData.completedWithdrawals || 0,
-        });
-        setFeeSettings(summaryData.feeSettings || { withdrawalChargePercent: 0, productChargePercent: 0 });
-        setWithdrawals(withdrawalData || []);
-      } catch (error) {
-        console.error("Failed to load withdrawal data:", error);
-        setError(error.message || "Failed to load withdrawal data.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadFinanceData();
   }, []);
 
@@ -158,7 +171,11 @@ const SellerWithdrawPage = () => {
   };
 
   if (loading) {
-    return <div className="rounded-2xl bg-white p-6 shadow">Loading withdrawal data...</div>;
+    return <DashboardOverviewSkeleton />;
+  }
+
+  if (pageError) {
+    return <PageLoadErrorState error={pageError} onRefresh={loadFinanceData} />;
   }
 
   return (

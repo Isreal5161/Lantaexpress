@@ -3,7 +3,7 @@ import AdminLayout from "../Layout/AdminLayout";
 import AdminTable from "../components/AdminTable";
 import UserCard from "../components/UserCard";
 import { getAdminOrders } from "../../api/orders";
-import { SkeletonBlock, TablePanelSkeleton } from "../../components/LoadingSkeletons";
+import { PageLoadErrorState, SkeletonBlock, TablePanelSkeleton } from "../../components/LoadingSkeletons";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
 
@@ -12,80 +12,82 @@ export default function Users() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [pageError, setPageError] = useState(null);
+
+  const loadUsers = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setUsers([]);
+      setPageError(new Error("Admin login required."));
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError("");
+      setPageError(null);
+
+      const [usersRes, orders] = await Promise.all([
+        fetch(`${API_BASE}/admin/users`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        getAdminOrders(token).catch(() => []),
+      ]);
+
+      const usersJson = await usersRes.json();
+      if (!usersRes.ok) {
+        throw new Error(usersJson.message || "Failed to load users");
+      }
+
+      const orderCountByBuyer = new Map();
+      const orderHistoryByBuyer = new Map();
+
+      (orders || []).forEach((order) => {
+        const buyerId = order.buyerId?.toString?.() || order.buyerId;
+        if (!buyerId) return;
+
+        orderCountByBuyer.set(buyerId, (orderCountByBuyer.get(buyerId) || 0) + 1);
+
+        const history = orderHistoryByBuyer.get(buyerId) || [];
+        history.push({
+          orderId: order.orderNumber,
+          product: order.productName,
+          amount: Number(order.amount) || 0,
+          status: order.status,
+          date: order.createdAt,
+        });
+        orderHistoryByBuyer.set(buyerId, history);
+      });
+
+      const mappedUsers = (usersJson.users || [])
+        .filter((user) => user.role === "user")
+        .map((user) => ({
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone || "N/A",
+          orders: orderCountByBuyer.get(user._id) || 0,
+          status: "Active",
+          signupDate: user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A",
+          createdAt: user.createdAt,
+          addresses: user.address
+            ? [{ id: `${user._id}-address`, addressLine: user.address, city: "", state: user.state || "", country: "", zip: "" }]
+            : [],
+          orderHistory: orderHistoryByBuyer.get(user._id) || [],
+        }));
+
+      setUsers(mappedUsers);
+    } catch (err) {
+      setUsers([]);
+      setPageError(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadUsers = async () => {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        setUsers([]);
-        setError("Admin login required.");
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError("");
-
-        const [usersRes, orders] = await Promise.all([
-          fetch(`${API_BASE}/admin/users`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          getAdminOrders(token).catch(() => []),
-        ]);
-
-        const usersJson = await usersRes.json();
-        if (!usersRes.ok) {
-          throw new Error(usersJson.message || "Failed to load users");
-        }
-
-        const orderCountByBuyer = new Map();
-        const orderHistoryByBuyer = new Map();
-
-        (orders || []).forEach((order) => {
-          const buyerId = order.buyerId?.toString?.() || order.buyerId;
-          if (!buyerId) return;
-
-          orderCountByBuyer.set(buyerId, (orderCountByBuyer.get(buyerId) || 0) + 1);
-
-          const history = orderHistoryByBuyer.get(buyerId) || [];
-          history.push({
-            orderId: order.orderNumber,
-            product: order.productName,
-            amount: Number(order.amount) || 0,
-            status: order.status,
-            date: order.createdAt,
-          });
-          orderHistoryByBuyer.set(buyerId, history);
-        });
-
-        const mappedUsers = (usersJson.users || [])
-          .filter((user) => user.role === "user")
-          .map((user) => ({
-            id: user._id,
-            name: user.name,
-            email: user.email,
-            phone: user.phone || "N/A",
-            orders: orderCountByBuyer.get(user._id) || 0,
-            status: "Active",
-            signupDate: user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A",
-            createdAt: user.createdAt,
-            addresses: user.address
-              ? [{ id: `${user._id}-address`, addressLine: user.address, city: "", state: user.state || "", country: "", zip: "" }]
-              : [],
-            orderHistory: orderHistoryByBuyer.get(user._id) || [],
-          }));
-
-        setUsers(mappedUsers);
-      } catch (err) {
-        setUsers([]);
-        setError(err.message || "Failed to load users");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadUsers();
   }, []);
 
@@ -162,7 +164,7 @@ export default function Users() {
           )}
         </div>
 
-        {error && (
+        {error && !pageError && (
           <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}
           </div>
@@ -170,6 +172,8 @@ export default function Users() {
 
         {loading ? (
           <TablePanelSkeleton columns={6} rows={5} mobileCards={4} />
+        ) : pageError ? (
+          <PageLoadErrorState error={pageError} onRefresh={loadUsers} />
         ) : users.length > 0 ? (
           <>
             {/* Desktop Table */}

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AdminLayout from "../Layout/AdminLayout";
 import { getSellerApprovalLabel } from "../../utils/sellerApproval";
+import { getAdminSellerPayments } from "../../api/sellerFinance";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
 
@@ -29,13 +30,14 @@ export default function SellerDetails() {
         setLoading(true);
         setError("");
 
-        const [usersRes, productsRes] = await Promise.all([
+        const [usersRes, productsRes, paymentsData] = await Promise.all([
           fetch(`${API_BASE}/admin/users`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
           fetch(`${API_BASE}/admin/products`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
+          getAdminSellerPayments(token),
         ]);
 
         const usersJson = await usersRes.json();
@@ -58,6 +60,10 @@ export default function SellerDetails() {
           return;
         }
 
+        const sellerPayment = (paymentsData?.sellers || []).find(
+          (entry) => entry.sellerId?.toString() === sellerId
+        );
+
         const sellerProducts = (productsJson || [])
           .filter((product) => (product.seller?._id || product.seller) === sellerId)
           .map((product) => ({
@@ -79,7 +85,7 @@ export default function SellerDetails() {
           brand: foundSeller.brandName || "No brand name",
           phone: foundSeller.phone || "N/A",
           status: getSellerApprovalLabel(foundSeller),
-          balance: 0,
+          balance: Number(sellerPayment?.withdrawableBalance) || 0,
           products: sellerProducts,
         });
       } catch (loadError) {

@@ -8,6 +8,7 @@ import { Footer } from "../components/footer";
 import { useNavigate } from "react-router-dom";
 import PaymentSuccessModal from "../components/PaymentSuccessModal";
 import { createOrders } from "../api/orders";
+import { PageLoadErrorState } from "../components/LoadingSkeletons";
 
 // Currency helpers
 const formatCurrency = (amount, currency = "NGN") => {
@@ -42,6 +43,7 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [orderId, setOrderId] = useState("");
   const [submittingOrder, setSubmittingOrder] = useState(false);
+  const [orderError, setOrderError] = useState(null);
 
   // Totals
   const subtotal = cartItems.reduce(
@@ -107,6 +109,7 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
     }
 
     setSubmittingOrder(true);
+    setOrderError(null);
 
     try {
       const response = await createOrders(
@@ -124,7 +127,7 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
       setOrderId(response.primaryOrderNumber || generateOrderId());
       setShowSuccess(true);
     } catch (error) {
-      alert(error.message || "Unable to place order right now.");
+      setOrderError(error);
     } finally {
       setSubmittingOrder(false);
     }
@@ -270,6 +273,12 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
           {/* Order Summary */}
           <div className="lg:col-span-5 bg-slate-50 rounded-lg p-6 border sticky top-24">
             <h2 className="text-lg font-bold mb-6">Order Summary</h2>
+
+            {orderError ? (
+              <div className="mb-6 rounded-xl border border-slate-200 bg-white p-2">
+                <PageLoadErrorState error={orderError} onRefresh={handleProceedToPayment} actionLabel="Try again" />
+              </div>
+            ) : null}
 
             <div className="space-y-4">
               {cartItems.map((item) => (

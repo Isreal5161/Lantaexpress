@@ -3,9 +3,15 @@ import { MdAdd, MdEdit, MdDelete } from "react-icons/md";
 import { FiSearch } from "react-icons/fi";
 import { categories } from "../../service/dummyCategories";
 import ConfirmationModal from "../../components/ConfirmationModal";
-import { ProductGridSkeleton } from "../../components/LoadingSkeletons";
+import { PageLoadErrorState, ProductGridSkeleton } from "../../components/LoadingSkeletons";
 import { getSellerPlatformFees } from "../../api/sellerFinance";
 import { getSellerApprovalLabel, getSellerApprovalMessage, isSellerApproved } from "../../utils/sellerApproval";
+import {
+  getEffectiveProductPrice,
+  getOriginalProductPrice,
+  getProductDiscountPercent,
+  hasActiveProductDiscount,
+} from "../../utils/productPricing";
 
 const API_URL = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
 
@@ -24,6 +30,7 @@ const SellerProductsPage = () => {
   const [confirmTarget, setConfirmTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(true);
+  const [pageError, setPageError] = useState(null);
   const [feeSettings, setFeeSettings] = useState({ productChargePercent: 0, withdrawalChargePercent: 0 });
   const [productFeeModalOpen, setProductFeeModalOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -31,6 +38,7 @@ const SellerProductsPage = () => {
     brand: "",
     category: "",
     price: "",
+    discountPercent: "",
     stock: "",
     description: "",
   });
@@ -40,33 +48,44 @@ const SellerProductsPage = () => {
   // Fetch seller's products
   const loadProducts = async () => {
     try {
+      setPageError(null);
       const res = await fetch(`${API_URL}/seller/my-products`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to load seller products");
+      }
+
       setProducts(Array.isArray(data) ? data : Array.isArray(data.products) ? data.products : []);
     } catch (err) {
       console.error(err);
+      setProducts([]);
+      setPageError(err);
     } finally {
       setLoadingProducts(false);
     }
   };
 
-  useEffect(() => {
-    loadProducts();
-    const loadFees = async () => {
-      try {
+  const loadPageData = async () => {
+    setLoadingProducts(true);
+    setPageError(null);
+
+    try {
+      await loadProducts();
+      if (token) {
         const data = await getSellerPlatformFees(token);
         setFeeSettings(data || { productChargePercent: 0, withdrawalChargePercent: 0 });
-      } catch (error) {
-        console.error("Failed to load seller fee settings:", error);
       }
-    };
-
-    if (token) {
-      loadFees();
+    } catch (error) {
+      console.error("Failed to load seller product page data:", error);
+      setPageError(error);
     }
+  };
+
+  useEffect(() => {
+    loadPageData();
   }, []);
 
   const filteredProducts = products.filter(
@@ -91,6 +110,7 @@ const SellerProductsPage = () => {
         brand: product.brand || "",
         category: product.category || "",
         price: product.price || "",
+        discountPercent: getProductDiscountPercent(product) || "",
         stock: product.stock || "",
         description: product.description || "",
       });
@@ -98,7 +118,7 @@ const SellerProductsPage = () => {
       setImageFiles([]);
     } else {
       setEditingProduct(null);
-      setFormData({ name: "", brand: "", category: "", price: "", stock: "", description: "" });
+      setFormData({ name: "", brand: "", category: "", price: "", discountPercent: "", stock: "", description: "" });
       setPreviewList([]);
       setImageFiles([]);
     }
@@ -127,6 +147,7 @@ const SellerProductsPage = () => {
       fd.append('name', formData.name);
       fd.append('description', formData.description);
       fd.append('price', formData.price);
+      fd.append('discountPercent', formData.discountPercent);
       fd.append('stock', formData.stock);
       fd.append('category', formData.category);
       fd.append('brand', formData.brand);
@@ -157,7 +178,7 @@ const SellerProductsPage = () => {
       setModalOpen(false);
       setEditingProduct(null);
       setProductFeeModalOpen(false);
-      setFormData({ name: "", brand: "", category: "", price: "", stock: "", description: "" });
+      setFormData({ name: "", brand: "", category: "", price: "", discountPercent: "", stock: "", description: "" });
       setPreviewList([]);
       setImageFiles([]);
 
@@ -208,6 +229,10 @@ const SellerProductsPage = () => {
 
   return (
     <div className="space-y-6">
+      {pageError && !loadingProducts ? (
+        <PageLoadErrorState error={pageError} onRefresh={loadPageData} />
+      ) : (
+        <>
       {!sellerApproved && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           <p className="font-semibold">{getSellerApprovalLabel(currentSeller)}</p>
@@ -255,7 +280,12 @@ const SellerProductsPage = () => {
                 <h3 className="font-semibold">{p.name}</h3>
                 <p className="text-sm text-gray-500">{p.brand || p.seller?.brandName || ''}</p>
                 <p className="text-sm">Category: {p.category || 'Uncategorized'}</p>
-                <p className="text-sm text-green-600 font-medium">₦{p.price}</p>
+                <div>
+                  <p className="text-sm font-medium text-green-600">₦{getEffectiveProductPrice(p).toLocaleString()}</p>
+                  {hasActiveProductDiscount(p) && (
+                    <p className="text-xs text-gray-400 line-through">₦{getOriginalProductPrice(p).toLocaleString()}</p>
+                  )}
+                </div>
                 <p className="text-xs text-yellow-600 mt-1">Status: {p.status || 'pending'}</p>
               </div>
               <div className="flex flex-col gap-2">
@@ -274,7 +304,12 @@ const SellerProductsPage = () => {
                 <h3 className="font-semibold">{p.name}</h3>
                 <p className="text-sm text-gray-500">{p.brand || p.seller?.brandName || ''}</p>
                 <p className="text-sm">Category: {p.category || 'Uncategorized'}</p>
-                <p className="text-sm text-green-600 font-medium">₦{p.price}</p>
+                <div>
+                  <p className="text-sm font-medium text-green-600">₦{getEffectiveProductPrice(p).toLocaleString()}</p>
+                  {hasActiveProductDiscount(p) && (
+                    <p className="text-xs text-gray-400 line-through">₦{getOriginalProductPrice(p).toLocaleString()}</p>
+                  )}
+                </div>
                 <p className="text-xs text-green-600 mt-1">Status: {p.status || 'approved'}</p>
               </div>
               <div className="flex flex-col gap-2">
@@ -299,6 +334,8 @@ const SellerProductsPage = () => {
       </div>
 
       {/* MODAL */}
+        </>
+      )}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white rounded-lg w-full max-w-3xl p-6">
@@ -361,6 +398,20 @@ const SellerProductsPage = () => {
                   required
                   className="w-full border px-3 py-2 rounded"
                 />
+
+                <label className="text-sm">Discount (%)</label>
+                <input
+                  name="discountPercent"
+                  type="number"
+                  min="0"
+                  max="99.99"
+                  step="0.01"
+                  value={formData.discountPercent}
+                  onChange={(e) => setFormData(prev => ({ ...prev, discountPercent: e.target.value }))}
+                  placeholder="Optional discount percent"
+                  className="w-full border px-3 py-2 rounded"
+                />
+                <p className="text-xs text-gray-500">Example: enter `5` to reduce a `₦3,500` product by 5% and sell it at the new lower price.</p>
 
                 <label className="text-sm">Stock (quantity)</label>
                 <input

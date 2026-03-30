@@ -9,8 +9,7 @@ import { Text } from "./Text";
 import { useLocation } from "react-router-dom";
 
 export const Footer = () => {
-  const location = useLocation();
-  const pathname = useLocation().pathname;
+  const { pathname } = useLocation();
   return (
     <>
       {/* Desktop Footer */}

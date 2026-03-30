@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { getSellerFinanceSummary } from "../../api/sellerFinance";
+import { DashboardOverviewSkeleton, PageLoadErrorState } from "../../components/LoadingSkeletons";
 
 const formatCurrency = (value) =>
   new Intl.NumberFormat("en-NG", {
@@ -21,51 +22,60 @@ const SellerIncomePage = () => {
     recentSettlements: [],
   });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [pageError, setPageError] = useState(null);
+
+  const loadFinance = async () => {
+    const token = localStorage.getItem("sellerToken");
+    if (!token) {
+      setLoading(false);
+      setPageError(null);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setPageError(null);
+      const data = await getSellerFinanceSummary(token);
+      setIncomeData(data.incomeTrend || []);
+      setSummary({
+        totalRevenue: data.totalRevenue || 0,
+        pendingBalance: data.pendingBalance || 0,
+        withdrawableBalance: data.withdrawableBalance || 0,
+        completedWithdrawals: data.completedWithdrawals || 0,
+        pendingWithdrawalRequests: data.pendingWithdrawalRequests || 0,
+        recentSettlements: data.recentSettlements || [],
+      });
+    } catch (error) {
+      console.error("Failed to load seller finance summary:", error);
+      setIncomeData([]);
+      setSummary({
+        totalRevenue: 0,
+        pendingBalance: 0,
+        withdrawableBalance: 0,
+        completedWithdrawals: 0,
+        pendingWithdrawalRequests: 0,
+        recentSettlements: [],
+      });
+      setPageError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadFinance = async () => {
-      const token = localStorage.getItem("sellerToken");
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setError("");
-        const data = await getSellerFinanceSummary(token);
-        setIncomeData(data.incomeTrend || []);
-        setSummary({
-          totalRevenue: data.totalRevenue || 0,
-          pendingBalance: data.pendingBalance || 0,
-          withdrawableBalance: data.withdrawableBalance || 0,
-          completedWithdrawals: data.completedWithdrawals || 0,
-          pendingWithdrawalRequests: data.pendingWithdrawalRequests || 0,
-          recentSettlements: data.recentSettlements || [],
-        });
-      } catch (error) {
-        console.error("Failed to load seller finance summary:", error);
-        setError(error.message || "Failed to load seller finance summary.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadFinance();
   }, []);
 
   if (loading) {
-    return <div className="rounded-2xl bg-white p-6 shadow">Loading income data...</div>;
+    return <DashboardOverviewSkeleton />;
+  }
+
+  if (pageError) {
+    return <PageLoadErrorState error={pageError} onRefresh={loadFinance} />;
   }
 
   return (
     <div className="space-y-6">
-      {error && (
-        <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
       <h2 className="text-2xl font-bold text-gray-800">Income Dashboard</h2>
       <p className="text-sm text-gray-500">
         Revenue moves into withdrawable balance only after the customer confirms receipt or the order reaches completed status.

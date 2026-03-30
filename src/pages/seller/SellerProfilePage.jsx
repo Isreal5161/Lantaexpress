@@ -5,7 +5,13 @@ import ConfirmationModal from "../../components/ConfirmationModal";
 import { useSellerAuth } from "../../context/SellerAuthContext";
 import { getSellerFinanceSummary } from "../../api/sellerFinance";
 import { categories } from "../../service/dummyCategories";
-import { ProductGridSkeleton, SellerProfileSkeleton } from "../../components/LoadingSkeletons";
+import { PageLoadErrorState, ProductGridSkeleton, SellerProfileSkeleton } from "../../components/LoadingSkeletons";
+import {
+  getEffectiveProductPrice,
+  getOriginalProductPrice,
+  getProductDiscountPercent,
+  hasActiveProductDiscount,
+} from "../../utils/productPricing";
 
 const API_URL = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
 const API_AUTH = process.env.REACT_APP_API_URL || "https://lantaxpressbackend.onrender.com/api/auth";
@@ -69,6 +75,7 @@ const SellerProfilePage = () => {
   });
   const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
+  const [pageError, setPageError] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [previewList, setPreviewList] = useState([]);
@@ -82,6 +89,7 @@ const SellerProfilePage = () => {
     brand: "",
     category: "",
     price: "",
+    discountPercent: "",
     stock: "",
     description: "",
   });
@@ -109,46 +117,48 @@ const SellerProfilePage = () => {
     syncSellerState(fallbackSeller);
   }, [authSeller]);
 
-  useEffect(() => {
+  const loadProfile = async () => {
     if (!token) {
       setLoadingProfile(false);
       return;
     }
 
-    const loadProfile = async () => {
-      try {
-        setLoadingProfile(true);
-        const [profileResponse, financeData] = await Promise.all([
-          fetch(`${API_AUTH}/me`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          getSellerFinanceSummary(token).catch((error) => {
-            console.error("Failed to load seller finance summary:", error);
-            return null;
-          }),
-        ]);
+    try {
+      setLoadingProfile(true);
+      setPageError(null);
+      const [profileResponse, financeData] = await Promise.all([
+        fetch(`${API_AUTH}/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        getSellerFinanceSummary(token).catch((error) => {
+          console.error("Failed to load seller finance summary:", error);
+          return null;
+        }),
+      ]);
 
-        const data = await profileResponse.json();
-        if (!profileResponse.ok) throw new Error(data.message || "Failed to load profile");
+      const data = await profileResponse.json();
+      if (!profileResponse.ok) throw new Error(data.message || "Failed to load profile");
 
-        if (data.user) {
-          syncSellerState(data.user);
-          login(data.user);
-        }
-
-        if (financeData) {
-          setFinanceSummary({
-            totalRevenue: financeData.totalRevenue || 0,
-            withdrawableBalance: financeData.withdrawableBalance || 0,
-          });
-        }
-      } catch (error) {
-        console.error("Failed to load seller profile:", error);
-      } finally {
-        setLoadingProfile(false);
+      if (data.user) {
+        syncSellerState(data.user);
+        login(data.user);
       }
-    };
 
+      if (financeData) {
+        setFinanceSummary({
+          totalRevenue: financeData.totalRevenue || 0,
+          withdrawableBalance: financeData.withdrawableBalance || 0,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to load seller profile:", error);
+      setPageError(error);
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
+
+  useEffect(() => {
     loadProfile();
   }, [token]);
 
@@ -161,15 +171,18 @@ const SellerProfilePage = () => {
 
     try {
       setLoadingProducts(true);
+      setPageError(null);
       const res = await fetch(`${API_URL}/seller/my-products`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await res.json();
-      setProducts(Array.isArray(data) ? data : []);
+      if (!res.ok) throw new Error(data.message || "Failed to load seller profile products");
+      setProducts(Array.isArray(data) ? data : Array.isArray(data.products) ? data.products : []);
     } catch (error) {
       console.error("Failed to load seller profile products:", error);
       setProducts([]);
+      setPageError(error);
     } finally {
       setLoadingProducts(false);
     }
@@ -178,6 +191,10 @@ const SellerProfilePage = () => {
   useEffect(() => {
     loadProducts();
   }, []);
+
+  const retryPageLoad = async () => {
+    await Promise.all([loadProfile(), loadProducts()]);
+  };
 
   const toggleProfileCategory = (category) => {
     setProfileForm((prev) => ({
@@ -247,6 +264,7 @@ const SellerProfilePage = () => {
       brand: product.brand || "",
       category: product.category || "",
       price: product.price || "",
+      discountPercent: getProductDiscountPercent(product) || "",
       stock: product.stock || "",
       description: product.description || "",
     });
@@ -273,6 +291,7 @@ const SellerProfilePage = () => {
       payload.append("name", formData.name);
       payload.append("description", formData.description);
       payload.append("price", formData.price);
+      payload.append("discountPercent", formData.discountPercent);
       payload.append("stock", formData.stock);
       payload.append("category", formData.category);
       payload.append("brand", formData.brand);
@@ -330,6 +349,10 @@ const SellerProfilePage = () => {
       setDeleting(false);
     }
   };
+
+  if (pageError && !loadingProfile && !loadingProducts) {
+    return <PageLoadErrorState error={pageError} onRefresh={retryPageLoad} />;
+  }
 
   return (
     <div className="space-y-6">
@@ -417,7 +440,12 @@ const SellerProfilePage = () => {
                 />
                 <h4 className="text-gray-800 font-semibold">{product.name}</h4>
                 <p className="text-xs text-gray-500 mb-1">{product.brand || seller.brandName || ""}</p>
-                <p className="text-gray-500 text-sm">₦{Number(product.price || 0).toLocaleString()}</p>
+                <div>
+                  <p className="text-sm font-medium text-green-600">₦{getEffectiveProductPrice(product).toLocaleString()}</p>
+                  {hasActiveProductDiscount(product) && (
+                    <p className="text-xs text-gray-400 line-through">₦{getOriginalProductPrice(product).toLocaleString()}</p>
+                  )}
+                </div>
                 <p className="text-gray-400 text-xs">Stock: {product.stock ?? 0}</p>
                 <div className="flex gap-2 mt-3">
                   <button
@@ -635,6 +663,20 @@ const SellerProfilePage = () => {
                   required
                   className="w-full rounded border px-3 py-2"
                 />
+
+                <label className="text-sm">Discount (%)</label>
+                <input
+                  name="discountPercent"
+                  type="number"
+                  min="0"
+                  max="99.99"
+                  step="0.01"
+                  value={formData.discountPercent}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, discountPercent: e.target.value }))}
+                  placeholder="Optional discount percent"
+                  className="w-full rounded border px-3 py-2"
+                />
+                <p className="text-xs text-gray-500">Example: `5` means the product sells 5% below the original price while the old price stays crossed out.</p>
 
                 <label className="text-sm">Stock (quantity)</label>
                 <input

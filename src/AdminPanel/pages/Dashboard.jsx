@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import AdminLayout from "../Layout/AdminLayout";
 import StatCard from "../components/StatCard";
 import { FaUsers, FaShoppingCart, FaStore, FaBoxOpen } from "react-icons/fa";
-import { DashboardOverviewSkeleton } from "../../components/LoadingSkeletons";
+import { DashboardOverviewSkeleton, PageLoadErrorState } from "../../components/LoadingSkeletons";
 
 export default function Dashboard() {
   const [totalUsers, setTotalUsers] = useState(0);
@@ -13,6 +13,7 @@ export default function Dashboard() {
   const [recentOrders, setRecentOrders] = useState([]);
   const [newUsers, setNewUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pageError, setPageError] = useState(null);
 
   const formatPrice = (value) => {
     if (!value) return "₦0";
@@ -22,44 +23,43 @@ export default function Dashboard() {
     }).format(value);
   };
 
+  const fetchDashboard = async () => {
+    try {
+      setLoading(true);
+      setPageError(null);
+      const token = localStorage.getItem("token") || localStorage.getItem("authToken");
+      const headers = token ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
+
+      const [usersRes, ordersRes, pendingRes] = await Promise.all([
+        fetch(`${process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api"}/admin/users`, { headers }),
+        fetch(`${process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api"}/admin/orders/today`, { headers }),
+        fetch(`${process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api"}/admin/products/pending`, { headers }),
+      ]);
+
+      const usersJson = await usersRes.json();
+      const ordersJson = await ordersRes.json();
+      const pendingJson = await pendingRes.json();
+
+      if (!usersRes.ok) throw new Error(usersJson.message || "Failed to load dashboard users");
+      if (!ordersRes.ok) throw new Error(ordersJson.message || "Failed to load dashboard orders");
+      if (!pendingRes.ok) throw new Error(pendingJson.message || "Failed to load dashboard products");
+
+      const users = usersJson.users || [];
+      setTotalUsers(users.length);
+      setNewUsers(users.slice(0, 5));
+      setTotalSellers(users.filter((user) => user.role === "seller").length);
+      setOrdersToday(ordersJson.totalOrders || 0);
+      setRecentOrders((ordersJson.orders || []).slice(-5).reverse());
+      setPendingProducts((pendingJson || []).length);
+    } catch (err) {
+      console.error("Failed to load admin dashboard data", err);
+      setPageError(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem("token") || localStorage.getItem("authToken");
-        const headers = token ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
-
-        // Users
-        const usersRes = await fetch(`${process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api"}/admin/users`, { headers });
-        if (usersRes.ok) {
-          const usersJson = await usersRes.json();
-          const users = usersJson.users || [];
-          setTotalUsers(users.length);
-          setNewUsers(users.slice(0,5));
-          setTotalSellers(users.filter(u => u.role === "seller").length);
-        }
-
-        // Orders today
-        const ordersRes = await fetch(`${process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api"}/admin/orders/today`, { headers });
-        if (ordersRes.ok) {
-          const ordersJson = await ordersRes.json();
-          setOrdersToday(ordersJson.totalOrders || 0);
-          setRecentOrders((ordersJson.orders || []).slice(-5).reverse());
-        }
-
-        // Pending products
-        const pendingRes = await fetch(`${process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api"}/admin/products/pending`, { headers });
-        if (pendingRes.ok) {
-          const pending = await pendingRes.json();
-          setPendingProducts((pending || []).length);
-        }
-      } catch (err) {
-        console.error('Failed to load admin dashboard data', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDashboard();
   }, []);
 
@@ -68,6 +68,8 @@ export default function Dashboard() {
       <div className="min-w-0">
         {loading ? (
           <DashboardOverviewSkeleton />
+        ) : pageError ? (
+          <PageLoadErrorState error={pageError} onRefresh={fetchDashboard} />
         ) : (
           <>
         {/* PAGE TITLE */}

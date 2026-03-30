@@ -1,13 +1,27 @@
 const API_BASE = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
 
+const createLoadError = (message, extra = {}) => Object.assign(new Error(message), extra);
+
 async function requestJson(path, options = {}) {
-  const response = await fetch(`${API_BASE}${path}`, options);
+  let response;
+
+  try {
+    response = await fetch(`${API_BASE}${path}`, options);
+  } catch (error) {
+    throw createLoadError("Network error", {
+      isNetworkError: true,
+      cause: error,
+    });
+  }
   const contentType = response.headers.get("content-type") || "";
   const data = contentType.includes("application/json") ? await response.json() : await response.text();
 
   if (!response.ok) {
     const message = typeof data === "string" ? data : data?.message;
-    throw new Error(message || `Request failed with status ${response.status}`);
+    throw createLoadError(message || `Request failed with status ${response.status}`, {
+      status: response.status,
+      isNetworkError: false,
+    });
   }
 
   return data;

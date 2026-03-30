@@ -55,6 +55,11 @@ export const NotificationProvider = ({ children }) => {
     seller: false,
     admin: false,
   });
+  const [errorByScope, setErrorByScope] = useState({
+    user: null,
+    seller: null,
+    admin: null,
+  });
   const activeScopeCountsRef = useRef(new Map());
 
   const setScopeNotifications = (scope, updater) => {
@@ -68,6 +73,11 @@ export const NotificationProvider = ({ children }) => {
   const setScopeLoading = (scope, value) => {
     if (!scope || scope === "guest") return;
     setLoadingByScope((current) => ({ ...current, [scope]: value }));
+  };
+
+  const setScopeError = (scope, value) => {
+    if (!scope || scope === "guest") return;
+    setErrorByScope((current) => ({ ...current, [scope]: value }));
   };
 
   const refreshNotifications = async (preferredScope = "auto", showLoading = false) => {
@@ -84,11 +94,14 @@ export const NotificationProvider = ({ children }) => {
       setScopeLoading(session.scope, true);
     }
 
+    setScopeError(session.scope, null);
+
     try {
       const items = await fetchNotifications({ scope: session.scope, token: session.token });
       setScopeNotifications(session.scope, Array.isArray(items) ? items : []);
     } catch (error) {
       console.error("Failed to load notifications", error);
+      setScopeError(session.scope, error);
     } finally {
       if (showLoading) {
         setScopeLoading(session.scope, false);
@@ -194,6 +207,7 @@ export const NotificationProvider = ({ children }) => {
       value={{
         notificationsByScope,
         loadingByScope,
+        errorByScope,
         refreshNotifications,
         registerScope,
         markNotificationRead,
@@ -210,6 +224,7 @@ export const useNotification = (preferredScope = "auto") => {
   const context = useContext(NotificationContext);
   const notifications = context.notificationsByScope?.[preferredScope] || [];
   const loading = Boolean(context.loadingByScope?.[preferredScope]);
+  const error = context.errorByScope?.[preferredScope] || null;
   const session = getAuthSession(preferredScope);
   const unreadCount = notifications.filter((notification) => !notification.read).length;
 
@@ -224,6 +239,7 @@ export const useNotification = (preferredScope = "auto") => {
   return {
     notifications,
     loading,
+    error,
     scope: session.scope,
     isAuthenticated: session.scope !== "guest",
     notificationCount: unreadCount,

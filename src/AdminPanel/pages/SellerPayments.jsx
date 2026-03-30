@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import AdminLayout from "../Layout/AdminLayout";
 import { getAdminSellerPayments, updateAdminPlatformFees, updateAdminWithdrawalStatus } from "../../api/sellerFinance";
+import { PageLoadErrorState, TablePanelSkeleton } from "../../components/LoadingSkeletons";
 
 const formatCurrency = (value) =>
   new Intl.NumberFormat("en-NG", {
@@ -16,32 +17,38 @@ export default function SellerPayments() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [pageError, setPageError] = useState(null);
   const [processingId, setProcessingId] = useState(null);
   const [feeSettings, setFeeSettings] = useState({ productChargePercent: 0, withdrawalChargePercent: 0 });
   const [savingFees, setSavingFees] = useState(false);
 
+  const loadPayments = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setLoading(false);
+      setPageError(new Error("Admin login required."));
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError("");
+      setPageError(null);
+      const data = await getAdminSellerPayments(token);
+      setSellers(data.sellers || []);
+      setWithdrawals(data.pendingWithdrawals || []);
+      setFeeSettings(data.feeSettings || { productChargePercent: 0, withdrawalChargePercent: 0 });
+    } catch (error) {
+      console.error("Failed to load seller payment data:", error);
+      setSellers([]);
+      setWithdrawals([]);
+      setPageError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const loadPayments = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setError("");
-        const data = await getAdminSellerPayments(token);
-        setSellers(data.sellers || []);
-        setWithdrawals(data.pendingWithdrawals || []);
-        setFeeSettings(data.feeSettings || { productChargePercent: 0, withdrawalChargePercent: 0 });
-      } catch (error) {
-        console.error("Failed to load seller payment data:", error);
-        setError(error.message || "Failed to load seller payment data.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadPayments();
   }, []);
 
@@ -105,13 +112,15 @@ export default function SellerPayments() {
       </p>
       </div>
 
-      {error && (
+      {error && !pageError && (
         <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
         </div>
       )}
 
-      {loading ? <div className="rounded-2xl bg-white p-6 shadow">Loading seller payment data...</div> : (
+      {loading ? <TablePanelSkeleton columns={7} rows={6} mobileCards={4} /> : pageError ? (
+      <PageLoadErrorState error={pageError} onRefresh={loadPayments} />
+      ) : (
       <>
 
       <section className="rounded-2xl bg-white p-6 shadow">

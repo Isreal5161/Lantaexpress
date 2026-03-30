@@ -20,17 +20,11 @@ import PromotionalBanner from "../components/PromotionalBanner";
 import PromoStrip from "../components/PromoStrip";
 import { getProducts } from "../service/ProductService";
 import { motion } from "framer-motion";
-import { ProductGridSkeleton } from "../components/LoadingSkeletons";
+import {
+  IndexPageSkeleton,
+  PageLoadErrorState,
+} from "../components/LoadingSkeletons";
 import { useSessionModal } from "../hooks/useSessionModal";
-
-const fallbackProducts = [
-  { id: 1, name: "Wireless Headphones", price: 120, image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80" },
-  { id: 2, name: "Smart Watch", price: 250, image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80" },
-  { id: 3, name: "Designer Handbag", price: 180, image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=500&q=80" },
-  { id: 4, name: "Gaming Mouse", price: 60, image: "https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&w=500&q=80" },
-  { id: 5, name: "Leather Wallet", price: 45, image: "https://images.unsplash.com/photo-1600185366207-3f7ee2c2c7c2?auto=format&fit=crop&w=500&q=80" },
-  { id: 6, name: "Bluetooth Speaker", price: 80, image: "https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&w=500&q=80" },
-];
 
 export const IndexPage = ({ className, children, variant, contentKey, ...props }) => {
   const { addToCart } = useCart();
@@ -45,71 +39,57 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
 
   const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
+  const [pageError, setPageError] = useState(null);
+
+  const fetchProducts = async () => {
+    setLoadingProducts(true);
+    setPageError(null);
+
+    try {
+      const data = await getProducts();
+      if (Array.isArray(data)) {
+        setProducts(data);
+
+        try {
+          data.forEach(p => {
+            if (!p || !p.category) return;
+            const cat = categories.find(c => c.title === p.category);
+            const mapped = {
+              id: (p.id || p._id || '').toString(),
+              name: p.name,
+              brand: p.brand || "",
+              stock: p.stock || 0,
+              price: p.price || 0,
+              originalPrice: p.originalPrice || p.price || 0,
+              discountPrice: p.discountPrice || null,
+              discountPercent: p.discountPercent || 0,
+              image: p.image || "/default-product.jpg",
+              category: p.category,
+              description: p.description || "",
+            };
+            if (cat && !cat.products.some(x => (x.id || '').toString() === mapped.id.toString())) {
+              cat.products.unshift(mapped);
+            }
+          });
+        } catch (err) {
+          console.warn('Failed to merge products into categories', err);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch products:", error);
+      setProducts([]);
+      setPageError(error);
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const data = await getProducts();
-        if (data && data.length > 0) {
-          setProducts(() => {
-            const combined = [...data, ...fallbackProducts];
-            const map = new Map();
-            for (const item of combined) {
-              if (!item) continue;
-              const id = (item.id || item._id || '').toString();
-              if (!id) continue;
-              if (!map.has(id)) map.set(id, { ...item, id });
-            }
-            return Array.from(map.values());
-          });
-
-          try {
-            data.forEach(p => {
-              if (!p || !p.category) return;
-              const cat = categories.find(c => c.title === p.category);
-              const mapped = {
-                id: (p.id || p._id || '').toString(),
-                name: p.name,
-                brand: p.brand || "",
-                stock: p.stock || 0,
-                price: p.price || 0,
-                image: p.image || "/default-product.jpg",
-                category: p.category,
-                description: p.description || "",
-              };
-              if (cat) {
-                // avoid duplicates by string id
-                if (!cat.products.some(x => (x.id || '').toString() === mapped.id.toString())) {
-                  cat.products.unshift(mapped);
-                }
-              }
-            });
-          } catch (err) {
-            console.warn('Failed to merge products into categories', err);
-          }
-        } else {
-          setProducts(fallbackProducts);
-        }
-      } catch (error) {
-        console.error("Failed to fetch products:", error);
-        setProducts(fallbackProducts);
-      } finally {
-        setLoadingProducts(false);
-      }
-    };
     fetchProducts();
   }, []);
 
-  const padProducts = (list) => {
-    const padded = [...list];
-    while (padded.length < 6) {
-      padded.push({ id: `dummy-${padded.length}`, name: "Coming Soon", price: 0, image: "/default-product.jpg" });
-    }
-    return padded;
-  };
-
-  const hotDealProducts = padProducts(products.slice(0, 6));
-  const trendingProducts = padProducts(products.slice(0, 6));
+  const hotDealProducts = products.slice(0, 6);
+  const trendingProducts = products.slice(0, 6);
 
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -163,17 +143,19 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
     <div className="font-body text-slate-600 antialiased bg-white">
       <Header />
 
-    
-   <MobileHero />
+      {loadingProducts ? (
+        <IndexPageSkeleton />
+      ) : pageError ? (
+        <PageLoadErrorState error={pageError} onRefresh={fetchProducts} />
+      ) : (
+        <>
+          <MobileHero />
 
-      
+          <Modal isOpen={isModalOpen} onClose={closeHomePromo}>
+            <img src="/banner6.jpg" alt="Promotional Flyer" className="w-full shadow-2xl" />
+          </Modal>
 
-      {/* Modal */}
-      <Modal isOpen={isModalOpen} onClose={closeHomePromo}>
-        <img src="/banner6.jpg" alt="Promotional Flyer" className="w-full shadow-2xl" />
-      </Modal>
-
-      <div className="pb-20 md:pb-0">
+          <div className="pb-20 md:pb-0">
 
        
 
@@ -256,10 +238,8 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
               animate="visible"
               variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
             >
-              {loadingProducts ? (
-                <div className="col-span-full">
-                  <ProductGridSkeleton count={8} imageClassName="h-44" />
-                </div>
+              {hotDealProducts.length === 0 ? (
+                <p className="col-span-full py-10 text-center text-sm text-slate-500">No products available right now.</p>
               ) : (
                 hotDealProducts.map(p => (
                   <motion.div key={p.id} variants={cardVariants}>
@@ -296,10 +276,8 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
       viewport={{ once: true }}
       variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
     >
-      {loadingProducts ? (
-        <div className="col-span-full">
-          <ProductGridSkeleton count={8} imageClassName="h-44" />
-        </div>
+      {trendingProducts.length === 0 ? (
+        <p className="col-span-full py-10 text-center text-sm text-slate-500">No trending products available right now.</p>
       ) : (
         trendingProducts.map(p => (
           <motion.div key={p.id} variants={cardVariants}>
@@ -332,6 +310,9 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
       </div>
 
       <BecomeSeller position="right" offsetBottom="100" />
+        </>
+      )}
+
       <Footer />
     </div>
   );

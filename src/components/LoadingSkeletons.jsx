@@ -1,4 +1,5 @@
 import React from "react";
+import { RefreshCw, ServerCrash, WifiOff } from "lucide-react";
 
 const joinClasses = (...classes) => classes.filter(Boolean).join(" ");
 
@@ -281,3 +282,155 @@ export const OrderWorkspaceSkeleton = () => (
     </div>
   </div>
 );
+
+export const IndexPageSkeleton = () => (
+  <div className="pb-20 md:pb-0">
+    <div className="px-4 pt-4 sm:px-6 lg:px-8">
+      <SkeletonBlock className="h-[28rem] w-full rounded-[2rem]" />
+    </div>
+
+    <div className="space-y-6 px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl space-y-3">
+        <SkeletonBlock className="h-8 w-52 rounded-full" />
+        <SkeletonBlock className="h-48 w-full rounded-[2rem]" />
+      </div>
+
+      <div className="mx-auto max-w-7xl space-y-3">
+        <SkeletonBlock className="h-8 w-40 rounded-full" />
+        <ProductGridSkeleton count={8} imageClassName="h-44" />
+      </div>
+
+      <div className="mx-auto max-w-7xl">
+        <SkeletonBlock className="h-24 w-full rounded-[2rem]" />
+      </div>
+
+      <div className="mx-auto max-w-7xl space-y-3">
+        <SkeletonBlock className="h-8 w-44 rounded-full" />
+        <ProductGridSkeleton count={8} imageClassName="h-44" />
+      </div>
+
+      <div className="mx-auto max-w-7xl space-y-6">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div key={`index-category-skeleton-${index}`} className="space-y-3">
+            <SkeletonBlock className="h-8 w-56 rounded-full" />
+            <ProductGridSkeleton count={4} imageClassName="h-40" />
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+export const ShopPageSkeleton = () => (
+  <div>
+    <div className="sticky top-0 z-40 bg-white">
+      <div className="border-b border-slate-200 bg-slate-50 px-4 py-3 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-8xl">
+          <SkeletonBlock className="h-4 w-32 rounded-full" />
+        </div>
+      </div>
+
+      <div className="bg-white px-4 py-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <SkeletonBlock className="h-48 w-full rounded-[2rem]" />
+        </div>
+      </div>
+
+      <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl gap-3 overflow-hidden">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <SkeletonBlock key={`shop-tab-skeleton-${index}`} className="h-10 w-28 shrink-0 rounded-full" />
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <ProductGridSkeleton count={8} imageClassName="h-52" />
+    </div>
+  </div>
+);
+
+export const ProductPageSkeleton = () => (
+  <div className="pb-20 md:pb-0">
+    <div className="border-b border-slate-200 bg-slate-50">
+      <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-2">
+          <SkeletonBlock className="h-3 w-14 rounded-full" />
+          <SkeletonBlock className="h-3 w-3 rounded-full" />
+          <SkeletonBlock className="h-3 w-14 rounded-full" />
+          <SkeletonBlock className="h-3 w-3 rounded-full" />
+          <SkeletonBlock className="h-3 w-40 rounded-full" />
+        </div>
+      </div>
+    </div>
+
+    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
+        <SkeletonBlock className="aspect-[4/3] w-full rounded-[2rem]" />
+
+        <div className="space-y-5">
+          <div className="space-y-3">
+            <SkeletonBlock className="h-10 w-4/5 rounded-full" />
+            <SkeletonBlock className="h-5 w-28 rounded-full" />
+            <SkeletonBlock className="h-8 w-40 rounded-full" />
+          </div>
+
+          <div className="flex items-center gap-3">
+            <SkeletonBlock className="h-11 w-32 rounded-2xl" />
+            <SkeletonBlock className="h-11 w-36 rounded-2xl" />
+          </div>
+
+          <div className="space-y-4 pt-3">
+            <SkeletonBlock className="h-5 w-36 rounded-full" />
+            <SkeletonBlock className="h-4 w-full rounded-full" />
+            <SkeletonBlock className="h-4 w-11/12 rounded-full" />
+            <SkeletonBlock className="h-4 w-4/5 rounded-full" />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-12 border-t border-slate-200 pt-8">
+        <SkeletonBlock className="mb-6 h-6 w-32 rounded-full" />
+        <ProductGridSkeleton count={4} imageClassName="h-40" />
+      </div>
+    </div>
+  </div>
+);
+
+export const PageLoadErrorState = ({ error, onRefresh, actionLabel = "Try again" }) => {
+  const isOffline = typeof navigator !== "undefined" && navigator.onLine === false;
+  const isNetworkError = isOffline || Boolean(error?.isNetworkError);
+  const isServerError = Number(error?.status) >= 500;
+  const IconComponent = isNetworkError ? WifiOff : ServerCrash;
+  const title = isNetworkError
+    ? "Network error"
+    : isServerError
+    ? "Our server has an issue"
+    : "Failed to load";
+  const message = isNetworkError
+    ? "Check your internet connection and refresh the page."
+    : isServerError
+    ? "Our server could not load this page right now. Refresh and try again."
+    : error?.message || "Failed to load this page. Refresh and try again.";
+
+  return (
+    <div className="flex min-h-[60vh] items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+      <div className="w-full max-w-lg rounded-[2rem] border border-slate-200 bg-white p-8 text-center shadow-sm">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-700">
+          <IconComponent className="h-8 w-8" />
+        </div>
+        <h2 className="mt-5 text-2xl font-semibold text-slate-900">{title}</h2>
+        <p className="mt-3 text-sm leading-6 text-slate-500">{message}</p>
+        <button
+          type="button"
+          onClick={onRefresh}
+          className="mx-auto mt-6 inline-flex items-center gap-2 rounded-full bg-green-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-green-700"
+        >
+          <RefreshCw className="h-4 w-4" />
+          {actionLabel}
+        </button>
+      </div>
+    </div>
+  );
+};

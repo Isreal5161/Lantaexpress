@@ -5,6 +5,12 @@ import { Icon } from "./Icon";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "../context/CartContextTemp";
 import { useCartButton } from "../context/CartButtonContext";
+import {
+  getEffectiveProductPrice,
+  getOriginalProductPrice,
+  getProductDiscountPercent,
+  hasActiveProductDiscount,
+} from "../utils/productPricing";
 
 // Helper for formatting currency dynamically
 const formatCurrency = (amount, currency = "NGN") => {
@@ -62,7 +68,12 @@ export const ProductCard = ({ product, userCurrency = "NGN" }) => {
 
   const isCartVisible = showButton || visibleProductId === product.id;
 
-  const price = formatCurrency(convertPrice(product.price, userCurrency), userCurrency);
+  const effectivePrice = getEffectiveProductPrice(product);
+  const originalPrice = getOriginalProductPrice(product);
+  const hasDiscount = hasActiveProductDiscount(product);
+  const discountPercent = getProductDiscountPercent(product);
+  const price = formatCurrency(convertPrice(effectivePrice, userCurrency), userCurrency);
+  const originalPriceLabel = formatCurrency(convertPrice(originalPrice, userCurrency), userCurrency);
 
   return (
     <div
@@ -92,12 +103,18 @@ export const ProductCard = ({ product, userCurrency = "NGN" }) => {
             <ShoppingCart size={18} />
           </button>
 
-          {/* Pending badge */}
-          {product.status === "pending" && (
-            <div className="absolute top-3 left-3 bg-yellow-400 text-xs font-semibold px-2 py-1 rounded-full">
-              Pending
-            </div>
-          )}
+          <div className="absolute left-3 top-3 flex flex-col gap-2">
+            {hasDiscount && (
+              <div className="rounded-full bg-red-600 px-2 py-1 text-xs font-semibold text-white">
+                -{discountPercent}%
+              </div>
+            )}
+            {product.status === "pending" && (
+              <div className="rounded-full bg-yellow-400 px-2 py-1 text-xs font-semibold text-slate-900">
+                Pending
+              </div>
+            )}
+          </div>
         </div>
       </Link>
 
@@ -117,6 +134,12 @@ export const ProductCard = ({ product, userCurrency = "NGN" }) => {
         <h3 className="text-sm text-slate-700 font-medium line-clamp-2">{product.name}</h3>
         <p className="text-xs text-gray-500 mt-1">Brand: {product.brand}</p>
         <p className="mt-1 text-base font-semibold text-slate-900">{price}</p>
+        {hasDiscount && (
+          <div className="mt-1 flex items-center gap-2 text-xs">
+            <span className="text-slate-400 line-through">{originalPriceLabel}</span>
+            <span className="font-medium text-red-600">Save {discountPercent}%</span>
+          </div>
+        )}
         <p className={`text-xs mt-1 font-medium ${product.stock > 0 ? "text-green-600" : "text-red-600"}`}>
           {product.stock > 0 ? `In stock: ${product.stock}` : "Out of stock"}
         </p>

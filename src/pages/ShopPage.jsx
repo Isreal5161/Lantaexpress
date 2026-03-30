@@ -9,7 +9,11 @@ import { Link } from '../components/Link';
 import BannerCarousel from '../components/BannerCarousel';
 import { useLocation } from "react-router-dom";
 import PromoModal from "../components/PromoModal";
-import { ProductGridSkeleton } from "../components/LoadingSkeletons";
+import {
+  PageLoadErrorState,
+  ProductGridSkeleton,
+  ShopPageSkeleton,
+} from "../components/LoadingSkeletons";
 import { useSessionModal } from "../hooks/useSessionModal";
 
 const normalizeText = (value = "") =>
@@ -89,7 +93,8 @@ export const ShopPage = () => {
   const [products, setProducts] = useState([]);
   const [activeCategory, setActiveCategory] = useState("All Products");
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [pageError, setPageError] = useState(null);
   const { isOpen, closeModal: closeShopPromo } = useSessionModal({
     storageKey: "lantaxpress:shop-promo-seen",
     delay: 1200,
@@ -102,6 +107,20 @@ export const ShopPage = () => {
     "Automotive & Accessories","Books & Stationery","Used Materials", "Cereals"
   ];
   const location = useLocation();
+  const fetchProducts = async () => {
+    setLoading(true);
+    setPageError(null);
+    try {
+      const data = await getProducts();
+      setProducts(data);
+    } catch (error) {
+      console.error("Failed to load shop products:", error);
+      setProducts([]);
+      setPageError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -115,17 +134,7 @@ export const ShopPage = () => {
     setSearchTerm(searchParam);
   }, [location.search]);
 
-  // Fetch products whenever category changes
   useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
-      try {
-        const data = await getProducts();
-        setProducts(data);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchProducts();
   }, []);
 
@@ -143,6 +152,13 @@ export const ShopPage = () => {
   return (
     <div className="font-body text-slate-600 antialiased bg-white">
       <Header />
+
+      {loading ? (
+        <ShopPageSkeleton />
+      ) : pageError ? (
+        <PageLoadErrorState error={pageError} onRefresh={fetchProducts} />
+      ) : (
+        <>
 
       {/* Sticky header: breadcrumb + banner + category tabs */}
       <div className="sticky top-0 z-40 bg-white">
@@ -192,9 +208,7 @@ export const ShopPage = () => {
           <div className="flex flex-col gap-12">
               {/* Product Grid full width */}
               <div className="w-full">
-              {loading ? (
-                <ProductGridSkeleton count={8} imageClassName="h-52" />
-              ) : filteredProducts.length === 0 ? (
+              {filteredProducts.length === 0 ? (
                 <div className="text-center py-20 text-gray-500 text-lg font-medium">
                   {hasSearch ? `Product not found for "${searchTerm}"` : "No product available yet in this category"}
                 </div>
@@ -220,6 +234,8 @@ export const ShopPage = () => {
           </div>
         </div>
       </main>
+        </>
+      )}
 
       <Footer />
     </div>

@@ -21,10 +21,12 @@ export const NotificationDropdown = ({
   notifications,
   unreadCount,
   loading,
+  error,
   isAuthenticated,
   onMarkRead,
   onMarkAllRead,
   onClearAll,
+  onRetry,
   renderTrigger,
   title = "Notifications",
   emptyMessage = "No notifications yet.",
@@ -98,6 +100,20 @@ export const NotificationDropdown = ({
 
           {!isAuthenticated ? (
             <div className="px-4 py-6 text-sm text-slate-500">{guestMessage}</div>
+          ) : error ? (
+            <div className="px-4 py-5">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-left">
+                <p className="text-sm font-semibold text-slate-900">Notifications unavailable</p>
+                <p className="mt-1 text-sm text-slate-500">{error.message || "Failed to load notifications."}</p>
+                <button
+                  type="button"
+                  onClick={onRetry}
+                  className="mt-3 inline-flex items-center rounded-full bg-green-600 px-4 py-2 text-xs font-medium text-white transition hover:bg-green-700"
+                >
+                  Try again
+                </button>
+              </div>
+            </div>
           ) : notifications.length === 0 ? (
             <div className="px-4 py-6 text-sm text-slate-500">{emptyMessage}</div>
           ) : (

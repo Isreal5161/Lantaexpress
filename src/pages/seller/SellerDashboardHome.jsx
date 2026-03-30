@@ -11,7 +11,7 @@ import {
 import { useSellerAuth } from "../../context/SellerAuthContext";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import axios from "axios";
-import { DashboardOverviewSkeleton } from "../../components/LoadingSkeletons";
+import { DashboardOverviewSkeleton, PageLoadErrorState } from "../../components/LoadingSkeletons";
 import { getSellerFinanceSummary } from "../../api/sellerFinance";
 import { getSellerApprovalLabel, getSellerApprovalMessage, isSellerApproved } from "../../utils/sellerApproval";
 
@@ -40,153 +40,70 @@ const SellerDashboardHome = () => {
   });
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pageError, setPageError] = useState(null);
 
-  useEffect(() => {
+  const fetchDashboard = async () => {
     if (!seller?.email) {
       setLoading(false);
+      setPageError(null);
       return;
     }
 
-    const fetchDashboard = async () => {
-      setLoading(true);
-      try {
-        const token = localStorage.getItem("sellerToken");
+    setLoading(true);
+    setPageError(null);
 
-        const response = await axios.get(`${API_URL}/seller/dashboard`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+    try {
+      const token = localStorage.getItem("sellerToken");
 
-        const financeSummary = await getSellerFinanceSummary(token);
+      const response = await axios.get(`${API_URL}/seller/dashboard`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-        const data = response.data;
+      const financeSummary = await getSellerFinanceSummary(token);
+      const data = response.data;
 
-        if (data) {
-          setStats({
-            totalRevenue: financeSummary.totalRevenue || 0,
-            totalOrders: data.totalOrders || 0,
-            productsListed: data.productsListed || 0,
-            productsPending: data.productsPending || 0,
-            pendingOrders: data.pendingOrders || 0,
-            recentOrders: data.recentOrders || [],
-            pendingBalance: financeSummary.pendingBalance || 0,
-            withdrawableBalance: financeSummary.withdrawableBalance || 0,
-            completedWithdrawals: financeSummary.completedWithdrawals || 0,
-          });
-          setChartData(financeSummary.incomeTrend?.length ? financeSummary.incomeTrend : data.dailyRevenue || []);
-        } else {
-          const allOrders = JSON.parse(localStorage.getItem("user_orders")) || [];
-          const sellerBrand = (seller?.brandName || "").trim().toLowerCase();
-          const sellerEmail = (seller?.email || "").trim().toLowerCase();
-          const sellerOrders = allOrders.filter((order) => {
-            const orderBrand = (order.brand || order.sellerBrand || "").trim().toLowerCase();
-            const orderSellerEmail = (order.sellerEmail || "").trim().toLowerCase();
+      setStats({
+        totalRevenue: financeSummary.totalRevenue || 0,
+        totalOrders: data.totalOrders || 0,
+        productsListed: data.productsListed || 0,
+        productsPending: data.productsPending || 0,
+        pendingOrders: data.pendingOrders || 0,
+        recentOrders: data.recentOrders || [],
+        pendingBalance: financeSummary.pendingBalance || 0,
+        withdrawableBalance: financeSummary.withdrawableBalance || 0,
+        completedWithdrawals: financeSummary.completedWithdrawals || 0,
+      });
+      setChartData(financeSummary.incomeTrend?.length ? financeSummary.incomeTrend : data.dailyRevenue || []);
+    } catch (error) {
+      console.error("Failed to load seller dashboard:", error);
+      setStats({
+        totalRevenue: 0,
+        totalOrders: 0,
+        productsListed: 0,
+        productsPending: 0,
+        pendingOrders: 0,
+        recentOrders: [],
+        pendingBalance: 0,
+        withdrawableBalance: 0,
+        completedWithdrawals: 0,
+      });
+      setChartData([]);
+      setPageError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            if (sellerBrand && orderBrand === sellerBrand) return true;
-            if (sellerEmail && orderSellerEmail === sellerEmail) return true;
-
-            return false;
-          });
-
-          const totalRevenue = sellerOrders.reduce((acc, curr) => acc + (curr.amount || curr.price || 0), 0);
-          const totalOrders = sellerOrders.length;
-          const pendingOrders = sellerOrders.filter(o => o.status === "Pending").length;
-
-          const allProducts = JSON.parse(localStorage.getItem("products")) || [];
-          const productsListed = allProducts.filter(p => p.sellerEmail === seller.email).length;
-          const productsPending = allProducts.filter(p => p.sellerEmail === seller.email && p.status === 'pending').length;
-
-          const recentOrders = sellerOrders.slice(-5).reverse();
-
-          setStats({
-            totalRevenue,
-            totalOrders,
-            productsListed,
-            productsPending,
-            pendingOrders,
-            recentOrders,
-            pendingBalance: 0,
-            withdrawableBalance: totalRevenue,
-            completedWithdrawals: 0,
-          });
-
-          const today = new Date();
-          const last7Days = Array.from({ length: 7 }).map((_, i) => {
-            const d = new Date();
-            d.setDate(today.getDate() - i);
-            return d.toISOString().split("T")[0];
-          }).reverse();
-
-          const dailyRevenue = last7Days.map(day => {
-            const dayRevenue = sellerOrders
-              .filter(o => o.date?.startsWith(day))
-              .reduce((acc, curr) => acc + (curr.amount || curr.price || 0), 0);
-            return { date: day, revenue: dayRevenue }; 
-          });
-
-          setChartData(dailyRevenue);
-        }
-      } catch (error) {
-        console.warn("Backend not ready, falling back to localStorage", error);
-        const allOrders = JSON.parse(localStorage.getItem("user_orders")) || [];
-        const sellerBrand = (seller?.brandName || "").trim().toLowerCase();
-        const sellerEmail = (seller?.email || "").trim().toLowerCase();
-        const sellerOrders = allOrders.filter((order) => {
-          const orderBrand = (order.brand || order.sellerBrand || "").trim().toLowerCase();
-          const orderSellerEmail = (order.sellerEmail || "").trim().toLowerCase();
-
-          if (sellerBrand && orderBrand === sellerBrand) return true;
-          if (sellerEmail && orderSellerEmail === sellerEmail) return true;
-
-          return false;
-        });
-
-        const totalRevenue = sellerOrders.reduce((acc, curr) => acc + (curr.amount || curr.price || 0), 0);
-        const totalOrders = sellerOrders.length;
-        const pendingOrders = sellerOrders.filter(o => o.status === "Pending").length;
-
-        const allProducts = JSON.parse(localStorage.getItem("products")) || [];
-        const productsListed = allProducts.filter(p => p.sellerEmail === seller.email).length;
-        const productsPending = allProducts.filter(p => p.sellerEmail === seller.email && p.status === 'pending').length;
-
-        const recentOrders = sellerOrders.slice(-5).reverse();
-
-        setStats({
-          totalRevenue,
-          totalOrders,
-          productsListed,
-          productsPending,
-          pendingOrders,
-          recentOrders,
-          pendingBalance: 0,
-          withdrawableBalance: totalRevenue,
-          completedWithdrawals: 0,
-        });
-
-        const today = new Date();
-        const last7Days = Array.from({ length: 7 }).map((_, i) => {
-          const d = new Date();
-          d.setDate(today.getDate() - i);
-          return d.toISOString().split("T")[0];
-        }).reverse();
-
-        const dailyRevenue = last7Days.map(day => {
-          const dayRevenue = sellerOrders
-            .filter(o => o.date?.startsWith(day))
-            .reduce((acc, curr) => acc + (curr.amount || curr.price || 0), 0);
-          return { date: day, revenue: dayRevenue };
-        });
-
-        setChartData(dailyRevenue);
-      } finally {
-        setLoading(false);
-      }
-    };
-
+  useEffect(() => {
     fetchDashboard();
-  }, [seller]);
+  }, [seller?.email]);
 
   if (loading) {
     return <DashboardOverviewSkeleton />;
+  }
+
+  if (pageError) {
+    return <PageLoadErrorState error={pageError} onRefresh={fetchDashboard} />;
   }
 
   return (

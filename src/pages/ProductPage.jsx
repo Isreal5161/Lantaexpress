@@ -9,7 +9,16 @@ import { Text } from '../components/Text';
 import { Header } from '../components/header';
 import { Footer } from '../components/footer';
 import { ProductCard } from '../components/ProductCard';
-import { ProductDetailSkeleton, ProductGridSkeleton } from '../components/LoadingSkeletons';
+import {
+  PageLoadErrorState,
+  ProductPageSkeleton,
+} from '../components/LoadingSkeletons';
+import {
+  getEffectiveProductPrice,
+  getOriginalProductPrice,
+  getProductDiscountPercent,
+  hasActiveProductDiscount,
+} from '../utils/productPricing';
 
 export const ProductPage = () => {
   const { addToCart } = useCart();
@@ -17,59 +26,41 @@ export const ProductPage = () => {
   const [product, setProduct] = useState(null);
   const [exploreProducts, setExploreProducts] = useState([]);
   const [quantity, setQuantity] = useState(1);
-  const [loadingProduct, setLoadingProduct] = useState(true);
-  const [loadingExplore, setLoadingExplore] = useState(true);
+  const [loadingPage, setLoadingPage] = useState(true);
+  const [pageError, setPageError] = useState(null);
+  const effectivePrice = getEffectiveProductPrice(product || {});
+  const originalPrice = getOriginalProductPrice(product || {});
+  const hasDiscount = hasActiveProductDiscount(product || {});
+  const discountPercent = getProductDiscountPercent(product || {});
 
-  // Fetch main product
-  useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        setLoadingProduct(true);
-        const data = await getProductById(id);
-        if (data) {
-          setProduct(data);
-        } else {
-          // fallback default
-          setProduct({
-            id: 1,
-            name: "Premium Noise-Cancelling Headphones",
-            price: 299,
-            image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1000&q=80",
-            description: "Experience pure sound with our industry-leading noise cancelling technology.",
-            rating: 5,
-            features: [
-              "Active Noise Cancellation",
-              "30-hour battery life",
-              "Premium leather ear cushions",
-              "2-year warranty included"
-            ]
-          });
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoadingProduct(false);
-      }
-    };
-    fetchProduct();
-  }, [id]);
+  const loadProductPage = async () => {
+    try {
+      setLoadingPage(true);
+      setPageError(null);
 
-  // Fetch Explore More products
-  useEffect(() => {
-    const fetchExplore = async () => {
-      try {
-        setLoadingExplore(true);
-        const data = await getProducts();
-        // exclude current product
-        const filtered = data?.filter(p => p.id.toString() !== id) || [];
-        setExploreProducts(filtered);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoadingExplore(false);
+      const [selectedProduct, allProducts] = await Promise.all([
+        getProductById(id),
+        getProducts(),
+      ]);
+
+      if (!selectedProduct) {
+        throw new Error("Failed to load this product.");
       }
-    };
-    fetchExplore();
+
+      setProduct(selectedProduct);
+      setExploreProducts((allProducts || []).filter((item) => item.id.toString() !== id));
+    } catch (error) {
+      console.error("Failed to load product page:", error);
+      setProduct(null);
+      setExploreProducts([]);
+      setPageError(error);
+    } finally {
+      setLoadingPage(false);
+    }
+  };
+
+  useEffect(() => {
+    loadProductPage();
   }, [id]);
 
   return (
@@ -77,8 +68,10 @@ export const ProductPage = () => {
       <Header />
 
       <main className="pb-20 md:pb-0">
-        {loadingProduct || !product ? (
-          <ProductDetailSkeleton />
+        {loadingPage ? (
+          <ProductPageSkeleton />
+        ) : pageError || !product ? (
+          <PageLoadErrorState error={pageError} onRefresh={loadProductPage} />
         ) : (
           <>
         {/* Breadcrumb */}
@@ -123,7 +116,15 @@ export const ProductPage = () => {
     </div>
     <Text className="ml-2 text-sm text-slate-500">{product.reviews || 0} reviews</Text>
   </div>
-  <p className="text-2xl font-bold text-slate-900 mb-6">₦{product.price}</p>
+  <div className="mb-6 flex flex-wrap items-center gap-3">
+    <p className="text-2xl font-bold text-slate-900">₦{effectivePrice.toLocaleString()}</p>
+    {hasDiscount && (
+      <>
+        <p className="text-base text-slate-400 line-through">₦{originalPrice.toLocaleString()}</p>
+        <span className="rounded-full bg-red-100 px-3 py-1 text-sm font-semibold text-red-600">-{discountPercent}%</span>
+      </>
+    )}
+  </div>
 
 {/* Quantity + Long Rectangular Cart Icon Button */}
 <div className="flex items-center gap-3 mb-6">
@@ -189,8 +190,8 @@ export const ProductPage = () => {
           {/* Explore More */}
           <div className="mt-12 pt-8 border-t border-slate-200">
             <h3 className="text-lg font-bold text-slate-900 mb-6">Explore More</h3>
-            {loadingExplore ? (
-              <ProductGridSkeleton count={4} imageClassName="h-40" />
+            {exploreProducts.length === 0 ? (
+              <p className="py-10 text-center text-sm text-slate-500">No more products available right now.</p>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 px-1">
                 {exploreProducts.map(p => (

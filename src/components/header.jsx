@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from "react";
 import { useCart } from "../context/CartContextTemp";
 import { useNotification } from "../context/NotificationContext";
-import { Button } from "./Button";
 import { HeaderSearchControl } from "./HeaderSearchControl";
 import { Icon } from "./Icon";
 import { Link } from "./Link";
+import { SkeletonBlock } from "./LoadingSkeletons";
 import { NotificationDropdown } from "./NotificationDropdown";
 import { Text } from "./Text";
 
@@ -16,6 +16,7 @@ export const Header = () => {
     notifications,
     unreadCount,
     loading,
+    error,
     isAuthenticated,
     refreshNotifications,
     markNotificationRead,
@@ -49,8 +50,35 @@ export const Header = () => {
   }, []);
 
   useEffect(() => {
-    refreshNotifications(false);
+    refreshNotifications(true);
   }, []);
+
+  const notificationTrigger = ({ unreadCount: triggerUnreadCount }) => (
+    <span className={actionButtonClassName}>
+      {loading ? (
+        <SkeletonBlock className="h-5 w-5 rounded-full" />
+      ) : (
+        <Icon className="h-5 w-5" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.64 5.36 6 7.929 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 1 1-6 0h6z"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Icon>
+      )}
+      {error ? (
+        <Text className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold text-white">
+          !
+        </Text>
+      ) : triggerUnreadCount > 0 ? (
+        <Text className="absolute -top-1 -right-1 bg-green-800 text-xs font-semibold text-white min-w-4 h-4 px-1 rounded-full flex items-center justify-center">
+          {triggerUnreadCount}
+        </Text>
+      ) : null}
+    </span>
+  );
 
   return (
     <div className="sticky top-0 z-50 bg-white">
@@ -130,30 +158,15 @@ export const Header = () => {
     notifications={notifications}
     unreadCount={unreadCount}
     loading={loading}
+    error={error}
     isAuthenticated={isAuthenticated}
     onMarkRead={markNotificationRead}
     onMarkAllRead={markAllNotificationsRead}
     onClearAll={clearNotifications}
+    onRetry={() => refreshNotifications(true)}
     mobileTopClassName={showAnnouncement ? "top-24" : "top-16"}
     title="Alerts"
-    renderTrigger={({ unreadCount: triggerUnreadCount }) => (
-      <span className={actionButtonClassName}>
-        <Icon className="h-5 w-5" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.64 5.36 6 7.929 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 1 1-6 0h6z"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </Icon>
-        {triggerUnreadCount > 0 && (
-          <Text className="absolute -top-1 -right-1 bg-green-800 text-xs font-semibold text-white min-w-4 h-4 px-1 rounded-full flex items-center justify-center">
-            {triggerUnreadCount}
-          </Text>
-        )}
-      </span>
-    )}
+    renderTrigger={notificationTrigger}
   />
 </div>
             </div>
