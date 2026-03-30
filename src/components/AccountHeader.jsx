@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { HeaderSearchControl } from "./HeaderSearchControl";
 import { useCart } from "../context/CartContextTemp";
 import { useNotification } from "../context/NotificationContext";
 import { Link } from "./Link";
@@ -6,6 +7,7 @@ import { Icon } from "./Icon";
 import { NotificationDropdown } from "./NotificationDropdown";
 
 const AccountHeader = () => {
+  const actionButtonClassName = "relative inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900";
   const { cartCount } = useCart();
   const {
     notifications,
@@ -46,20 +48,10 @@ const AccountHeader = () => {
               </Link>
 
               {/* Right Icons */}
-              <div className="flex items-center space-x-6">
+              <div className="flex items-center gap-2 sm:gap-3">
 
                 {/* Search */}
-                <button className="text-slate-400 hover:text-slate-900 transition-colors">
-                  <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
-                    <path
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </Icon>
-                </button>
+                <HeaderSearchControl buttonClassName={actionButtonClassName} mobileTopClassName="top-16" />
 
                 {/* Notification */}
                 <NotificationDropdown
@@ -75,8 +67,8 @@ const AccountHeader = () => {
                   onClearAll={clearNotifications}
                   title="Account notifications"
                   renderTrigger={({ unreadCount: triggerUnreadCount }) => (
-                    <span className="text-slate-400 transition-colors hover:text-slate-900">
-                      <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
+                    <span className={actionButtonClassName}>
+                      <Icon className="h-5 w-5" viewBox="0 0 24 24" fill="none">
                         <path
                           d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.64 5.36 6 7.929 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 1 1-6 0h6z"
                           stroke="currentColor"
@@ -96,8 +88,8 @@ const AccountHeader = () => {
                 />
 
                 {/* Cart */}
-                <Link className="relative text-slate-400 hover:text-slate-900 transition-colors" href="/cart">
-                  <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
+                <Link className={actionButtonClassName} href="/cart">
+                  <Icon className="h-5 w-5" viewBox="0 0 24 24" fill="none">
                     <path
                       d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
                       stroke="currentColor"

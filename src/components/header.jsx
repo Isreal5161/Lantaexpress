@@ -3,12 +3,14 @@ import React, { useState, useEffect } from "react";
 import { useCart } from "../context/CartContextTemp";
 import { useNotification } from "../context/NotificationContext";
 import { Button } from "./Button";
+import { HeaderSearchControl } from "./HeaderSearchControl";
 import { Icon } from "./Icon";
 import { Link } from "./Link";
 import { NotificationDropdown } from "./NotificationDropdown";
 import { Text } from "./Text";
 
 export const Header = () => {
+  const actionButtonClassName = "relative inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900";
   const { cartCount } = useCart();
   const {
     notifications,
@@ -95,11 +97,13 @@ export const Header = () => {
                 </Link>
               </div>
 {/* Icons */}
-<div className="flex items-center space-x-6">
+<div className="flex items-center gap-2 sm:gap-3">
+
+  <HeaderSearchControl buttonClassName={actionButtonClassName} mobileTopClassName={showAnnouncement ? "top-24" : "top-16"} />
 
   {/* Cart */}
   <Link
-    className="text-slate-400 hover:text-slate-900 transition-colors relative"
+    className={actionButtonClassName}
     href="/cart"
   >
     <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
@@ -133,8 +137,8 @@ export const Header = () => {
     mobileTopClassName={showAnnouncement ? "top-24" : "top-16"}
     title="Alerts"
     renderTrigger={({ unreadCount: triggerUnreadCount }) => (
-      <span className="text-slate-400 transition-colors hover:text-slate-900">
-        <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
+      <span className={actionButtonClassName}>
+        <Icon className="h-5 w-5" viewBox="0 0 24 24" fill="none">
           <path
             d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.64 5.36 6 7.929 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 1 1-6 0h6z"
             stroke="currentColor"
@@ -156,26 +160,6 @@ export const Header = () => {
           </div>
         </nav>
       </header>
-
-      {/* Mobile Search Bar */}
-      <div className="md:hidden px-4 py-3 bg-white border-b border-slate-200">
-        <div className="flex items-center bg-slate-100 rounded-md px-3 py-2">
-          <Icon className="h-5 w-5 text-slate-400" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </Icon>
-          <input
-            type="text"
-            placeholder="Search products..."
-            className="bg-transparent outline-none text-sm ml-2 w-full"
-          />
-        </div>
-      </div>
 
     </div>
   );

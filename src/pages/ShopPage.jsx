@@ -1,8 +1,8 @@
 // src/pages/ShopPage.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useCart } from '../context/CartContextTemp';
 import { ProductCard } from '../components/ProductCard';
-import { getProductsByCategory } from "../service/ProductService"; // use new category fetch
+import { getProducts } from "../service/ProductService";
 import { Header } from '../components/header';
 import { Footer } from '../components/footer';
 import { Link } from '../components/Link';
@@ -12,10 +12,83 @@ import PromoModal from "../components/PromoModal";
 import { ProductGridSkeleton } from "../components/LoadingSkeletons";
 import { useSessionModal } from "../hooks/useSessionModal";
 
+const normalizeText = (value = "") =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ");
+
+const getLevenshteinDistance = (source, target) => {
+  const rows = source.length + 1;
+  const cols = target.length + 1;
+  const matrix = Array.from({ length: rows }, () => Array(cols).fill(0));
+
+  for (let row = 0; row < rows; row += 1) {
+    matrix[row][0] = row;
+  }
+
+  for (let col = 0; col < cols; col += 1) {
+    matrix[0][col] = col;
+  }
+
+  for (let row = 1; row < rows; row += 1) {
+    for (let col = 1; col < cols; col += 1) {
+      const cost = source[row - 1] === target[col - 1] ? 0 : 1;
+      matrix[row][col] = Math.min(
+        matrix[row - 1][col] + 1,
+        matrix[row][col - 1] + 1,
+        matrix[row - 1][col - 1] + cost,
+      );
+    }
+  }
+
+  return matrix[source.length][target.length];
+};
+
+const matchesProductSearch = (productName, rawQuery) => {
+  const query = normalizeText(rawQuery);
+  if (!query) {
+    return true;
+  }
+
+  const normalizedName = normalizeText(productName);
+  if (!normalizedName) {
+    return false;
+  }
+
+  if (normalizedName.includes(query)) {
+    return true;
+  }
+
+  const queryPrefix = query.slice(0, Math.min(5, query.length));
+  const words = normalizedName.split(" ").filter(Boolean);
+  const compactName = normalizedName.replace(/\s+/g, "");
+  const candidates = [...words, compactName];
+
+  return candidates.some((candidate) => {
+    if (candidate.startsWith(queryPrefix)) {
+      return true;
+    }
+
+    if (query.length < 5) {
+      return false;
+    }
+
+    const comparableSegment = candidate.slice(0, query.length);
+    if (!comparableSegment || Math.abs(comparableSegment.length - query.length) > 2) {
+      return false;
+    }
+
+    return getLevenshteinDistance(comparableSegment, query) <= 2;
+  });
+};
+
 export const ShopPage = () => {
   const { addToCart } = useCart();
   const [products, setProducts] = useState([]);
   const [activeCategory, setActiveCategory] = useState("All Products");
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const { isOpen, closeModal: closeShopPromo } = useSessionModal({
     storageKey: "lantaxpress:shop-promo-seen",
@@ -33,21 +106,38 @@ export const ShopPage = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const categoryParam = params.get("category");
+    const searchParam = params.get("search") || "";
     if (categoryParam && categories.includes(categoryParam)) {
       setActiveCategory(categoryParam);
+    } else if (!categoryParam) {
+      setActiveCategory("All Products");
     }
+    setSearchTerm(searchParam);
   }, [location.search]);
 
   // Fetch products whenever category changes
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
-      const data = await getProductsByCategory(activeCategory);
-      setProducts(data);
-      setLoading(false);
+      try {
+        const data = await getProducts();
+        setProducts(data);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchProducts();
-  }, [activeCategory]);
+  }, []);
+
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      const matchesCategory = activeCategory === "All Products" || product.category === activeCategory;
+      const matchesSearch = matchesProductSearch(product.name, searchTerm);
+      return matchesCategory && matchesSearch;
+    });
+  }, [activeCategory, products, searchTerm]);
+
+  const hasSearch = searchTerm.trim().length > 0;
 
 
   return (
@@ -104,20 +194,27 @@ export const ShopPage = () => {
               <div className="w-full">
               {loading ? (
                 <ProductGridSkeleton count={8} imageClassName="h-52" />
-              ) : products.length === 0 ? (
+              ) : filteredProducts.length === 0 ? (
                 <div className="text-center py-20 text-gray-500 text-lg font-medium">
-                  No product available yet in this category
+                  {hasSearch ? `Product not found for "${searchTerm}"` : "No product available yet in this category"}
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {products.map(product => (
+                <>
+                  {hasSearch && (
+                    <div className="mb-4 text-sm font-medium text-slate-500">
+                      Showing {filteredProducts.length} result{filteredProducts.length === 1 ? "" : "s"} for "{searchTerm}"
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {filteredProducts.map(product => (
                     <ProductCard
                       key={product.id}
                       product={product}
                       addToCart={addToCart}
                     />
                   ))}
-                </div>
+                  </div>
+                </>
               )}
             </div>
           </div>
