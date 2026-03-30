@@ -12,6 +12,7 @@ import {
 } from "react-icons/md";
 import SellerHeader from "../../components/seller/SellerHeader";
 import { useSellerAuth } from "../../context/SellerAuthContext";
+import { getSellerApprovalLabel, isSellerApproved } from "../../utils/sellerApproval";
 
 const sidebarLinks = [
   { name: "Dashboard", path: "/seller-dashboard", icon: <MdDashboard /> },
@@ -27,6 +28,7 @@ const SellerDashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { seller } = useSellerAuth();
   const sellerLogo = seller?.logo || "/lantalogo1.jpg";
+  const sellerApproved = isSellerApproved(seller);
 
   return (
     <div className="flex min-h-screen overflow-hidden bg-slate-100">
@@ -48,28 +50,43 @@ const SellerDashboardLayout = () => {
                 {seller?.brandName || "Your Brand"}
               </h1>
               <p className="text-gray-500 text-sm">Seller Dashboard</p>
+              {!sellerApproved && (
+                <span className="mt-1 inline-flex rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700">
+                  {getSellerApprovalLabel(seller)}
+                </span>
+              )}
             </div>
           </div>
         </div>
 
         <nav className="flex-1 p-4 space-y-2">
           {sidebarLinks.map((link) => (
-            <NavLink
-              key={link.name}
-              to={link.path}
-              end
-              onClick={() => setSidebarOpen(false)}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ${
-                  isActive
-                    ? "bg-green-500 text-white font-semibold shadow-md transform scale-105"
-                    : "text-gray-700 hover:bg-green-100 hover:shadow-sm"
-                }`
-              }
-            >
-              <span className="text-lg">{link.icon}</span>
-              <span className="font-medium">{link.name}</span>
-            </NavLink>
+            sellerApproved || link.path === "/seller-dashboard" ? (
+              <NavLink
+                key={link.name}
+                to={link.path}
+                end
+                onClick={() => setSidebarOpen(false)}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ${
+                    isActive
+                      ? "bg-green-500 text-white font-semibold shadow-md transform scale-105"
+                      : "text-gray-700 hover:bg-green-100 hover:shadow-sm"
+                  }`
+                }
+              >
+                <span className="text-lg">{link.icon}</span>
+                <span className="font-medium">{link.name}</span>
+              </NavLink>
+            ) : (
+              <div
+                key={link.name}
+                className="flex cursor-not-allowed items-center gap-3 rounded-lg px-4 py-3 text-gray-400"
+              >
+                <span className="text-lg">{link.icon}</span>
+                <span className="font-medium">{link.name}</span>
+              </div>
+            )
           ))}
         </nav>
       </aside>

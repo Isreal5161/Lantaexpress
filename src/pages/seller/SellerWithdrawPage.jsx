@@ -29,6 +29,7 @@ const SellerWithdrawPage = () => {
   const [accountNumber, setAccountNumber] = useState("");
   const [withdrawals, setWithdrawals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [feeSettings, setFeeSettings] = useState({
     withdrawalChargePercent: 0,
@@ -46,6 +47,7 @@ const SellerWithdrawPage = () => {
       }
 
       try {
+        setError("");
         const [summaryData, withdrawalData] = await Promise.all([
           getSellerFinanceSummary(token),
           getSellerWithdrawals(token),
@@ -62,6 +64,7 @@ const SellerWithdrawPage = () => {
         setWithdrawals(withdrawalData || []);
       } catch (error) {
         console.error("Failed to load withdrawal data:", error);
+        setError(error.message || "Failed to load withdrawal data.");
       } finally {
         setLoading(false);
       }
@@ -112,6 +115,7 @@ const SellerWithdrawPage = () => {
 
     try {
       setSubmitting(true);
+      setError("");
       const data = await createSellerWithdrawal(
         {
           amount: pendingWithdrawal.amount,
@@ -146,6 +150,7 @@ const SellerWithdrawPage = () => {
       setPendingWithdrawal(null);
     } catch (error) {
       console.error(error);
+      setError(error.message || "Failed to create withdrawal request");
       alert(error.message || "Failed to create withdrawal request");
     } finally {
       setSubmitting(false);
@@ -158,6 +163,12 @@ const SellerWithdrawPage = () => {
 
   return (
     <div className="space-y-6">
+
+      {error && (
+        <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       <h2 className="text-2xl font-bold text-gray-800">Withdraw Funds</h2>
 

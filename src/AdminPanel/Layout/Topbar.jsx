@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { FaBell, FaUserCircle, FaBars } from "react-icons/fa";
+import { FaBell, FaUserCircle, FaBars, FaSignOutAlt } from "react-icons/fa";
 import { useNotification } from "../../context/NotificationContext";
 import { NotificationDropdown } from "../../components/NotificationDropdown";
 
-export default function Topbar({ toggleSidebar }) {
+export default function Topbar({ toggleSidebar, onLogout }) {
   const {
     notifications,
     unreadCount,
@@ -65,6 +65,14 @@ export default function Topbar({ toggleSidebar }) {
             Admin
           </span>
         </div>
+        <button
+          type="button"
+          onClick={onLogout}
+          className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 sm:text-sm"
+        >
+          <FaSignOutAlt />
+          <span className="hidden sm:inline">Logout</span>
+        </button>
       </div>
     </header>
   );

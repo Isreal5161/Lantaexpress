@@ -125,6 +125,9 @@ const SellerSignup = () => {
       localStorage.setItem("currentSeller", JSON.stringify(data.user));
 
       login(data.user);
+      if (data.user?.sellerApprovalStatus === "pending") {
+        alert("Seller account created. Your account is now pending admin approval.");
+      }
       navigate("/seller-dashboard");
     } catch (err) {
       alert(err.message);

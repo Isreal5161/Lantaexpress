@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import {
   clearNotifications as clearNotificationsRequest,
   fetchNotifications,
@@ -55,6 +55,7 @@ export const NotificationProvider = ({ children }) => {
     seller: false,
     admin: false,
   });
+  const activeScopeCountsRef = useRef(new Map());
 
   const setScopeNotifications = (scope, updater) => {
     if (!scope || scope === "guest") return;
@@ -95,21 +96,39 @@ export const NotificationProvider = ({ children }) => {
     }
   };
 
+  const registerScope = (scope) => {
+    if (!scope || scope === "auto" || scope === "guest") {
+      return () => {};
+    }
+
+    const nextCount = (activeScopeCountsRef.current.get(scope) || 0) + 1;
+    activeScopeCountsRef.current.set(scope, nextCount);
+
+    return () => {
+      const currentCount = activeScopeCountsRef.current.get(scope) || 0;
+
+      if (currentCount <= 1) {
+        activeScopeCountsRef.current.delete(scope);
+        return;
+      }
+
+      activeScopeCountsRef.current.set(scope, currentCount - 1);
+    };
+  };
+
   useEffect(() => {
-    refreshNotifications("user", true);
-    refreshNotifications("seller", true);
-    refreshNotifications("admin", true);
+    const refreshActiveScopes = (showLoading = false) => {
+      activeScopeCountsRef.current.forEach((_, scope) => {
+        refreshNotifications(scope, showLoading);
+      });
+    };
 
     const interval = setInterval(() => {
-      refreshNotifications("user", false);
-      refreshNotifications("seller", false);
-      refreshNotifications("admin", false);
+      refreshActiveScopes(false);
     }, 15000);
 
     const handleFocus = () => {
-      refreshNotifications("user", false);
-      refreshNotifications("seller", false);
-      refreshNotifications("admin", false);
+      refreshActiveScopes(false);
     };
 
     window.addEventListener("focus", handleFocus);
@@ -176,6 +195,7 @@ export const NotificationProvider = ({ children }) => {
         notificationsByScope,
         loadingByScope,
         refreshNotifications,
+        registerScope,
         markNotificationRead,
         markAllNotificationsRead,
         clearNotifications,
@@ -192,6 +212,14 @@ export const useNotification = (preferredScope = "auto") => {
   const loading = Boolean(context.loadingByScope?.[preferredScope]);
   const session = getAuthSession(preferredScope);
   const unreadCount = notifications.filter((notification) => !notification.read).length;
+
+  useEffect(() => {
+    if (!context?.registerScope) {
+      return undefined;
+    }
+
+    return context.registerScope(preferredScope);
+  }, [context, preferredScope]);
 
   return {
     notifications,

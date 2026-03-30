@@ -15,6 +15,7 @@ export default function SellerPayments() {
   const [withdrawals, setWithdrawals] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [processingId, setProcessingId] = useState(null);
   const [feeSettings, setFeeSettings] = useState({ productChargePercent: 0, withdrawalChargePercent: 0 });
   const [savingFees, setSavingFees] = useState(false);
@@ -28,12 +29,14 @@ export default function SellerPayments() {
       }
 
       try {
+        setError("");
         const data = await getAdminSellerPayments(token);
         setSellers(data.sellers || []);
         setWithdrawals(data.pendingWithdrawals || []);
         setFeeSettings(data.feeSettings || { productChargePercent: 0, withdrawalChargePercent: 0 });
       } catch (error) {
         console.error("Failed to load seller payment data:", error);
+        setError(error.message || "Failed to load seller payment data.");
       } finally {
         setLoading(false);
       }
@@ -57,6 +60,7 @@ export default function SellerPayments() {
 
     try {
       setProcessingId(withdrawalId);
+      setError("");
       await updateAdminWithdrawalStatus(withdrawalId, { status }, token);
       const refreshed = await getAdminSellerPayments(token);
       setSellers(refreshed.sellers || []);
@@ -76,6 +80,7 @@ export default function SellerPayments() {
 
     try {
       setSavingFees(true);
+      setError("");
       const updated = await updateAdminPlatformFees(feeSettings, token);
       setFeeSettings(updated.feeSettings || { productChargePercent: 0, withdrawalChargePercent: 0 });
       const refreshed = await getAdminSellerPayments(token);
@@ -99,6 +104,12 @@ export default function SellerPayments() {
         Completed orders increase seller revenue. Revenue becomes withdrawable only after customer receipt is confirmed. Approved withdrawals reduce the seller’s available payout balance.
       </p>
       </div>
+
+      {error && (
+        <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       {loading ? <div className="rounded-2xl bg-white p-6 shadow">Loading seller payment data...</div> : (
       <>

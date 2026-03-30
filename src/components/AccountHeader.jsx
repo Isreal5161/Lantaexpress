@@ -1,13 +1,29 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useCart } from "../context/CartContextTemp";
 import { useNotification } from "../context/NotificationContext";
 import { Link } from "./Link";
 import { Icon } from "./Icon";
+import { NotificationDropdown } from "./NotificationDropdown";
 
 const AccountHeader = () => {
   const { cartCount } = useCart();
-  const { unreadCount, notificationCount } = useNotification("user");
+  const {
+    notifications,
+    unreadCount,
+    notificationCount,
+    loading,
+    isAuthenticated,
+    refreshNotifications,
+    markNotificationRead,
+    markAllNotificationsRead,
+    clearNotifications,
+  } = useNotification("user");
+  const [notifOpen, setNotifOpen] = useState(false);
   const activeNotificationCount = unreadCount ?? notificationCount;
+
+  useEffect(() => {
+    refreshNotifications(false);
+  }, [refreshNotifications]);
 
   return (
     <>
@@ -46,26 +62,38 @@ const AccountHeader = () => {
                 </button>
 
                 {/* Notification */}
-                <button className="relative text-slate-400 hover:text-slate-900 transition-colors">
-                  <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
-                    <path
-                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11
-                      a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341
-                      C7.67 6.165 6 8.388 6 11v3.159
-                      c0 .538-.214 1.055-.595 1.436L4 17h5"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </Icon>
+                <NotificationDropdown
+                  open={notifOpen}
+                  onToggle={() => setNotifOpen((current) => !current)}
+                  onClose={() => setNotifOpen(false)}
+                  notifications={notifications}
+                  unreadCount={activeNotificationCount}
+                  loading={loading}
+                  isAuthenticated={isAuthenticated}
+                  onMarkRead={markNotificationRead}
+                  onMarkAllRead={markAllNotificationsRead}
+                  onClearAll={clearNotifications}
+                  title="Account notifications"
+                  renderTrigger={({ unreadCount: triggerUnreadCount }) => (
+                    <span className="text-slate-400 transition-colors hover:text-slate-900">
+                      <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
+                        <path
+                          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.64 5.36 6 7.929 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 1 1-6 0h6z"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </Icon>
 
-                  {activeNotificationCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-green-800 text-xs font-semibold text-white w-4 h-4 rounded-full flex items-center justify-center">
-                      {activeNotificationCount}
+                      {triggerUnreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-green-800 text-xs font-semibold text-white min-w-4 h-4 px-1 rounded-full flex items-center justify-center">
+                          {triggerUnreadCount}
+                        </span>
+                      )}
                     </span>
                   )}
-                </button>
+                />
 
                 {/* Cart */}
                 <Link className="relative text-slate-400 hover:text-slate-900 transition-colors" href="/cart">

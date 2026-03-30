@@ -23,9 +23,9 @@ export default function SellerCard({ seller }) {
         <span className="text-sm text-slate-500">Status</span>
         <span
           className={`px-2 py-1 text-xs rounded ${
-            seller.status === "Verified"
+            seller.status === "Approved"
               ? "bg-green-100 text-green-700"
-              : seller.status === "Pending"
+              : seller.status === "Pending Approval"
               ? "bg-yellow-100 text-yellow-700"
               : "bg-red-100 text-red-700"
           }`}

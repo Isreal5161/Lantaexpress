@@ -5,10 +5,13 @@ import { categories } from "../../service/dummyCategories";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import { ProductGridSkeleton } from "../../components/LoadingSkeletons";
 import { getSellerPlatformFees } from "../../api/sellerFinance";
+import { getSellerApprovalLabel, getSellerApprovalMessage, isSellerApproved } from "../../utils/sellerApproval";
 
 const API_URL = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
 
 const SellerProductsPage = () => {
+  const currentSeller = JSON.parse(localStorage.getItem("currentSeller") || "null");
+  const sellerApproved = isSellerApproved(currentSeller);
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -42,7 +45,7 @@ const SellerProductsPage = () => {
       });
 
       const data = await res.json();
-      setProducts(Array.isArray(data) ? data : []);
+      setProducts(Array.isArray(data) ? data : Array.isArray(data.products) ? data.products : []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -76,6 +79,11 @@ const SellerProductsPage = () => {
   const approvedProducts = filteredProducts.filter(p => p.status === "approved");
 
   const handleOpenModal = (product = null) => {
+    if (!sellerApproved) {
+      alert(getSellerApprovalMessage(currentSeller));
+      return;
+    }
+
     if (product) {
       setEditingProduct(product);
       setFormData({
@@ -166,6 +174,11 @@ const SellerProductsPage = () => {
   };
 
   const handleDelete = async (id) => {
+    if (!sellerApproved) {
+      alert(getSellerApprovalMessage(currentSeller));
+      return;
+    }
+
     setConfirmTarget(id);
     setConfirmOpen(true);
   };
@@ -195,6 +208,13 @@ const SellerProductsPage = () => {
 
   return (
     <div className="space-y-6">
+      {!sellerApproved && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <p className="font-semibold">{getSellerApprovalLabel(currentSeller)}</p>
+          <p className="mt-1">{getSellerApprovalMessage(currentSeller)}</p>
+        </div>
+      )}
+
       {/* UI NOT TOUCHED */}
       <div className="flex gap-4 items-center flex-wrap mt-4">
         <select
@@ -269,7 +289,11 @@ const SellerProductsPage = () => {
 
       {/* Floating Add Product button at bottom-right */}
       <div className="fixed right-6 bottom-6 z-40">
-        <button onClick={() => handleOpenModal()} className="flex items-center gap-2 bg-green-600 text-white px-4 py-3 rounded-full shadow-lg">
+        <button
+          onClick={() => handleOpenModal()}
+          disabled={!sellerApproved}
+          className={`flex items-center gap-2 px-4 py-3 rounded-full shadow-lg ${sellerApproved ? "bg-green-600 text-white" : "cursor-not-allowed bg-slate-300 text-slate-600"}`}
+        >
           <MdAdd /> Add Product
         </button>
       </div>

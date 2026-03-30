@@ -53,6 +53,9 @@ const SellerLogin = () => {
       localStorage.setItem("currentSeller", JSON.stringify(data.user));
 
       login(data.user);
+      if (data.user?.sellerApprovalStatus === "pending") {
+        setError("Your seller account is pending admin approval. Dashboard access is limited until approval.");
+      }
       navigate("/seller-dashboard");
     } catch (err) {
       setError(err.message);

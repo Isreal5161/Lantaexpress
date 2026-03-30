@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { clearAdminSession } from "./utils/adminSession";
 
 const API_URL = process.env.REACT_APP_API_URL || "https://lantaxpressbackend.onrender.com/api/auth";
 
@@ -27,6 +28,8 @@ const AdminLogin = () => {
     setError("");
 
     try {
+      clearAdminSession();
+
       const res = await fetch(`${API_URL}/admin/login`, {
         method: "POST",
         headers: {

@@ -58,6 +58,7 @@ import SellerRequests from "./AdminPanel/pages/SellerRequests";
 import OrderLocations from "./AdminPanel/pages/OrderLocations";
 import LogisticsRequest from "./AdminPanel/pages/LogisticsRequest";
 import SellerOrders from "./AdminPanel/pages/SellerOrders";
+import { purgeInvalidAdminSession } from "./AdminPanel/utils/adminSession";
 
 // Context & Routes
 import { SellerAuthProvider } from "./context/SellerAuthContext";
@@ -65,22 +66,7 @@ import ProtectedSellerRoute from "./routes/ProtectedSellerRoute";
 
 // ✅ ADMIN ROUTE PROTECTION
 const AdminRoute = ({ children }) => {
-  let user = null;
-  const token = localStorage.getItem("token");
-  const storedUser = localStorage.getItem("adminUser");
-
-  // Only parse if it exists and is not "undefined"
-  if (storedUser && storedUser !== "undefined") {
-    try {
-      user = JSON.parse(storedUser);
-    } catch (err) {
-      console.error("Corrupted user data, clearing...");
-      localStorage.removeItem("adminUser");
-      user = null;
-    }
-  }
-
-  if (!token || !user || user.role !== "admin") {
+  if (!purgeInvalidAdminSession()) {
     return <Navigate to="/admin/login" replace />;
   }
 

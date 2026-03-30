@@ -21,6 +21,7 @@ const SellerIncomePage = () => {
     recentSettlements: [],
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const loadFinance = async () => {
@@ -31,6 +32,7 @@ const SellerIncomePage = () => {
       }
 
       try {
+        setError("");
         const data = await getSellerFinanceSummary(token);
         setIncomeData(data.incomeTrend || []);
         setSummary({
@@ -43,6 +45,7 @@ const SellerIncomePage = () => {
         });
       } catch (error) {
         console.error("Failed to load seller finance summary:", error);
+        setError(error.message || "Failed to load seller finance summary.");
       } finally {
         setLoading(false);
       }
@@ -57,6 +60,12 @@ const SellerIncomePage = () => {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
       <h2 className="text-2xl font-bold text-gray-800">Income Dashboard</h2>
       <p className="text-sm text-gray-500">
         Revenue moves into withdrawable balance only after the customer confirms receipt or the order reaches completed status.

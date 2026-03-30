@@ -13,6 +13,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import axios from "axios";
 import { DashboardOverviewSkeleton } from "../../components/LoadingSkeletons";
 import { getSellerFinanceSummary } from "../../api/sellerFinance";
+import { getSellerApprovalLabel, getSellerApprovalMessage, isSellerApproved } from "../../utils/sellerApproval";
 
 const API_URL = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
 
@@ -25,6 +26,7 @@ const formatCurrency = (value) =>
 
 const SellerDashboardHome = () => {
   const { seller } = useSellerAuth();
+  const sellerApproved = isSellerApproved(seller);
   const [stats, setStats] = useState({
     totalRevenue: 0,
     totalOrders: 0,
@@ -189,6 +191,20 @@ const SellerDashboardHome = () => {
 
   return (
     <div className="min-w-0 space-y-8">
+
+      {!sellerApproved && (
+        <section className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-900 shadow-sm">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold">{getSellerApprovalLabel(seller)}</h2>
+              <p className="text-sm">{getSellerApprovalMessage(seller)}</p>
+            </div>
+            <span className="inline-flex rounded-full bg-white px-3 py-1 text-xs font-semibold text-amber-700">
+              Waiting for admin review
+            </span>
+          </div>
+        </section>
+      )}
 
       {/* Welcome */}
       <section>
