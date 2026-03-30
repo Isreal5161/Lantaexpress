@@ -1,17 +1,13 @@
 // src/pages/seller/SellerSignup.jsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useSellerAuth } from "../../context/SellerAuthContext";
 import "../../styles/globals.css";
+import { getCategories } from "../../service/CategoryService";
 
 const nigeriaStates = [
   "Lagos","Abuja (FCT)","Oyo","Ogun","Rivers","Kano",
   "Kaduna","Anambra","Delta","Enugu","Osun","Ekiti"
-];
-
-const categoriesList = [
-  "Fashion","Electronics","Beauty","Home & Kitchen","Groceries",
-  "Phones & Accessories","Computers","Baby Products","Sports","Health"
 ];
 
 const API_AUTH = process.env.REACT_APP_API_URL || "https://lantaxpressbackend.onrender.com/api/auth";
@@ -21,6 +17,7 @@ const SellerSignup = () => {
   const { login } = useSellerAuth();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [categoriesList, setCategoriesList] = useState([]);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -51,13 +48,36 @@ const SellerSignup = () => {
   };
 
   const handleCategoryChange = (category) => {
-    setFormData(prev => ({
+    const selectedCategories = Array.from(category.target.selectedOptions, (option) => option.value);
+    setFormData((prev) => ({
       ...prev,
-      categories: prev.categories.includes(category)
-        ? prev.categories.filter(c => c !== category)
-        : [...prev.categories, category]
+      categories: selectedCategories,
     }));
   };
+
+  useEffect(() => {
+    let active = true;
+
+    const loadCategories = async () => {
+      try {
+        const data = await getCategories();
+        if (active) {
+          setCategoriesList(data.map((category) => category.title));
+        }
+      } catch (error) {
+        console.error("Failed to load seller signup categories:", error);
+        if (active) {
+          setCategoriesList([]);
+        }
+      }
+    };
+
+    loadCategories();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
@@ -208,15 +228,19 @@ const SellerSignup = () => {
                 className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none" />
               <div>
                 <p className="font-medium mb-2 text-green-800">Select Categories</p>
-                <div className="grid grid-cols-2 gap-3">
+                <select
+                  multiple
+                  value={formData.categories}
+                  onChange={handleCategoryChange}
+                  className="min-h-40 w-full rounded-xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-300"
+                >
                   {categoriesList.map((cat) => (
-                    <label key={cat} className="flex items-center space-x-2 cursor-pointer hover:text-green-700 transition">
-                      <input type="checkbox" checked={formData.categories.includes(cat)}
-                        onChange={() => handleCategoryChange(cat)} className="accent-green-600" />
-                      <span>{cat}</span>
-                    </label>
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
                   ))}
-                </div>
+                </select>
+                <p className="mt-2 text-sm text-green-700">Hold Ctrl or Cmd to choose multiple categories.</p>
               </div>
               <div>
                 <p className="font-medium mb-2 text-green-800">Upload Brand Logo</p>

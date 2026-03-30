@@ -1,10 +1,10 @@
 // src/pages/seller/SellerProfilePage.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { MdDelete, MdEdit, MdStorefront } from "react-icons/md";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import { useSellerAuth } from "../../context/SellerAuthContext";
 import { getSellerFinanceSummary } from "../../api/sellerFinance";
-import { categories } from "../../service/dummyCategories";
+import { getCategories } from "../../service/CategoryService";
 import { PageLoadErrorState, ProductGridSkeleton, SellerProfileSkeleton } from "../../components/LoadingSkeletons";
 import {
   getEffectiveProductPrice,
@@ -29,19 +29,6 @@ const nigeriaStates = [
   "Enugu",
   "Osun",
   "Ekiti",
-];
-
-const categoriesList = [
-  "Fashion",
-  "Electronics",
-  "Beauty",
-  "Home & Kitchen",
-  "Groceries",
-  "Phones & Accessories",
-  "Computers",
-  "Baby Products",
-  "Sports",
-  "Health",
 ];
 
 const formatCurrency = (value) =>
@@ -76,6 +63,7 @@ const SellerProfilePage = () => {
   const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [pageError, setPageError] = useState(null);
+  const [categoryDefinitions, setCategoryDefinitions] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [previewList, setPreviewList] = useState([]);
@@ -191,6 +179,48 @@ const SellerProfilePage = () => {
   useEffect(() => {
     loadProducts();
   }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadCategories = async () => {
+      try {
+        const data = await getCategories();
+        if (active) {
+          setCategoryDefinitions(data);
+        }
+      } catch (error) {
+        console.error("Failed to load seller profile categories:", error);
+        if (active) {
+          setCategoryDefinitions([]);
+        }
+      }
+    };
+
+    loadCategories();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const categoriesList = useMemo(() => {
+    const orderedCategories = categoryDefinitions.map((category) => category.title);
+    const productCategories = Array.from(
+      new Set(products.map((product) => product?.category?.trim()).filter(Boolean))
+    );
+    const sellerCategories = Array.from(
+      new Set((profileForm.categories || []).map((category) => category?.trim()).filter(Boolean))
+    );
+
+    return [
+      ...orderedCategories,
+      ...productCategories.filter((category) => !orderedCategories.includes(category)),
+      ...sellerCategories.filter(
+        (category) => !orderedCategories.includes(category) && !productCategories.includes(category)
+      ),
+    ];
+  }, [categoryDefinitions, products, profileForm.categories]);
 
   const retryPageLoad = async () => {
     await Promise.all([loadProfile(), loadProducts()]);
@@ -635,9 +665,9 @@ const SellerProfilePage = () => {
                   className="w-full rounded border px-3 py-2"
                 >
                   <option value="">Select Category</option>
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.title}>
-                      {category.title}
+                  {categoriesList.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
                     </option>
                   ))}
                 </select>

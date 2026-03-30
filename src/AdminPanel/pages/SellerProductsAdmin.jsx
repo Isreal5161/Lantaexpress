@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import AdminLayout from "../Layout/AdminLayout";
-import { categories } from "../../service/dummyCategories";
 import { FaEdit, FaTrash, FaArrowRight } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { getCategories } from "../../service/CategoryService";
 
 export default function SellerProductsAdmin() {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [editingProduct, setEditingProduct] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
@@ -49,6 +50,10 @@ export default function SellerProductsAdmin() {
     };
 
     fetchPending();
+    getCategories().then(setCategories).catch((error) => {
+      console.error("Failed to load admin seller product categories:", error);
+      setCategories([]);
+    });
   }, []);
 
   const handleEditClick = (product) => {
@@ -215,14 +220,17 @@ export default function SellerProductsAdmin() {
                   onChange={handleFormChange}
                   className="w-full border rounded px-3 py-2"
                 />
-                <input
-                  type="text"
+                <select
                   name="category"
-                  placeholder="Category"
                   value={formData.category}
                   onChange={handleFormChange}
                   className="w-full border rounded px-3 py-2"
-                />
+                >
+                  <option value="">Select Category</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.title}>{category.title}</option>
+                  ))}
+                </select>
                 <input
                   type="number"
                   name="stock"

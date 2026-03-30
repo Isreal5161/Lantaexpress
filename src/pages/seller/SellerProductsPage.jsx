@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { MdAdd, MdEdit, MdDelete } from "react-icons/md";
 import { FiSearch } from "react-icons/fi";
-import { categories } from "../../service/dummyCategories";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import { PageLoadErrorState, ProductGridSkeleton } from "../../components/LoadingSkeletons";
 import { getSellerPlatformFees } from "../../api/sellerFinance";
 import { getSellerApprovalLabel, getSellerApprovalMessage, isSellerApproved } from "../../utils/sellerApproval";
+import { getCategories } from "../../service/CategoryService";
 import {
   getEffectiveProductPrice,
   getOriginalProductPrice,
@@ -31,6 +31,7 @@ const SellerProductsPage = () => {
   const [deleting, setDeleting] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [pageError, setPageError] = useState(null);
+  const [categoryDefinitions, setCategoryDefinitions] = useState([]);
   const [feeSettings, setFeeSettings] = useState({ productChargePercent: 0, withdrawalChargePercent: 0 });
   const [productFeeModalOpen, setProductFeeModalOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -87,6 +88,39 @@ const SellerProductsPage = () => {
   useEffect(() => {
     loadPageData();
   }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadCategories = async () => {
+      try {
+        const data = await getCategories();
+        if (active) {
+          setCategoryDefinitions(data);
+        }
+      } catch (error) {
+        console.error("Failed to load seller product categories:", error);
+        if (active) {
+          setCategoryDefinitions([]);
+        }
+      }
+    };
+
+    loadCategories();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const categories = useMemo(() => {
+    const orderedCategories = categoryDefinitions.map((category) => category.title);
+    const productCategories = Array.from(
+      new Set(products.map((product) => product?.category?.trim()).filter(Boolean))
+    );
+
+    return [...orderedCategories, ...productCategories.filter((category) => !orderedCategories.includes(category))];
+  }, [categoryDefinitions, products]);
 
   const filteredProducts = products.filter(
     (p) =>

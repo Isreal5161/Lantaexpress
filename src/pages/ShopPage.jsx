@@ -15,78 +15,8 @@ import {
   ShopPageSkeleton,
 } from "../components/LoadingSkeletons";
 import { useSessionModal } from "../hooks/useSessionModal";
-
-const normalizeText = (value = "") =>
-  value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s]/g, " ")
-    .replace(/\s+/g, " ");
-
-const getLevenshteinDistance = (source, target) => {
-  const rows = source.length + 1;
-  const cols = target.length + 1;
-  const matrix = Array.from({ length: rows }, () => Array(cols).fill(0));
-
-  for (let row = 0; row < rows; row += 1) {
-    matrix[row][0] = row;
-  }
-
-  for (let col = 0; col < cols; col += 1) {
-    matrix[0][col] = col;
-  }
-
-  for (let row = 1; row < rows; row += 1) {
-    for (let col = 1; col < cols; col += 1) {
-      const cost = source[row - 1] === target[col - 1] ? 0 : 1;
-      matrix[row][col] = Math.min(
-        matrix[row - 1][col] + 1,
-        matrix[row][col - 1] + 1,
-        matrix[row - 1][col - 1] + cost,
-      );
-    }
-  }
-
-  return matrix[source.length][target.length];
-};
-
-const matchesProductSearch = (productName, rawQuery) => {
-  const query = normalizeText(rawQuery);
-  if (!query) {
-    return true;
-  }
-
-  const normalizedName = normalizeText(productName);
-  if (!normalizedName) {
-    return false;
-  }
-
-  if (normalizedName.includes(query)) {
-    return true;
-  }
-
-  const queryPrefix = query.slice(0, Math.min(5, query.length));
-  const words = normalizedName.split(" ").filter(Boolean);
-  const compactName = normalizedName.replace(/\s+/g, "");
-  const candidates = [...words, compactName];
-
-  return candidates.some((candidate) => {
-    if (candidate.startsWith(queryPrefix)) {
-      return true;
-    }
-
-    if (query.length < 5) {
-      return false;
-    }
-
-    const comparableSegment = candidate.slice(0, query.length);
-    if (!comparableSegment || Math.abs(comparableSegment.length - query.length) > 2) {
-      return false;
-    }
-
-    return getLevenshteinDistance(comparableSegment, query) <= 2;
-  });
-};
+import { getCategories } from "../service/CategoryService";
+import { matchesProductSearch } from "../utils/productSearch";
 
 export const ShopPage = () => {
   const { addToCart } = useCart();
@@ -95,18 +25,28 @@ export const ShopPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState(null);
+  const [categoryDefinitions, setCategoryDefinitions] = useState([]);
   const { isOpen, closeModal: closeShopPromo } = useSessionModal({
     storageKey: "lantaxpress:shop-promo-seen",
     delay: 1200,
     persistInSession: false,
   });
 
-  const categories = [
-    "All Products", "Phone/Device", "Perfumes & Cosmetics","Home & Living", "Agriculture & Livestocks",
-    "Fashion", "Electronics","Sports & Fitness","Toys & Hobbies",
-    "Automotive & Accessories","Books & Stationery","Used Materials", "Cereals"
-  ];
   const location = useLocation();
+
+  const categories = useMemo(() => {
+    const orderedCategories = categoryDefinitions.map((category) => category.title);
+    const backendOnlyCategories = Array.from(
+      new Set(
+        products
+          .map((product) => product?.category?.trim())
+          .filter(Boolean),
+      ),
+    ).filter((category) => !orderedCategories.includes(category));
+
+    return ["All Products", ...orderedCategories, ...backendOnlyCategories];
+  }, [categoryDefinitions, products]);
+
   const fetchProducts = async () => {
     setLoading(true);
     setPageError(null);
@@ -132,16 +72,40 @@ export const ShopPage = () => {
       setActiveCategory("All Products");
     }
     setSearchTerm(searchParam);
-  }, [location.search]);
+  }, [categories, location.search]);
 
   useEffect(() => {
     fetchProducts();
   }, []);
 
+  useEffect(() => {
+    let active = true;
+
+    const loadCategories = async () => {
+      try {
+        const data = await getCategories();
+        if (active) {
+          setCategoryDefinitions(data);
+        }
+      } catch (error) {
+        console.error("Failed to load shop categories:", error);
+        if (active) {
+          setCategoryDefinitions([]);
+        }
+      }
+    };
+
+    loadCategories();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
       const matchesCategory = activeCategory === "All Products" || product.category === activeCategory;
-      const matchesSearch = matchesProductSearch(product.name, searchTerm);
+      const matchesSearch = matchesProductSearch(product, searchTerm);
       return matchesCategory && matchesSearch;
     });
   }, [activeCategory, products, searchTerm]);

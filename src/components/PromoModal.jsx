@@ -3,11 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 
-const fallbackProducts = [
-  { id: 1, name: "Runner", image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff", price: 25999, rating: "4.5" },
-  { id: 2, name: "Watch", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30", price: 85000, rating: "4.7" },
-];
-
 const conversionRates = { NGN: 1, USD: 0.0026 };
 
 const nigeriaStates = new Set([
@@ -79,17 +74,13 @@ const PromoModal = ({ isOpen, onClose, products = [] }) => {
   const [timeLeft, setTimeLeft] = useState(3600);
   const userCurrency = useMemo(() => getCurrencyFromUserContext(), [isOpen]);
   const promoProducts = useMemo(() => {
-    if (products.length > 0) {
-      return products.slice(0, 2).map((product, index) => ({
-        id: product.id || index,
-        name: product.name || "Featured item",
-        image: product.image || "/placeholder.png",
-        price: product.price,
-        rating: "4.8",
-      }));
-    }
-
-    return fallbackProducts;
+    return products.slice(0, 2).map((product, index) => ({
+      id: product.id || index,
+      name: product.name || "Featured item",
+      image: product.image || "/placeholder.png",
+      price: product.price,
+      rating: "4.8",
+    }));
   }, [products]);
 
   useEffect(() => {
@@ -187,18 +178,24 @@ const PromoModal = ({ isOpen, onClose, products = [] }) => {
                 </div>
 
                 <div className="px-4 py-4 sm:px-6 sm:py-5 md:px-6 md:py-6">
-                  <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-                    {promoProducts.map((product) => (
-                      <div
-                        key={product.id}
-                        className="rounded-2xl border border-slate-100 bg-white p-2 shadow-sm"
-                      >
-                        <img src={product.image} alt={product.name} className="h-14 w-full rounded-xl object-cover sm:h-20" />
-                        <p className="mt-2 truncate text-[11px] font-semibold text-slate-900 sm:text-xs">{product.name}</p>
-                        <p className="text-[11px] font-semibold text-slate-700">{formatPrice(convertPrice(product.price, userCurrency), userCurrency)}</p>
-                      </div>
-                    ))}
-                  </div>
+                  {promoProducts.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+                      {promoProducts.map((product) => (
+                        <div
+                          key={product.id}
+                          className="rounded-2xl border border-slate-100 bg-white p-2 shadow-sm"
+                        >
+                          <img src={product.image} alt={product.name} className="h-14 w-full rounded-xl object-cover sm:h-20" />
+                          <p className="mt-2 truncate text-[11px] font-semibold text-slate-900 sm:text-xs">{product.name}</p>
+                          <p className="text-[11px] font-semibold text-slate-700">{formatPrice(convertPrice(product.price, userCurrency), userCurrency)}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex h-full min-h-32 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 text-center text-sm text-slate-500">
+                      No live deals available right now.
+                    </div>
+                  )}
 
                   <div className="mt-3 rounded-2xl bg-slate-50 px-4 py-3 text-[11px] leading-5 text-slate-500 sm:mt-4 sm:text-xs">
                     Fresh picks, ready to shop.

@@ -56,9 +56,20 @@ export const HeaderSearchControl = ({
     event.preventDefault();
 
     const normalizedQuery = normalizeSearchQuery(query);
-    const search = normalizedQuery ? `?search=${encodeURIComponent(normalizedQuery)}` : "";
+    const params = new URLSearchParams(location.search);
 
-    navigate(`/shop${search}`);
+    if (normalizedQuery) {
+      params.set("search", normalizedQuery);
+    } else {
+      params.delete("search");
+    }
+
+    const nextSearch = params.toString();
+    const supportedInlineSearchPath = location.pathname === "/" || location.pathname === "/shop";
+    const targetPath = supportedInlineSearchPath ? location.pathname : "/shop";
+    const targetUrl = nextSearch ? `${targetPath}?${nextSearch}` : targetPath;
+
+    navigate(targetUrl);
     setOpen(false);
   };
 

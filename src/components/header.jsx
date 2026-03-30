@@ -9,7 +9,7 @@ import { SkeletonBlock } from "./LoadingSkeletons";
 import { NotificationDropdown } from "./NotificationDropdown";
 import { Text } from "./Text";
 
-export const Header = () => {
+export const Header = ({ hideSearchControl = false }) => {
   const actionButtonClassName = "relative inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900";
   const { cartCount } = useCart();
   const {
@@ -127,7 +127,9 @@ export const Header = () => {
 {/* Icons */}
 <div className="flex items-center gap-2 sm:gap-3">
 
-  <HeaderSearchControl buttonClassName={actionButtonClassName} mobileTopClassName={showAnnouncement ? "top-24" : "top-16"} />
+  {!hideSearchControl && (
+    <HeaderSearchControl buttonClassName={actionButtonClassName} mobileTopClassName={showAnnouncement ? "top-24" : "top-16"} />
+  )}
 
   {/* Cart */}
   <Link

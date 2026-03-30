@@ -1,15 +1,55 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import AdminLayout from "../Layout/AdminLayout";
-import { categories } from "../../service/dummyCategories";
+import { createCategory, getCategories } from "../../service/CategoryService";
 
 export default function AdminProductsPage() {
   const [allProducts, setAllProducts] = useState([]);
   const [pendingProducts, setPendingProducts] = useState([]);
   const [filteredCategory, setFilteredCategory] = useState("All");
+  const [categories, setCategories] = useState([]);
   const API_BASE = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
   const token = localStorage.getItem('token');
   const [editingProduct, setEditingProduct] = useState(null);
   const [editForm, setEditForm] = useState({ name: '', price: '', stock: '', category: '', brand: '', description: '' });
+  const [newCategoryTitle, setNewCategoryTitle] = useState("");
+  const [creatingCategory, setCreatingCategory] = useState(false);
+
+  const availableCategories = useMemo(() => {
+    const fetchedCategories = categories.map((category) => ({
+      id: category.id,
+      title: category.title,
+    }));
+
+    const categoryMap = new Map(
+      fetchedCategories
+        .filter((category) => category.title)
+        .map((category) => [category.title, category])
+    );
+
+    [...allProducts, ...pendingProducts].forEach((product) => {
+      const title = product?.category?.trim();
+      if (!title || categoryMap.has(title)) {
+        return;
+      }
+
+      categoryMap.set(title, {
+        id: `product-${title}`,
+        title,
+      });
+    });
+
+    return Array.from(categoryMap.values());
+  }, [allProducts, categories, pendingProducts]);
+
+  const loadCategories = async () => {
+    try {
+      const data = await getCategories();
+      setCategories(data);
+    } catch (err) {
+      console.error('Failed to load categories', err);
+      setCategories([]);
+    }
+  };
 
   // Load products from backend
   const loadProducts = async () => {
@@ -58,9 +98,30 @@ export default function AdminProductsPage() {
 
   useEffect(() => {
     loadProducts();
+    loadCategories();
     const interval = setInterval(loadProducts, 7000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleCreateCategory = async (e) => {
+    e.preventDefault();
+    if (!newCategoryTitle.trim()) {
+      return;
+    }
+
+    try {
+      setCreatingCategory(true);
+      await createCategory({ title: newCategoryTitle, token });
+      setNewCategoryTitle('');
+      await loadCategories();
+      alert('Category created');
+    } catch (err) {
+      console.error(err);
+      alert(err.message || 'Failed to create category');
+    } finally {
+      setCreatingCategory(false);
+    }
+  };
 
   // Approve seller product (call backend)
   const handleApprove = async (product) => {
@@ -113,6 +174,22 @@ export default function AdminProductsPage() {
       )}
 
       {/* Filter */}
+      <div className="mb-6 rounded-xl border bg-white p-4 shadow-sm">
+        <h2 className="text-lg font-semibold text-slate-800">Category Management</h2>
+        <p className="mt-1 text-sm text-slate-500">New categories added here become available to sellers and storefront pages.</p>
+        <form onSubmit={handleCreateCategory} className="mt-4 flex flex-col gap-3 sm:flex-row">
+          <input
+            value={newCategoryTitle}
+            onChange={(e) => setNewCategoryTitle(e.target.value)}
+            placeholder="Add new category"
+            className="flex-1 rounded border px-3 py-2"
+          />
+          <button type="submit" disabled={creatingCategory} className="rounded bg-green-600 px-4 py-2 text-white">
+            {creatingCategory ? 'Adding...' : 'Add Category'}
+          </button>
+        </form>
+      </div>
+
       <div className="mb-4 flex gap-4 items-center">
         <select
           value={filteredCategory}
@@ -120,7 +197,7 @@ export default function AdminProductsPage() {
           className="px-3 py-2 border rounded"
         >
           <option value="All">All Categories</option>
-          {categories.map(cat => (
+          {availableCategories.map(cat => (
             <option key={cat.id} value={cat.title}>{cat.title}</option>
           ))}
         </select>
@@ -195,7 +272,12 @@ export default function AdminProductsPage() {
               <input value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="border p-2" />
               <input type="number" value={editForm.price} onChange={e => setEditForm({...editForm, price: e.target.value})} className="border p-2" />
               <input type="number" value={editForm.stock} onChange={e => setEditForm({...editForm, stock: e.target.value})} className="border p-2" />
-              <input value={editForm.category} onChange={e => setEditForm({...editForm, category: e.target.value})} className="border p-2" />
+              <select value={editForm.category} onChange={e => setEditForm({...editForm, category: e.target.value})} className="border p-2">
+                <option value="">Select Category</option>
+                {availableCategories.map((category) => (
+                  <option key={category.id} value={category.title}>{category.title}</option>
+                ))}
+              </select>
               <input value={editForm.brand} onChange={e => setEditForm({...editForm, brand: e.target.value})} className="border p-2" />
               <textarea value={editForm.description} onChange={e => setEditForm({...editForm, description: e.target.value})} className="border p-2 md:col-span-2" />
             </div>
