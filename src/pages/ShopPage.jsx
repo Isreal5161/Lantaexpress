@@ -1,5 +1,5 @@
 // src/pages/ShopPage.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useCart } from '../context/CartContextTemp';
 import { ProductCard } from '../components/ProductCard';
 import { getProducts } from "../service/ProductService";
@@ -20,6 +20,7 @@ import { matchesProductSearch } from "../utils/productSearch";
 
 export const ShopPage = () => {
   const { addToCart } = useCart();
+  const resultsRef = useRef(null);
   const [products, setProducts] = useState([]);
   const [activeCategory, setActiveCategory] = useState("All Products");
   const [searchTerm, setSearchTerm] = useState("");
@@ -73,6 +74,18 @@ export const ShopPage = () => {
     }
     setSearchTerm(searchParam);
   }, [categories, location.search]);
+
+  useEffect(() => {
+    if (location.hash !== "#shop-category-results") {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 120);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [activeCategory, location.hash, loading]);
 
   useEffect(() => {
     fetchProducts();
@@ -167,11 +180,11 @@ export const ShopPage = () => {
         <PromoModal isOpen={isOpen} onClose={closeShopPromo} products={products} />
       </div>
 
-      <main className="pb-20 md:pb-0">
+      <main className="pb-16 md:pb-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col gap-12">
               {/* Product Grid full width */}
-              <div className="w-full">
+              <div ref={resultsRef} id="shop-category-results" className="w-full scroll-mt-44">
               {filteredProducts.length === 0 ? (
                 <div className="text-center py-20 text-gray-500 text-lg font-medium">
                   {hasSearch ? `Product not found for "${searchTerm}"` : "No product available yet in this category"}

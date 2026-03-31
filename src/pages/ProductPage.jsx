@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link as RouterLink } from 'react-router-dom';
 import { useCart } from "../context/CartContextTemp";
 import { getProductById, getProducts } from "../service/ProductService";
-import { Button } from '../components/Button';
 import { Icon } from '../components/Icon';
 import { Image } from '../components/Image';
 import { Text } from '../components/Text';
 import { Header } from '../components/header';
 import { Footer } from '../components/footer';
 import { ProductCard } from '../components/ProductCard';
+import { RatingStars } from '../components/RatingStars';
 import {
   PageLoadErrorState,
   ProductPageSkeleton,
@@ -19,6 +19,23 @@ import {
   getProductDiscountPercent,
   hasActiveProductDiscount,
 } from '../utils/productPricing';
+
+const formatReviewDate = (value) => {
+  if (!value) {
+    return "Recently";
+  }
+
+  const parsedDate = new Date(value);
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "Recently";
+  }
+
+  return parsedDate.toLocaleDateString([], {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+};
 
 export const ProductPage = () => {
   const { addToCart } = useCart();
@@ -32,6 +49,19 @@ export const ProductPage = () => {
   const originalPrice = getOriginalProductPrice(product || {});
   const hasDiscount = hasActiveProductDiscount(product || {});
   const discountPercent = getProductDiscountPercent(product || {});
+  const productReviews = product?.reviews || [];
+  const ratingBreakdown = product?.ratingBreakdown || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  const reviewBreakdownRows = [5, 4, 3, 2, 1].map((star) => {
+    const count = Number(ratingBreakdown[star]) || 0;
+    const total = Number(product?.reviewCount) || 0;
+    const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+
+    return {
+      star,
+      count,
+      percentage,
+    };
+  });
 
   const loadProductPage = async () => {
     try {
@@ -67,7 +97,7 @@ export const ProductPage = () => {
     <div className="font-body text-slate-600 antialiased bg-white">
       <Header />
 
-      <main className="pb-20 md:pb-0">
+      <main className="pb-16 md:pb-0">
         {loadingPage ? (
           <ProductPageSkeleton />
         ) : pageError || !product ? (
@@ -94,10 +124,13 @@ export const ProductPage = () => {
             <div className="space-y-4">
               <div className="aspect-w-4 aspect-h-3 bg-gray-100 overflow-hidden">
                 <Image
+                  preset="detail"
                   variant="cover"
                   className="w-full h-full object-center object-cover"
                   src={product.image}
                   alt={product.name}
+                  loading="eager"
+                  fetchPriority="high"
                 />
               </div>
             </div>
@@ -106,15 +139,18 @@ export const ProductPage = () => {
   <h1 className="text-3xl font-heading font-bold text-slate-900 mb-2">
     {product.name}
   </h1>
-  <div className="flex items-center mb-4">
-    <div className="flex text-yellow-400">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Icon key={i} className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-        </Icon>
-      ))}
-    </div>
-    <Text className="ml-2 text-sm text-slate-500">{product.reviews || 0} reviews</Text>
+  <div className="mb-4 flex flex-wrap items-center gap-3">
+    <RatingStars
+      rating={product.averageRating}
+      reviewCount={product.reviewCount}
+      showValue
+      showCount
+      sizeClass="h-5 w-5"
+      textClass="text-sm text-slate-500"
+    />
+    <Text className="text-sm font-medium text-green-700">
+      {product.reviewCount > 0 ? "Verified customer reviews" : "No reviews yet"}
+    </Text>
   </div>
   <div className="mb-6 flex flex-wrap items-center gap-3">
     <p className="text-2xl font-bold text-slate-900">₦{effectivePrice.toLocaleString()}</p>
@@ -187,6 +223,82 @@ export const ProductPage = () => {
   )}
 </div>
 </div>
+
+          <div className="mt-12 grid gap-6 border-t border-slate-200 pt-8 lg:grid-cols-[300px_minmax(0,1fr)]">
+            <div className="bg-slate-50 p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Customer Reviews</p>
+              <div className="mt-3 flex items-end gap-3">
+                <span className="text-4xl font-bold text-slate-900">{(Number(product.averageRating) || 0).toFixed(1)}</span>
+                <div className="pb-1">
+                  <RatingStars
+                    rating={product.averageRating}
+                    reviewCount={product.reviewCount}
+                    showCount
+                    sizeClass="h-[18px] w-[18px]"
+                    textClass="text-sm text-slate-500"
+                  />
+                </div>
+              </div>
+              <p className="mt-2 text-sm text-slate-500">
+                Based on {product.reviewCount || 0} verified review{product.reviewCount === 1 ? '' : 's'}.
+              </p>
+
+              <div className="mt-5 space-y-3">
+                {reviewBreakdownRows.map(({ star, count, percentage }) => (
+                  <div key={star} className="grid grid-cols-[34px_minmax(0,1fr)_36px] items-center gap-3 text-sm">
+                    <span className="font-medium text-slate-600">{star}★</span>
+                    <div className="h-2 overflow-hidden bg-slate-200">
+                      <div
+                        className="h-full bg-amber-400 transition-all duration-500"
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+                    <span className="text-right text-slate-400">{count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-3">
+                <h3 className="text-lg font-bold text-slate-900">Ratings & Reviews</h3>
+                <span className="text-sm font-medium text-slate-500">Newest first</span>
+              </div>
+
+              {productReviews.length === 0 ? (
+                <div className="py-10 text-sm text-slate-500">
+                  This product has no customer reviews yet. Reviews will appear here after buyers confirm delivery and submit their ratings.
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-200">
+                  {productReviews.map((review) => (
+                    <div key={review.orderId} className="py-5">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-slate-900">{review.reviewerName}</p>
+                            {review.verifiedBuyer && (
+                              <span className="bg-green-50 px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-green-700">
+                                Verified buyer
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-1 text-xs text-slate-400">Order {review.orderNumber}</p>
+                        </div>
+                        <p className="text-sm text-slate-400">{formatReviewDate(review.date)}</p>
+                      </div>
+
+                      <div className="mt-3">
+                        <RatingStars rating={review.rating} sizeClass="h-4 w-4" />
+                      </div>
+                      <p className="mt-3 text-sm leading-6 text-slate-600">{review.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Explore More */}
           <div className="mt-12 pt-8 border-t border-slate-200">
             <h3 className="text-lg font-bold text-slate-900 mb-6">Explore More</h3>

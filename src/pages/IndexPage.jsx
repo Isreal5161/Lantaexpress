@@ -27,6 +27,26 @@ import {
 import { useSessionModal } from "../hooks/useSessionModal";
 import { getCategories } from "../service/CategoryService";
 import { matchesProductSearch, normalizeProductSearchQuery } from "../utils/productSearch";
+import {
+  getEffectiveProductPrice,
+  getOriginalProductPrice,
+  getProductDiscountPercent,
+  hasActiveProductDiscount,
+} from "../utils/productPricing";
+
+const formatPromoPrice = (amount) => `₦${Number(amount || 0).toLocaleString()}`;
+
+const categoryHeaderVariants = {
+  hidden: { opacity: 0, y: 18 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.45,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  },
+};
 
 export const IndexPage = ({ className, children, variant, contentKey, ...props }) => {
   const { addToCart } = useCart();
@@ -38,7 +58,9 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
   const promoBannerRef = useRef(null);
   const promoStripRef = useRef(null);
   const categoryTargetRef = useRef(null);
-  const [bannerSticky, setBannerSticky] = useState(true);
+  const bannerStickyTimeoutRef = useRef(null);
+  const bannerStickyReleasedRef = useRef(false);
+  const [bannerSticky, setBannerSticky] = useState(false);
   const [stripSticky, setStripSticky] = useState(false);
 
   const [products, setProducts] = useState([]);
@@ -218,21 +240,49 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
     visible: { opacity: 1, y: 0 },
   };
 
-  // Observe when promo strip enters view -> hide banner (remove stickiness)
+  // Keep the promo banner sticky for a few seconds, then release it permanently.
   useEffect(() => {
-    if (!promoStripRef.current) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
+    const stickyTop = 160;
+    const stickyDurationMs = 4500;
+
+    const updateBannerStickyState = () => {
+      if (!promoBannerRef.current || !promoStripRef.current || bannerStickyReleasedRef.current) {
+        setBannerSticky(false);
+        return;
+      }
+
+      const bannerRect = promoBannerRef.current.getBoundingClientRect();
+      const stripRect = promoStripRef.current.getBoundingClientRect();
+      const shouldStick = bannerRect.top <= stickyTop && stripRect.top > stickyTop + 24;
+
+      if (!shouldStick) {
+        setBannerSticky(false);
+        return;
+      }
+
+      if (!bannerStickyTimeoutRef.current) {
+        bannerStickyTimeoutRef.current = window.setTimeout(() => {
+          bannerStickyReleasedRef.current = true;
+          bannerStickyTimeoutRef.current = null;
           setBannerSticky(false);
-        } else {
-          setBannerSticky(true);
-        }
-      },
-      { root: null, rootMargin: '-80px 0px 0px 0px', threshold: 0 }
-    );
-    obs.observe(promoStripRef.current);
-    return () => obs.disconnect();
+        }, stickyDurationMs);
+      }
+
+      setBannerSticky(true);
+    };
+
+    updateBannerStickyState();
+    window.addEventListener("scroll", updateBannerStickyState, { passive: true });
+    window.addEventListener("resize", updateBannerStickyState);
+
+    return () => {
+      window.removeEventListener("scroll", updateBannerStickyState);
+      window.removeEventListener("resize", updateBannerStickyState);
+      if (bannerStickyTimeoutRef.current) {
+        window.clearTimeout(bannerStickyTimeoutRef.current);
+        bannerStickyTimeoutRef.current = null;
+      }
+    };
   }, []);
 
   // Make promo strip sticky while in view until user reaches 4th category
@@ -271,7 +321,7 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
         <PageLoadErrorState error={pageError} onRefresh={fetchProducts} />
       ) : (
         <>
-          <section className="border-b border-slate-100 bg-slate-50/80 py-4">
+          <section className="sticky top-16 z-40 border-b border-slate-100 bg-slate-50/95 py-4 backdrop-blur-md">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="mx-auto max-w-4xl">
                 <form onSubmit={handleSearchSubmit} className="relative">
@@ -359,7 +409,7 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
             <img src="/banner6.jpg" alt="Promotional Flyer" className="w-full shadow-2xl" />
           </Modal>
 
-          <div className="pb-20 md:pb-0">
+          <div className="pb-16 md:pb-0">
 
         {hasSearch && (
           <section className="py-6 bg-white">
@@ -412,6 +462,7 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
                 <SwiperSlide key={cat.id}>
                   <Link href={`/shop?category=${encodeURIComponent(cat.title)}`} className="group relative overflow-hidden h-48 block">
                     <Image
+                      preset="category"
                       variant="cover"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-md"
                       src={cat.products?.[0]?.image || "/default-category.jpg"}
@@ -428,7 +479,7 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
         </section>
         {/* Promotion Banner (between Shop by Category and Hot Deals) */}
         {promoSlides.length > 0 && (
-          <div ref={promoBannerRef} className={`${bannerSticky ? 'sticky top-16 z-50' : ''} max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-4`}>
+          <div ref={promoBannerRef} className={`${bannerSticky ? 'sticky top-40 z-30' : ''} max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-4`}>
             <PromotionalBanner
               mode="text"
               slides={promoSlides}
@@ -468,12 +519,28 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
 
         {/* Jumia-style promo strip (uses category images where available) */}
         <div ref={promoStripRef} className={`${stripSticky ? 'sticky top-16 z-40' : ''} mt-3 mb-3`}>
-          <PromoStrip items={categoriesWithProducts.map(cat => ({
-            title: cat.title,
-            subtitle: cat.products?.[0]?.name || '',
-            link: `/shop?category=${encodeURIComponent(cat.title)}`,
-            image: cat.products?.[0]?.image || null,
-          }))} />
+          <PromoStrip items={categoriesWithProducts.slice(0, 4).map((cat, index) => {
+            const leadProduct = cat.products?.[0] || {};
+            const effectivePrice = getEffectiveProductPrice(leadProduct);
+            const originalPrice = getOriginalProductPrice(leadProduct);
+            const fallbackPrice = Number(leadProduct?.price) || Number(leadProduct?.originalPrice) || 0;
+            const discountPercent = getProductDiscountPercent(leadProduct);
+            const hasDiscount = hasActiveProductDiscount(leadProduct);
+            const urgencyLabels = ["Ends tonight", "Limited stock", "Flash pick", "Selling fast", "Best today"];
+            const badgeLabels = ["Flash sale", "Deal drop", "Hot picks", "Top value", "Best offer"];
+
+            return {
+              title: cat.title,
+              subtitle: cat.products?.[0]?.name || "Curated picks for mobile shoppers",
+              link: `/shop?category=${encodeURIComponent(cat.title)}`,
+              image: cat.products?.[0]?.image || null,
+              badge: badgeLabels[index % badgeLabels.length],
+              urgency: urgencyLabels[index % urgencyLabels.length],
+              priceText: (effectivePrice > 0 ? formatPromoPrice(effectivePrice) : fallbackPrice > 0 ? formatPromoPrice(fallbackPrice) : null),
+              originalPriceText: hasDiscount ? formatPromoPrice(originalPrice) : null,
+              discountText: hasDiscount && discountPercent > 0 ? `-${discountPercent}%` : null,
+            };
+          })} />
         </div>
 
 {/* Trending Now */}
@@ -506,20 +573,70 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
 
         {/* Dynamic Categories */}
         {categoriesWithProducts.map((cat, idx) => (
-          <section key={cat.id} ref={idx === 3 ? categoryTargetRef : null} className="py-6 bg-white-50">
+          <motion.section
+            key={cat.id}
+            ref={idx === 3 ? categoryTargetRef : null}
+            className="py-7 bg-white-50"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.18 }}
+            variants={categoryHeaderVariants}
+          >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="w-full p-[2px] bg-green-700 mb-1 rounded-sm">
-                <h2 className="text-sm sm:text-base font-heading font-semibold bg-green-700 text-white px-4 py-1 text-left">
-                  {cat.title}
-                </h2>
-              </div>
+              <motion.div
+                className="mb-2 overflow-hidden bg-gradient-to-r from-green-700 via-green-600 to-emerald-500 shadow-[0_12px_28px_rgba(22,101,52,0.16)]"
+                initial={{ opacity: 0, y: 12, scale: 0.985 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <div className="flex items-center justify-between gap-3 px-4 py-3.5 sm:px-5 sm:py-4.5">
+                  <div>
+                    <h2 className="text-sm font-heading font-semibold tracking-[0.08em] text-white sm:text-base text-left uppercase">
+                      {cat.title}
+                    </h2>
+                    <p className="mt-1 text-[11px] font-medium text-green-50/90 sm:text-xs">
+                      Browse more {cat.title.toLowerCase()} deals in the shop.
+                    </p>
+                  </div>
+
+                  <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}>
+                    <Link
+                      href={`/shop?category=${encodeURIComponent(cat.title)}#shop-category-results`}
+                      className="group inline-flex items-center gap-2.5 border border-orange-300/80 bg-orange-500 px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-white shadow-[0_10px_18px_rgba(249,115,22,0.38)] transition-all duration-200 hover:bg-orange-400 hover:shadow-[0_12px_22px_rgba(249,115,22,0.45)] sm:px-4 sm:text-xs"
+                    >
+                      <span className="hidden border-r border-white/35 pr-2 text-[10px] font-extrabold tracking-[0.22em] text-orange-100 sm:inline-flex">
+                        Shop
+                      </span>
+                      <span>See more</span>
+                      <motion.span
+                        aria-hidden="true"
+                        className="inline-flex text-sm"
+                        animate={{ x: [0, 4, 0] }}
+                        transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                      >
+                        →
+                      </motion.span>
+                    </Link>
+                  </motion.div>
+                </div>
+              </motion.div>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 -mt-1">
                 {cat.products.map(p => (
-                  <ProductCard key={p.id} product={p} addToCart={addToCart} />
+                  <motion.div
+                    key={p.id}
+                    variants={cardVariants}
+                    whileHover={{ y: -4, scale: 1.015 }}
+                    whileTap={{ scale: 0.988 }}
+                    transition={{ duration: 0.22, ease: "easeOut" }}
+                    className="h-full"
+                  >
+                    <ProductCard product={p} addToCart={addToCart} />
+                  </motion.div>
                 ))}
               </div>
             </div>
-          </section>
+          </motion.section>
         ))}
 
       </div>

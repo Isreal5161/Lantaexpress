@@ -132,7 +132,7 @@ export const TrackorderPage = () => {
   };
 
   const handleSubmitReview = async () => {
-    if (!rating || !comment) {
+    if (!rating || !comment.trim()) {
       alert("Please add rating and comment");
       return;
     }
@@ -146,6 +146,8 @@ export const TrackorderPage = () => {
     try {
       const updated = await submitOrderReview(order.recordId, { rating, comment }, token);
       setOrder(updated);
+      setRating(0);
+      setComment("");
       alert("⭐ Thank you for your review!");
     } catch (error) {
       alert(error.message || "Unable to save your review.");
@@ -200,7 +202,7 @@ export const TrackorderPage = () => {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <Header />
-   <div className="pb-24">
+  <div className="pb-18">
       <div className="flex-grow max-w-xl w-full mx-auto py-8 px-4 sm:px-6">
         <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-center">
           Track Your Order

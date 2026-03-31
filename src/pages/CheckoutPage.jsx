@@ -152,7 +152,7 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
     <div className="font-body text-slate-600 bg-white">
       <Header />
 
-      <div className="pb-24">
+      <div className="pb-18">
         <div className="max-w-7xl mx-auto px-4 py-12 grid grid-cols-1 lg:grid-cols-12 gap-12">
 
           {/* Shipping Address */}

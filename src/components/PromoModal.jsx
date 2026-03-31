@@ -127,7 +127,7 @@ const PromoModal = ({ isOpen, onClose, products = [] }) => {
             onClick={(event) => event.stopPropagation()}
             className="my-auto w-full max-w-[300px] sm:max-w-[720px]"
           >
-            <div className="relative overflow-hidden rounded-[24px] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.28)] sm:rounded-[28px]">
+            <div className="relative overflow-hidden bg-white shadow-[0_24px_80px_rgba(15,23,42,0.28)]">
               <motion.div
                 className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-emerald-200/70 blur-3xl"
                 animate={{ scale: [1, 1.08, 1], opacity: [0.45, 0.75, 0.45] }}
@@ -151,7 +151,7 @@ const PromoModal = ({ isOpen, onClose, products = [] }) => {
                     Top picks. Better prices. Limited stock.
                   </p>
 
-                  <div className="mt-3 rounded-2xl bg-slate-950 px-4 py-3 text-white shadow-lg sm:mt-4">
+                  <div className="mt-3 bg-slate-950 px-4 py-3 text-white shadow-lg sm:mt-4">
                     <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-emerald-200 sm:text-[11px]">
                       Offer closes in
                     </p>
@@ -164,13 +164,13 @@ const PromoModal = ({ isOpen, onClose, products = [] }) => {
                     <motion.button
                       onClick={handleRedirect}
                       whileTap={{ scale: 0.97 }}
-                      className="flex-1 rounded-2xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-600/25 sm:py-3"
+                      className="flex-1 bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-600/25 sm:py-3"
                     >
                       See deals
                     </motion.button>
                     <button
                       onClick={onClose}
-                      className="rounded-2xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 sm:py-3"
+                      className="border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 sm:py-3"
                     >
                       Not now
                     </button>
@@ -183,21 +183,21 @@ const PromoModal = ({ isOpen, onClose, products = [] }) => {
                       {promoProducts.map((product) => (
                         <div
                           key={product.id}
-                          className="rounded-2xl border border-slate-100 bg-white p-2 shadow-sm"
+                          className="border border-slate-100 bg-white p-2 shadow-sm"
                         >
-                          <img src={product.image} alt={product.name} className="h-14 w-full rounded-xl object-cover sm:h-20" />
+                          <img src={product.image} alt={product.name} className="h-14 w-full object-cover sm:h-20" />
                           <p className="mt-2 truncate text-[11px] font-semibold text-slate-900 sm:text-xs">{product.name}</p>
                           <p className="text-[11px] font-semibold text-slate-700">{formatPrice(convertPrice(product.price, userCurrency), userCurrency)}</p>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="flex h-full min-h-32 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 text-center text-sm text-slate-500">
+                    <div className="flex h-full min-h-32 items-center justify-center border border-dashed border-slate-200 bg-slate-50 px-4 text-center text-sm text-slate-500">
                       No live deals available right now.
                     </div>
                   )}
 
-                  <div className="mt-3 rounded-2xl bg-slate-50 px-4 py-3 text-[11px] leading-5 text-slate-500 sm:mt-4 sm:text-xs">
+                  <div className="mt-3 bg-slate-50 px-4 py-3 text-[11px] leading-5 text-slate-500 sm:mt-4 sm:text-xs">
                     Fresh picks, ready to shop.
                   </div>
                 </div>

@@ -114,7 +114,7 @@ const AccountPage = ({ onSignOut }) => {
           </div>
         </div>
 
-        <div className="flex-1 pb-24">
+        <div className="flex-1 pb-18">
           <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8 md:flex-row">
             <aside className="hidden md:block md:w-72">
               <div className="overflow-hidden rounded-3xl border border-white/70 bg-white/85 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur-sm">
@@ -197,7 +197,7 @@ const AccountPage = ({ onSignOut }) => {
     <div className="min-h-screen flex flex-col bg-gray-100">
       <AccountHeader />
 
-      <div className="flex-1 pb-24">
+      <div className="flex-1 pb-18">
         <div className="flex-1 flex flex-col md:flex-row">
           {/* Sidebar */}
           <div className="hidden md:block md:w-1/4">

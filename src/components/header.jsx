@@ -51,7 +51,7 @@ export const Header = ({ hideSearchControl = false }) => {
 
   useEffect(() => {
     refreshNotifications(true);
-  }, []);
+  }, [refreshNotifications]);
 
   const notificationTrigger = ({ unreadCount: triggerUnreadCount }) => (
     <span className={actionButtonClassName}>

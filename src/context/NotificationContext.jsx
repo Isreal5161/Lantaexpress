@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   clearNotifications as clearNotificationsRequest,
   fetchNotifications,
@@ -62,25 +62,25 @@ export const NotificationProvider = ({ children }) => {
   });
   const activeScopeCountsRef = useRef(new Map());
 
-  const setScopeNotifications = (scope, updater) => {
+  const setScopeNotifications = useCallback((scope, updater) => {
     if (!scope || scope === "guest") return;
     setNotificationsByScope((current) => ({
       ...current,
       [scope]: typeof updater === "function" ? updater(current[scope] || []) : updater,
     }));
-  };
+  }, []);
 
-  const setScopeLoading = (scope, value) => {
+  const setScopeLoading = useCallback((scope, value) => {
     if (!scope || scope === "guest") return;
     setLoadingByScope((current) => ({ ...current, [scope]: value }));
-  };
+  }, []);
 
-  const setScopeError = (scope, value) => {
+  const setScopeError = useCallback((scope, value) => {
     if (!scope || scope === "guest") return;
     setErrorByScope((current) => ({ ...current, [scope]: value }));
-  };
+  }, []);
 
-  const refreshNotifications = async (preferredScope = "auto", showLoading = false) => {
+  const refreshNotifications = useCallback(async (preferredScope = "auto", showLoading = false) => {
     const session = getAuthSession(preferredScope);
 
     if (session.scope === "guest" || !session.token) {
@@ -107,9 +107,9 @@ export const NotificationProvider = ({ children }) => {
         setScopeLoading(session.scope, false);
       }
     }
-  };
+  }, [setScopeError, setScopeLoading, setScopeNotifications]);
 
-  const registerScope = (scope) => {
+  const registerScope = useCallback((scope) => {
     if (!scope || scope === "auto" || scope === "guest") {
       return () => {};
     }
@@ -127,7 +127,7 @@ export const NotificationProvider = ({ children }) => {
 
       activeScopeCountsRef.current.set(scope, currentCount - 1);
     };
-  };
+  }, []);
 
   useEffect(() => {
     const refreshActiveScopes = (showLoading = false) => {
@@ -150,9 +150,9 @@ export const NotificationProvider = ({ children }) => {
       clearInterval(interval);
       window.removeEventListener("focus", handleFocus);
     };
-  }, []);
+  }, [refreshNotifications]);
 
-  const markNotificationRead = async (preferredScope, notificationId) => {
+  const markNotificationRead = useCallback(async (preferredScope, notificationId) => {
     const session = getAuthSession(preferredScope);
     if (!notificationId || session.scope === "guest" || !session.token) return;
 
@@ -172,9 +172,9 @@ export const NotificationProvider = ({ children }) => {
       console.error("Failed to mark notification as read", error);
       refreshNotifications(session.scope, false);
     }
-  };
+  }, [refreshNotifications, setScopeNotifications]);
 
-  const markAllNotificationsRead = async (preferredScope) => {
+  const markAllNotificationsRead = useCallback(async (preferredScope) => {
     const session = getAuthSession(preferredScope);
     if (session.scope === "guest" || !session.token) return;
 
@@ -186,9 +186,9 @@ export const NotificationProvider = ({ children }) => {
       console.error("Failed to mark all notifications as read", error);
       refreshNotifications(session.scope, false);
     }
-  };
+  }, [refreshNotifications, setScopeNotifications]);
 
-  const clearNotifications = async (preferredScope) => {
+  const clearNotifications = useCallback(async (preferredScope) => {
     const session = getAuthSession(preferredScope);
     if (session.scope === "guest" || !session.token) return;
 
@@ -200,20 +200,31 @@ export const NotificationProvider = ({ children }) => {
       console.error("Failed to clear notifications", error);
       refreshNotifications(session.scope, false);
     }
-  };
+  }, [refreshNotifications, setScopeNotifications]);
+
+  const contextValue = useMemo(() => ({
+    notificationsByScope,
+    loadingByScope,
+    errorByScope,
+    refreshNotifications,
+    registerScope,
+    markNotificationRead,
+    markAllNotificationsRead,
+    clearNotifications,
+  }), [
+    notificationsByScope,
+    loadingByScope,
+    errorByScope,
+    refreshNotifications,
+    registerScope,
+    markNotificationRead,
+    markAllNotificationsRead,
+    clearNotifications,
+  ]);
 
   return (
     <NotificationContext.Provider
-      value={{
-        notificationsByScope,
-        loadingByScope,
-        errorByScope,
-        refreshNotifications,
-        registerScope,
-        markNotificationRead,
-        markAllNotificationsRead,
-        clearNotifications,
-      }}
+      value={contextValue}
     >
       {children}
     </NotificationContext.Provider>
@@ -222,6 +233,11 @@ export const NotificationProvider = ({ children }) => {
 
 export const useNotification = (preferredScope = "auto") => {
   const context = useContext(NotificationContext);
+  const contextRegisterScope = context?.registerScope;
+  const contextRefreshNotifications = context?.refreshNotifications;
+  const contextMarkNotificationRead = context?.markNotificationRead;
+  const contextMarkAllNotificationsRead = context?.markAllNotificationsRead;
+  const contextClearNotifications = context?.clearNotifications;
   const notifications = context.notificationsByScope?.[preferredScope] || [];
   const loading = Boolean(context.loadingByScope?.[preferredScope]);
   const error = context.errorByScope?.[preferredScope] || null;
@@ -229,12 +245,32 @@ export const useNotification = (preferredScope = "auto") => {
   const unreadCount = notifications.filter((notification) => !notification.read).length;
 
   useEffect(() => {
-    if (!context?.registerScope) {
+    if (!contextRegisterScope) {
       return undefined;
     }
 
-    return context.registerScope(preferredScope);
-  }, [context, preferredScope]);
+    return contextRegisterScope(preferredScope);
+  }, [contextRegisterScope, preferredScope]);
+
+  const scopedRefreshNotifications = useCallback((showLoading = false) => {
+    if (!contextRefreshNotifications) return Promise.resolve();
+    return contextRefreshNotifications(preferredScope, showLoading);
+  }, [contextRefreshNotifications, preferredScope]);
+
+  const scopedMarkNotificationRead = useCallback((notificationId) => {
+    if (!contextMarkNotificationRead) return Promise.resolve();
+    return contextMarkNotificationRead(preferredScope, notificationId);
+  }, [contextMarkNotificationRead, preferredScope]);
+
+  const scopedMarkAllNotificationsRead = useCallback(() => {
+    if (!contextMarkAllNotificationsRead) return Promise.resolve();
+    return contextMarkAllNotificationsRead(preferredScope);
+  }, [contextMarkAllNotificationsRead, preferredScope]);
+
+  const scopedClearNotifications = useCallback(() => {
+    if (!contextClearNotifications) return Promise.resolve();
+    return contextClearNotifications(preferredScope);
+  }, [contextClearNotifications, preferredScope]);
 
   return {
     notifications,
@@ -244,9 +280,9 @@ export const useNotification = (preferredScope = "auto") => {
     isAuthenticated: session.scope !== "guest",
     notificationCount: unreadCount,
     unreadCount,
-    refreshNotifications: (showLoading = false) => context.refreshNotifications(preferredScope, showLoading),
-    markNotificationRead: (notificationId) => context.markNotificationRead(preferredScope, notificationId),
-    markAllNotificationsRead: () => context.markAllNotificationsRead(preferredScope),
-    clearNotifications: () => context.clearNotifications(preferredScope),
+    refreshNotifications: scopedRefreshNotifications,
+    markNotificationRead: scopedMarkNotificationRead,
+    markAllNotificationsRead: scopedMarkAllNotificationsRead,
+    clearNotifications: scopedClearNotifications,
   };
 };

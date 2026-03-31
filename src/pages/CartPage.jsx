@@ -63,7 +63,7 @@ export const CartPage = ({ userCurrency = "NGN" }) => {
     <div className="font-body text-slate-600 antialiased bg-white">
       <Header />
 
-      <div className="pb-24">
+      <div className="pb-18">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <h1 className="text-2xl md:text-3xl font-heading font-bold text-slate-900 mb-8">
             Shopping Cart
@@ -82,6 +82,7 @@ export const CartPage = ({ userCurrency = "NGN" }) => {
                       <li key={item.id} className="p-6 flex flex-col sm:flex-row gap-6">
                         <div className="w-full sm:w-24 h-24 bg-gray-100 overflow-hidden flex-shrink-0">
                           <Image
+                            preset="thumb"
                             variant="cover"
                             className="w-full h-full object-center object-cover"
                             src={item.image}

@@ -70,18 +70,18 @@ export const Footer = () => {
       </footer>
 
     {/* Modern Fintech Mobile Bottom Navigation */}
-<div className="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 flex justify-around items-center py-3 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] rounded-t-2xl">
+<div className="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 flex justify-around items-center py-2 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] rounded-t-xl">
 
   {/* Logistics */}
   <Link href="/logistics" className="flex flex-col items-center relative">
     <div
       className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${
         pathname.startsWith("/logistics")
-          ? "bg-green-600 text-white -translate-y-2 shadow-lg"
+          ? "bg-green-600 text-white -translate-y-1.5 shadow-lg"
           : "text-slate-500"
       }`}
     >
-      <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
+      <Icon className="h-5 w-5" viewBox="0 0 24 24" fill="none">
         <path
           d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5z"
           stroke="currentColor"
@@ -94,7 +94,7 @@ export const Footer = () => {
       </Icon>
     </div>
     <span
-      className={`text-xs mt-1 transition-all ${
+      className={`text-[11px] mt-0.5 transition-all ${
         pathname.startsWith("/logistics")
           ? "text-green-600 font-semibold"
           : "text-slate-500"
@@ -109,16 +109,16 @@ export const Footer = () => {
     <div
       className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${
         pathname.startsWith("/shop")
-          ? "bg-green-600 text-white -translate-y-2 shadow-lg"
+          ? "bg-green-600 text-white -translate-y-1.5 shadow-lg"
           : "text-slate-500"
       }`}
     >
-      <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
+      <Icon className="h-5 w-5" viewBox="0 0 24 24" fill="none">
         <path d="M4 4h16v16H4z" stroke="currentColor" strokeWidth="2" />
       </Icon>
     </div>
     <span
-      className={`text-xs mt-1 transition-all ${
+      className={`text-[11px] mt-0.5 transition-all ${
         pathname.startsWith("/shop")
           ? "text-green-600 font-semibold"
           : "text-slate-500"
@@ -131,13 +131,13 @@ export const Footer = () => {
   {/* Home */}
   <Link href="/" className="flex flex-col items-center relative">
     <div
-      className={`flex items-center justify-center w-14 h-14 rounded-full transition-all duration-300 ${
+      className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${
         pathname === "/"
-          ? "bg-green-600 text-white -translate-y-3 shadow-xl scale-110"
+          ? "bg-green-600 text-white -translate-y-2 shadow-xl scale-105"
           : "text-slate-500"
       }`}
     >
-      <Icon className="h-7 w-7" viewBox="0 0 24 24" fill="none">
+      <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
         <path
           d="M3 12l9-9 9 9M4 10v10h16V10"
           stroke="currentColor"
@@ -148,7 +148,7 @@ export const Footer = () => {
       </Icon>
     </div>
     <span
-      className={`text-xs mt-1 transition-all ${
+      className={`text-[11px] mt-0.5 transition-all ${
         pathname === "/"
           ? "text-green-600 font-semibold"
           : "text-slate-500"
@@ -163,16 +163,16 @@ export const Footer = () => {
     <div
       className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${
         pathname.startsWith("/cart")
-          ? "bg-green-600 text-white -translate-y-2 shadow-lg"
+          ? "bg-green-600 text-white -translate-y-1.5 shadow-lg"
           : "text-slate-500"
       }`}
     >
-      <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
+      <Icon className="h-5 w-5" viewBox="0 0 24 24" fill="none">
         <path d="M6 6h15l-1.5 9h-13z" stroke="currentColor" strokeWidth="2" />
       </Icon>
     </div>
     <span
-      className={`text-xs mt-1 transition-all ${
+      className={`text-[11px] mt-0.5 transition-all ${
         pathname.startsWith("/cart")
           ? "text-green-600 font-semibold"
           : "text-slate-500"
@@ -187,11 +187,11 @@ export const Footer = () => {
     <div
       className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${
         pathname.startsWith("/account")
-          ? "bg-green-600 text-white -translate-y-2 shadow-lg"
+          ? "bg-green-600 text-white -translate-y-1.5 shadow-lg"
           : "text-slate-500"
       }`}
     >
-      <Icon className="h-6 w-6" viewBox="0 0 24 24" fill="none">
+      <Icon className="h-5 w-5" viewBox="0 0 24 24" fill="none">
         <path
           d="M12 12c2.7 0 5-2.3 5-5S14.7 2 12 2 7 4.3 7 7s2.3 5 5 5zM2 22c0-5 4-8 10-8s10 3 10 8"
           stroke="currentColor"
@@ -200,7 +200,7 @@ export const Footer = () => {
       </Icon>
     </div>
     <span
-      className={`text-xs mt-1 transition-all ${
+      className={`text-[11px] mt-0.5 transition-all ${
         pathname.startsWith("/account")
           ? "text-green-600 font-semibold"
           : "text-slate-500"

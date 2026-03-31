@@ -58,6 +58,18 @@ const resolveDiscountPrice = (productPrice, discountPercent, discountPrice) => {
   return null;
 };
 
+const defaultRatingBreakdown = () => ({ 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 });
+
+const mapReview = (review) => ({
+  orderId: review.orderId,
+  orderNumber: review.orderNumber,
+  rating: Number(review.rating) || 0,
+  comment: review.comment || "",
+  date: review.date || null,
+  reviewerName: review.reviewerName || "Verified buyer",
+  verifiedBuyer: Boolean(review.verifiedBuyer),
+});
+
 const mapProduct = (p) => {
   const originalPrice = Number(p.price) || 0;
   const discountPercent = resolveDiscountPercent(p.price, p.discountPercent, p.discountPrice);
@@ -76,6 +88,10 @@ const mapProduct = (p) => {
     brand: p.seller?.brandName || p.brand || "",
     stock: p.stock || 0,
     status: p.status || "approved",
+    averageRating: Number(p.averageRating) || 0,
+    reviewCount: Number(p.reviewCount) || 0,
+    ratingBreakdown: p.ratingBreakdown || defaultRatingBreakdown(),
+    reviews: Array.isArray(p.reviews) ? p.reviews.map(mapReview) : [],
   };
 };
 
@@ -85,8 +101,8 @@ export const getProducts = async () => {
 };
 
 export const getProductById = async (id) => {
-  const products = await getProducts();
-  return products.find(p => p.id.toString() === id.toString()) || null;
+  const product = await fetchJson(`${API_BASE}/user/products/${id}`);
+  return product ? mapProduct(product) : null;
 };
 
 export const getProductsByCategory = async (categoryName) => {

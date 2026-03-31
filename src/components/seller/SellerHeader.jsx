@@ -22,7 +22,7 @@ const SellerHeader = ({ toggleSidebar }) => {
 
   useEffect(() => {
     refreshNotifications(false);
-  }, []);
+  }, [refreshNotifications]);
 
   const sellerLogo = seller?.logo || null;
 

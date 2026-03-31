@@ -5,6 +5,7 @@ import { Icon } from "./Icon";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "../context/CartContextTemp";
 import { useCartButton } from "../context/CartButtonContext";
+import { RatingStars } from "./RatingStars";
 import {
   getEffectiveProductPrice,
   getOriginalProductPrice,
@@ -86,6 +87,7 @@ export const ProductCard = ({ product, userCurrency = "NGN" }) => {
       <Link to={`/product/${product.id}`} className="block relative">
         <div className="w-full aspect-[2/3] bg-gray-100 overflow-hidden relative">
           <Image
+            preset="card"
             variant="cover"
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             src={product.image}
@@ -132,6 +134,20 @@ export const ProductCard = ({ product, userCurrency = "NGN" }) => {
 
       <div className="px-2 py-2 relative">
         <h3 className="text-sm text-slate-700 font-medium line-clamp-2">{product.name}</h3>
+        <div className="mt-1 flex items-center justify-between gap-2">
+          <RatingStars
+            rating={product.averageRating}
+            reviewCount={product.reviewCount}
+            showCount
+            sizeClass="h-3.5 w-3.5"
+            textClass="text-[11px] text-slate-400"
+          />
+          {product.reviewCount > 0 && (
+            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-green-600">
+              Verified
+            </span>
+          )}
+        </div>
         <p className="text-xs text-gray-500 mt-1">Brand: {product.brand}</p>
         <p className="mt-1 text-base font-semibold text-slate-900">{price}</p>
         {hasDiscount && (
