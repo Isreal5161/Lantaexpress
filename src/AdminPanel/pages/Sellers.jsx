@@ -5,6 +5,8 @@ import SellerCard from "../components/SellerCard";
 import { PageLoadErrorState, SkeletonBlock, TablePanelSkeleton } from "../../components/LoadingSkeletons";
 import { getSellerApprovalLabel } from "../../utils/sellerApproval";
 import { getAdminSellerPayments } from "../../api/sellerFinance";
+import ConfirmationModal from "../../components/ConfirmationModal";
+import Modal from "../../components/Modal";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
 
@@ -15,6 +17,11 @@ export default function Sellers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [pageError, setPageError] = useState(null);
+  const [feedbackModal, setFeedbackModal] = useState({ open: false, title: "", message: "", tone: "default" });
+
+  const openFeedbackModal = (title, message, tone = "default") => {
+    setFeedbackModal({ open: true, title, message, tone });
+  };
 
   const loadSellers = async () => {
     const token = localStorage.getItem("token");
@@ -160,7 +167,7 @@ export default function Sellers() {
     `₦${s.balance.toLocaleString()}`,
     <div className="flex gap-2">
       <button
-        onClick={() => alert("View Seller Subpage coming soon!")}
+        onClick={() => openFeedbackModal("Seller Details", "Seller detail subpage is not available yet.")}
         className="p-2 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
       >
         View
@@ -239,16 +246,15 @@ export default function Sellers() {
             <SellerCard
               key={s.id}
               seller={s}
-              onView={() => alert("View Seller Subpage coming soon!")}
+              onView={() => openFeedbackModal("Seller Details", "Seller detail subpage is not available yet.")}
               onDelete={() => handleDelete(s.id)}
             />
           ))}
         </div>
 
         {/* NEW SELLER REQUESTS MODAL */}
-        {showSellerRequests && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start pt-10 z-50 overflow-y-auto">
-            <div className="bg-white w-11/12 max-w-4xl rounded-lg shadow-lg p-6 relative">
+        <Modal isOpen={showSellerRequests} onClose={() => setShowSellerRequests(false)} panelClassName="max-w-4xl">
+            <div className="bg-white w-full rounded-[24px] p-6 relative">
               <button
                 className="absolute top-2 right-3 text-gray-500 hover:text-gray-800 font-bold text-xl"
                 onClick={() => setShowSellerRequests(false)}
@@ -290,8 +296,17 @@ export default function Sellers() {
                 <p className="text-gray-500">No new seller requests</p>
               )}
             </div>
-          </div>
-        )}
+        </Modal>
+        <ConfirmationModal
+          isOpen={feedbackModal.open}
+          title={feedbackModal.title}
+          message={feedbackModal.message}
+          onCancel={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+          onConfirm={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+          confirmLabel="OK"
+          hideCancel
+          tone={feedbackModal.tone}
+        />
       </div>
     </AdminLayout>
   );

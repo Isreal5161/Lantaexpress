@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { MdDelete, MdEdit, MdStorefront } from "react-icons/md";
 import ConfirmationModal from "../../components/ConfirmationModal";
+import Modal from "../../components/Modal";
 import { useSellerAuth } from "../../context/SellerAuthContext";
 import { getSellerFinanceSummary } from "../../api/sellerFinance";
 import { getCategories } from "../../service/CategoryService";
@@ -74,6 +75,7 @@ const SellerProfilePage = () => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [feedbackModal, setFeedbackModal] = useState({ open: false, title: "", message: "", tone: "default" });
   const [formData, setFormData] = useState({
     name: "",
     brand: "",
@@ -87,6 +89,10 @@ const SellerProfilePage = () => {
 
   const token = localStorage.getItem("sellerToken");
   const approvedProducts = products.filter((product) => product.status === "approved");
+
+  const openFeedbackModal = (title, message, tone = "default") => {
+    setFeedbackModal({ open: true, title, message, tone });
+  };
 
   const syncSellerState = (user) => {
     setSeller(user || {});
@@ -283,10 +289,10 @@ const SellerProfilePage = () => {
 
       setLogoFile(null);
       setProfileModalOpen(false);
-      alert("Profile updated successfully");
+      openFeedbackModal("Profile Updated", "Profile updated successfully");
     } catch (error) {
       console.error(error);
-      alert(error.message || "Failed to update profile");
+      openFeedbackModal("Profile Update Failed", error.message || "Failed to update profile", "danger");
     } finally {
       setSavingProfile(false);
     }
@@ -316,7 +322,7 @@ const SellerProfilePage = () => {
     if (files.length === 0) return;
 
     if (files.length < 3 || files.length > 5) {
-      alert("Please upload between 3 and 5 product images.");
+      openFeedbackModal("Image Upload Requirement", "Please upload between 3 and 5 product images.", "neutral");
       return;
     }
 
@@ -373,10 +379,10 @@ const SellerProfilePage = () => {
       setImageFiles([]);
       setVideoFile(null);
       setVideoPreview("");
-      alert("Product updated and sent for admin approval");
+      openFeedbackModal("Product Updated", "Product updated and sent for admin approval");
     } catch (error) {
       console.error(error);
-      alert(error.message || "Save failed");
+      openFeedbackModal("Save Failed", error.message || "Save failed", "danger");
     } finally {
       setSubmitting(false);
     }
@@ -402,10 +408,10 @@ const SellerProfilePage = () => {
       if (!res.ok) throw new Error(data.message || "Delete failed");
 
       await loadProducts();
-      alert("Product deleted");
+      openFeedbackModal("Product Deleted", "Product deleted successfully");
     } catch (error) {
       console.error(error);
-      alert(error.message || "Delete failed");
+      openFeedbackModal("Delete Failed", error.message || "Delete failed", "danger");
     } finally {
       setConfirmTarget(null);
       setDeleting(false);
@@ -534,9 +540,13 @@ const SellerProfilePage = () => {
         )}
       </div>
 
-      {profileModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white p-6">
+      <Modal isOpen={profileModalOpen} onClose={() => {
+        setProfileModalOpen(false);
+        setLogoFile(null);
+        setLogoPreview(seller.logo || "");
+        syncSellerState(seller);
+      }} panelClassName="max-w-3xl">
+          <div className="max-h-[90vh] w-full overflow-y-auto rounded-[24px] bg-white p-6">
             <h2 className="mb-5 text-xl font-semibold text-gray-800">Update Seller Profile</h2>
             <form onSubmit={handleSaveProfile} className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2 md:col-span-2">
@@ -666,12 +676,17 @@ const SellerProfilePage = () => {
               </div>
             </form>
           </div>
-        </div>
-      )}
+      </Modal>
 
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white p-6">
+      <Modal isOpen={modalOpen} onClose={() => {
+        setModalOpen(false);
+        setEditingProduct(null);
+        setPreviewList([]);
+        setImageFiles([]);
+        setVideoFile(null);
+        setVideoPreview("");
+      }} panelClassName="max-w-3xl">
+          <div className="max-h-[90vh] w-full overflow-y-auto rounded-[24px] bg-white p-6">
             <h2 className="mb-4 text-xl font-semibold">Edit Product</h2>
             <form onSubmit={handleSaveProduct} className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
@@ -825,8 +840,7 @@ const SellerProfilePage = () => {
               </div>
             </form>
           </div>
-        </div>
-      )}
+      </Modal>
 
       <ConfirmationModal
         isOpen={confirmOpen}
@@ -840,6 +854,16 @@ const SellerProfilePage = () => {
         confirmLabel="Delete"
         cancelLabel="Cancel"
         loading={deleting}
+      />
+      <ConfirmationModal
+        isOpen={feedbackModal.open}
+        title={feedbackModal.title}
+        message={feedbackModal.message}
+        onCancel={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+        onConfirm={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+        confirmLabel="OK"
+        hideCancel
+        tone={feedbackModal.tone}
       />
 
     </div>

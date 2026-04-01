@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import AdminLayout from "../Layout/AdminLayout";
 import { getAdminOrders, updateAdminOrderStatus } from "../../api/orders";
+import ConfirmationModal from "../../components/ConfirmationModal";
 
 const orderStages = [
   "Pending",
@@ -18,6 +19,11 @@ export default function UserTracking() {
   const [activeOrders, setActiveOrders] = useState([]);
   const [historyOrders, setHistoryOrders] = useState([]);
   const previousOrderCount = useRef(0);
+  const [feedbackModal, setFeedbackModal] = useState({ open: false, title: "", message: "", tone: "default" });
+
+  const openFeedbackModal = (title, message, tone = "default") => {
+    setFeedbackModal({ open: true, title, message, tone });
+  };
 
   // -------- PRICE RESOLVER (handles backend or localStorage structures) --------
   const resolveOrderAmount = (order) => {
@@ -64,7 +70,7 @@ export default function UserTracking() {
       previousOrderCount.current &&
       savedOrders.length > previousOrderCount.current
     ) {
-      alert("🔔 New order received!");
+      openFeedbackModal("New Order Received", "A new order has been received.");
     }
 
     previousOrderCount.current = savedOrders.length;
@@ -88,7 +94,7 @@ export default function UserTracking() {
       await updateAdminOrderStatus(recordId, newStatus, token);
       await loadOrders();
     } catch (error) {
-      alert(error.message || "Unable to update order status.");
+      openFeedbackModal("Status Update Failed", error.message || "Unable to update order status.", "danger");
     }
   };
 
@@ -114,6 +120,7 @@ export default function UserTracking() {
 
   return (
 
+    <>
     <AdminLayout>
 
       <h1 className="text-2xl font-bold mb-6">
@@ -332,7 +339,19 @@ export default function UserTracking() {
 
       )}
 
+
+      <ConfirmationModal
+        isOpen={feedbackModal.open}
+        title={feedbackModal.title}
+        message={feedbackModal.message}
+        onCancel={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+        onConfirm={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+        confirmLabel="OK"
+        hideCancel
+        tone={feedbackModal.tone}
+      />
     </AdminLayout>
+    </>
 
   );
 

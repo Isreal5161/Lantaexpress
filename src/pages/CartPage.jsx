@@ -53,7 +53,7 @@ export const CartPage = ({ userCurrency = "NGN" }) => {
 
     localStorage.setItem(
       "checkoutData",
-      JSON.stringify({ user, cartItems, subtotal, shipping, tax, total })
+      JSON.stringify({ user, cartItems, subtotal, shipping, tax, total, shouldClearCart: true, checkoutSource: "cart" })
     );
 
     navigate("/checkout");

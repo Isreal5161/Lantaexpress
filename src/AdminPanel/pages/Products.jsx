@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import AdminLayout from "../Layout/AdminLayout";
 import { createCategory, deleteCategory, getCategories } from "../../service/CategoryService";
+import ConfirmationModal from "../../components/ConfirmationModal";
+import Modal from "../../components/Modal";
 
 export default function AdminProductsPage() {
   const [allProducts, setAllProducts] = useState([]);
@@ -14,6 +16,16 @@ export default function AdminProductsPage() {
   const [newCategoryTitle, setNewCategoryTitle] = useState("");
   const [creatingCategory, setCreatingCategory] = useState(false);
   const [deletingCategoryId, setDeletingCategoryId] = useState("");
+  const [confirmModal, setConfirmModal] = useState({ open: false, title: "", message: "", onConfirm: null, tone: "default", confirmLabel: "OK" });
+  const [feedbackModal, setFeedbackModal] = useState({ open: false, title: "", message: "", tone: "default" });
+
+  const openFeedbackModal = (title, message, tone = "default") => {
+    setFeedbackModal({ open: true, title, message, tone });
+  };
+
+  const openConfirmModal = ({ title, message, onConfirm, tone = "default", confirmLabel = "Confirm" }) => {
+    setConfirmModal({ open: true, title, message, onConfirm, tone, confirmLabel });
+  };
 
   const availableCategories = useMemo(() => {
     const fetchedCategories = categories.map((category) => ({
@@ -115,10 +127,10 @@ export default function AdminProductsPage() {
       await createCategory({ title: newCategoryTitle, token });
       setNewCategoryTitle('');
       await loadCategories();
-      alert('Category created');
+      openFeedbackModal('Category Created', 'Category created successfully.');
     } catch (err) {
       console.error(err);
-      alert(err.message || 'Failed to create category');
+      openFeedbackModal('Category Creation Failed', err.message || 'Failed to create category', 'danger');
     } finally {
       setCreatingCategory(false);
     }
@@ -129,26 +141,30 @@ export default function AdminProductsPage() {
       return;
     }
 
-    if (!window.confirm(`Remove category "${category.title}"?`)) {
-      return;
-    }
+    openConfirmModal({
+      title: 'Remove Category',
+      message: `Remove category "${category.title}"?`,
+      tone: 'danger',
+      confirmLabel: 'Remove',
+      onConfirm: async () => {
+        try {
+          setDeletingCategoryId(category.id);
+          await deleteCategory({ id: category.id, token });
+          await loadCategories();
 
-    try {
-      setDeletingCategoryId(category.id);
-      await deleteCategory({ id: category.id, token });
-      await loadCategories();
+          if (filteredCategory === category.title) {
+            setFilteredCategory("All");
+          }
 
-      if (filteredCategory === category.title) {
-        setFilteredCategory("All");
-      }
-
-      alert("Category deleted");
-    } catch (err) {
-      console.error(err);
-      alert(err.message || "Failed to delete category");
-    } finally {
-      setDeletingCategoryId("");
-    }
+          openFeedbackModal("Category Deleted", "Category deleted successfully.");
+        } catch (err) {
+          console.error(err);
+          openFeedbackModal("Delete Failed", err.message || "Failed to delete category", 'danger');
+        } finally {
+          setDeletingCategoryId("");
+        }
+      },
+    });
   };
 
   // Approve seller product (call backend)
@@ -161,10 +177,10 @@ export default function AdminProductsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Approve failed');
       await loadProducts();
-      alert('Product approved');
+      openFeedbackModal('Product Approved', 'Product approved successfully.');
     } catch (err) {
       console.error(err);
-      alert(err.message || 'Approve failed');
+      openFeedbackModal('Approval Failed', err.message || 'Approve failed', 'danger');
     }
   };
 
@@ -178,10 +194,10 @@ export default function AdminProductsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Reject failed');
       await loadProducts();
-      alert('Product rejected');
+      openFeedbackModal('Product Rejected', 'Product rejected successfully.');
     } catch (err) {
       console.error(err);
-      alert(err.message || 'Reject failed');
+      openFeedbackModal('Rejection Failed', err.message || 'Reject failed', 'danger');
     }
   };
 
@@ -301,16 +317,21 @@ export default function AdminProductsPage() {
                       keyFeatures: Array.isArray(product.raw?.keyFeatures) ? product.raw.keyFeatures.join('\n') : '',
                     });
                   }} className="px-3 py-1 bg-blue-600 text-white rounded text-sm">Edit</button>
-                  <button onClick={async () => {
-                    if (!confirm('Delete this product?')) return;
-                    try {
-                      const res = await fetch(`${API_BASE}/admin/products/${product.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-                      const data = await res.json();
-                      if (!res.ok) throw new Error(data.message || 'Delete failed');
-                      await loadProducts();
-                      alert('Product deleted');
-                    } catch (err) { alert(err.message || 'Delete failed'); }
-                  }} className="px-3 py-1 bg-red-600 text-white rounded text-sm">Delete</button>
+                  <button onClick={() => openConfirmModal({
+                    title: 'Delete Product',
+                    message: 'Delete this product?',
+                    tone: 'danger',
+                    confirmLabel: 'Delete',
+                    onConfirm: async () => {
+                      try {
+                        const res = await fetch(`${API_BASE}/admin/products/${product.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.message || 'Delete failed');
+                        await loadProducts();
+                        openFeedbackModal('Product Deleted', 'Product deleted successfully.');
+                      } catch (err) { openFeedbackModal('Delete Failed', err.message || 'Delete failed', 'danger'); }
+                    },
+                  })} className="px-3 py-1 bg-red-600 text-white rounded text-sm">Delete</button>
                 </div>
               </div>
             ))}
@@ -319,9 +340,8 @@ export default function AdminProductsPage() {
       </section>
 
       {/* Edit Modal */}
-      {editingProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg w-full max-w-2xl p-6">
+      <Modal isOpen={Boolean(editingProduct)} onClose={() => setEditingProduct(null)} panelClassName="max-w-2xl">
+          <div className="bg-white rounded-[24px] w-full p-6">
             <h3 className="text-lg font-semibold mb-3">Edit Product</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <input value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="border p-2" />
@@ -350,13 +370,38 @@ export default function AdminProductsPage() {
                   if (!res.ok) throw new Error(data.message || 'Update failed');
                   setEditingProduct(null);
                   await loadProducts();
-                  alert('Product updated');
-                } catch (err) { alert(err.message || 'Update failed'); }
+                  openFeedbackModal('Product Updated', 'Product updated successfully.');
+                } catch (err) { openFeedbackModal('Update Failed', err.message || 'Update failed', 'danger'); }
               }} className="px-3 py-2 bg-green-600 text-white rounded">Save</button>
             </div>
           </div>
-        </div>
-      )}
+      </Modal>
+      <ConfirmationModal
+        isOpen={confirmModal.open}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        onCancel={() => setConfirmModal({ open: false, title: "", message: "", onConfirm: null, tone: "default", confirmLabel: "OK" })}
+        onConfirm={async () => {
+          const action = confirmModal.onConfirm;
+          setConfirmModal({ open: false, title: "", message: "", onConfirm: null, tone: "default", confirmLabel: "OK" });
+          if (action) {
+            await action();
+          }
+        }}
+        confirmLabel={confirmModal.confirmLabel}
+        cancelLabel="Cancel"
+        tone={confirmModal.tone}
+      />
+      <ConfirmationModal
+        isOpen={feedbackModal.open}
+        title={feedbackModal.title}
+        message={feedbackModal.message}
+        onCancel={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+        onConfirm={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+        confirmLabel="OK"
+        hideCancel
+        tone={feedbackModal.tone}
+      />
     </AdminLayout>
   );
 }

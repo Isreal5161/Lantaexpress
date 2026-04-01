@@ -1,96 +1,471 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import {
+  FaArrowRight,
+  FaBoxOpen,
+  FaCheckCircle,
+  FaClock,
+  FaMapMarkerAlt,
+  FaMotorcycle,
+  FaShieldAlt,
+  FaTruck,
+  FaWarehouse,
+} from "react-icons/fa";
 import { Button } from "../components/Button";
 import { Link } from "../components/Link";
 import { Header } from "../components/header";
 import { Footer } from "../components/footer";
+import ConfirmationModal from "../components/ConfirmationModal";
+
+const heroStats = [
+  { value: "24/7", label: "Dispatch support" },
+  { value: "98%", label: "Successful drop-offs" },
+  { value: "Same day", label: "Fast city delivery" },
+];
+
+const serviceCards = [
+  {
+    title: "Marketplace Delivery",
+    text: "Pickup from sellers, coordinated drop-off, and a cleaner customer-facing delivery experience.",
+    icon: FaMotorcycle,
+  },
+  {
+    title: "Business Dispatch",
+    text: "Reliable movement for stores, vendors, and operations teams that need repeatable delivery workflows.",
+    icon: FaWarehouse,
+  },
+  {
+    title: "Secure Handling",
+    text: "Better package notes, clearer proof points, and safer handling for fragile or sensitive items.",
+    icon: FaShieldAlt,
+  },
+];
+
+const deliveryFlow = [
+  {
+    title: "Book with context",
+    text: "Add pickup, delivery, urgency, and package notes so dispatch starts with the right information.",
+  },
+  {
+    title: "Review and assign",
+    text: "Operations can review incoming requests and route them for the best delivery path.",
+  },
+  {
+    title: "Track movement",
+    text: "From approval to delivery, shipment progress remains visible inside the LantaXpress flow.",
+  },
+];
+
+const coveragePills = ["Lagos", "Ibadan", "Abuja", "Port Harcourt", "Benin", "Abeokuta"];
+const heroVideoSrc = "/Logistics.mov";
+const successVideoSrc = "/Deliveredsuccessful.mov";
 
 export const LogisticsPage = () => {
   const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
-  const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
+  useEffect(() => {
+    if (!selectedFile) {
+      setPreviewUrl("");
+      return undefined;
+    }
+
+    const objectUrl = URL.createObjectURL(selectedFile);
+    setPreviewUrl(objectUrl);
+
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [selectedFile]);
+
+  const handleFileChange = (event) => {
+    if (event.target.files && event.target.files[0]) {
+      setSelectedFile(event.target.files[0]);
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const form = e.target;
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const form = event.target;
 
     const newRequest = {
-      id: "REQ" + Date.now(),
-      trackingId: "TRK" + Math.floor(Math.random() * 1000000),
+      id: `REQ${Date.now()}`,
+      trackingId: `TRK${Math.floor(Math.random() * 1000000)}`,
       name: form.name.value,
       phone: form.phone.value,
+      serviceType: form.serviceType.value,
+      urgency: form.urgency.value,
       pickup: form.pickup.value,
       delivery: form.delivery.value,
       description: form.description.value,
-      image: selectedFile ? URL.createObjectURL(selectedFile) : null,
+      image: previewUrl || null,
       status: "Pending",
       date: new Date().toLocaleString(),
     };
 
-    const existingRequests =
-      JSON.parse(localStorage.getItem("logistics_requests")) || [];
+    const existingRequests = JSON.parse(localStorage.getItem("logistics_requests")) || [];
     existingRequests.push(newRequest);
     localStorage.setItem("logistics_requests", JSON.stringify(existingRequests));
 
-    // Increment notifications for admin
-    const notifications =
-      JSON.parse(localStorage.getItem("logistics_notifications")) || 0;
+    const notifications = JSON.parse(localStorage.getItem("logistics_notifications")) || 0;
     localStorage.setItem("logistics_notifications", JSON.stringify(notifications + 1));
 
-    alert("Booking submitted successfully!");
     form.reset();
     setSelectedFile(null);
+    setFeedbackOpen(true);
   };
 
   return (
-    <div className="font-body text-slate-600 bg-white">
+    <div className="min-h-screen bg-[#f4f7f2] font-body text-slate-700">
       <Header />
-      <div className="pb-18">
-        <section className="bg-green-700 text-white py-20">
-          <div className="max-w-7xl mx-auto px-6 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              Fast, Safe & Reliable Logistics
-            </h1>
-            <p className="max-w-2xl mx-auto mb-8 text-lg">
-              From pickup to delivery, Lanta Express ensures your package arrives safely and on time.
-            </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <a href="#booking" className="bg-white text-green-700 px-8 py-3 font-bold hover:bg-slate-100 transition">
-                Book Order Now
-              </a>
-              <Link href="/track" className="border border-white px-8 py-3 font-bold hover:bg-white hover:text-green-700 transition">
-                Track Order
-              </Link>
+
+      <main className="overflow-hidden pb-24 md:pb-0">
+        <section className="relative isolate overflow-hidden bg-[#03150c] text-white">
+          <img
+            src="/lantaexpressimage1.jpg"
+            alt="Logistics background fallback"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <video
+            className="absolute inset-0 h-full w-full object-cover"
+            src={heroVideoSrc}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            poster="/lantaexpressimage1.jpg"
+          />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(63,179,112,0.35),_transparent_34%),radial-gradient(circle_at_bottom_right,_rgba(255,255,255,0.12),_transparent_28%),linear-gradient(135deg,_rgba(3,21,12,0.98),_rgba(8,48,28,0.9))]" />
+          <div className="absolute -left-20 top-20 h-56 w-56 rounded-full bg-green-500/20 blur-3xl" />
+          <div className="absolute right-0 top-0 h-72 w-72 rounded-full bg-emerald-200/10 blur-3xl" />
+
+          <div className="relative mx-auto grid max-w-7xl gap-12 px-6 py-16 sm:py-20 lg:grid-cols-[1.1fr_0.9fr] lg:px-8 lg:py-24">
+            <div className="max-w-2xl">
+              <div className="inline-flex animate-pulse items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-emerald-100 backdrop-blur-md">
+                <FaTruck className="text-green-300" />
+                Premium delivery operations
+              </div>
+              <h1 className="mt-6 text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+                Logistics that looks polished and moves like a serious operation.
+              </h1>
+              <p className="mt-6 max-w-xl text-base leading-8 text-slate-200 sm:text-lg">
+                Book pickups, schedule business dispatch, and track delivery progress through a more professional experience built for modern commerce.
+              </p>
+
+              <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+                <a
+                  href="#booking"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-6 py-4 text-sm font-bold text-slate-900 transition duration-300 hover:-translate-y-1 hover:bg-green-50"
+                >
+                  Book a delivery
+                  <FaArrowRight />
+                </a>
+                <Link
+                  href="/track"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/5 px-6 py-4 text-sm font-semibold text-white backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:bg-white/10"
+                >
+                  Track an order
+                  <FaMapMarkerAlt />
+                </Link>
+              </div>
+
+              <div className="mt-10 grid gap-4 sm:grid-cols-3">
+                {heroStats.map((stat) => (
+                  <div
+                    key={stat.label}
+                    className="rounded-3xl border border-white/10 bg-white/10 px-5 py-5 backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:bg-white/15"
+                  >
+                    <p className="text-2xl font-black text-white">{stat.value}</p>
+                    <p className="mt-2 text-sm text-slate-200">{stat.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-white/10 p-3 shadow-[0_40px_120px_rgba(0,0,0,0.35)] backdrop-blur-md">
+                <video
+                  className="h-[260px] w-full rounded-[26px] object-cover sm:h-[320px] lg:h-[500px]"
+                  src={successVideoSrc}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="auto"
+                  poster="/lantaexpressimage1.jpg"
+                />
+                <div className="pointer-events-none absolute inset-x-8 bottom-8 hidden rounded-[28px] border border-white/20 bg-slate-950/65 p-5 backdrop-blur-xl sm:block">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-green-300">Dispatch view</p>
+                      <p className="mt-2 text-lg font-bold text-white">Same-day handoff, live movement, and stronger proof of delivery.</p>
+                    </div>
+                    <div className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-green-500 text-lg text-white sm:flex">
+                      <FaCheckCircle />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 rounded-[24px] border border-white/10 bg-white/10 p-4 text-white backdrop-blur-md sm:hidden">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-green-300">Dispatch view</p>
+                <p className="mt-2 text-base font-bold leading-7">Same-day handoff, live movement, and stronger proof of delivery.</p>
+              </div>
             </div>
           </div>
         </section>
 
-        <section id="booking" className="py-16 bg-slate-50">
-          <div className="max-w-3xl mx-auto px-6">
-            <h2 className="text-3xl font-bold text-center mb-8">Book a Delivery</h2>
-            <form onSubmit={handleSubmit} className="space-y-4 bg-white p-8 shadow-md">
-              <input name="name" type="text" placeholder="Full Name" required className="w-full border p-3" />
-              <input name="phone" type="tel" placeholder="Phone Number" required className="w-full border p-3" />
-              <input name="pickup" type="text" placeholder="Pickup Address" required className="w-full border p-3" />
-              <input name="delivery" type="text" placeholder="Delivery Address" required className="w-full border p-3" />
-              <textarea name="description" placeholder="Package Description" required className="w-full border p-3" />
+        <section className="relative mx-auto max-w-7xl px-6 py-14 lg:px-8">
+          <div className="grid gap-6 lg:grid-cols-3">
+            {serviceCards.map(({ title, text, icon: Icon }) => (
+              <div
+                key={title}
+                className="group rounded-[28px] border border-slate-200 bg-white/90 p-7 shadow-[0_18px_60px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-2 hover:shadow-[0_30px_70px_rgba(7,89,46,0.18)]"
+              >
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-green-600 to-emerald-400 text-2xl text-white transition duration-300 group-hover:rotate-6">
+                  <Icon />
+                </div>
+                <h2 className="mt-6 text-2xl font-bold text-slate-900">{title}</h2>
+                <p className="mt-3 text-sm leading-7 text-slate-600">{text}</p>
+              </div>
+            ))}
+          </div>
+        </section>
 
-              <div>
-                <label className="block mb-2 font-medium">Upload Package Image</label>
-                <input type="file" accept="image/*" onChange={handleFileChange} className="w-full border p-3" />
-                {selectedFile && <p className="mt-2 text-sm text-green-700">Selected file: {selectedFile.name}</p>}
+        <section className="mx-auto grid max-w-7xl gap-10 px-6 py-8 lg:grid-cols-[0.95fr_1.05fr] lg:px-8">
+          <div className="rounded-[32px] bg-[#061b10] p-8 text-white shadow-[0_28px_90px_rgba(2,12,7,0.38)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-green-300">Why brands choose LantaXpress</p>
+            <h2 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">A cleaner logistics experience for customers, vendors, and operations teams.</h2>
+            <div className="mt-8 space-y-5">
+              {deliveryFlow.map((item, index) => (
+                <div
+                  key={item.title}
+                  className="flex gap-4 rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-md transition duration-300 hover:bg-white/10"
+                >
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-green-500 font-black text-slate-950">
+                    0{index + 1}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-white">{item.title}</h3>
+                    <p className="mt-2 text-sm leading-7 text-slate-300">{item.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-8 flex flex-wrap gap-3">
+              {coveragePills.map((city) => (
+                <span
+                  key={city}
+                  className="rounded-full border border-green-400/30 bg-green-400/10 px-4 py-2 text-sm font-medium text-green-100"
+                >
+                  {city}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2 sm:grid-rows-[1fr_auto]">
+            <div className="relative overflow-hidden rounded-[30px] bg-white shadow-[0_22px_70px_rgba(15,23,42,0.08)] sm:col-span-2">
+              <img
+                src="/lantaexpressimage2.jpg"
+                alt="Delivery success fallback"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              <video
+                className="h-72 w-full object-cover sm:h-80"
+                src={successVideoSrc}
+                autoPlay
+                muted
+                loop
+                playsInline
+                controls
+                preload="metadata"
+                poster="/lantaexpressimage2.jpg"
+              />
+              <div className="pointer-events-none absolute inset-x-5 bottom-5 hidden rounded-[24px] border border-white/20 bg-slate-950/55 p-4 text-white backdrop-blur-md sm:block">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-green-300">Delivery success</p>
+                <p className="mt-2 text-lg font-bold">Clean arrival moments that make the logistics experience feel premium.</p>
+              </div>
+            </div>
+            <div className="rounded-[24px] border border-slate-200 bg-white p-4 text-slate-900 shadow-[0_18px_50px_rgba(15,23,42,0.06)] sm:hidden">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-green-700">Delivery success</p>
+              <p className="mt-2 text-base font-bold leading-7">Clean arrival moments that make the logistics experience feel premium.</p>
+            </div>
+            <div className="overflow-hidden rounded-[30px] bg-white shadow-[0_22px_70px_rgba(15,23,42,0.08)]">
+              <img
+                src="/lantaexpressimage1.jpg"
+                alt="Delivery operations"
+                className="h-56 w-full object-cover transition duration-700 hover:scale-105"
+              />
+            </div>
+            <div className="rounded-[30px] bg-gradient-to-br from-white to-green-50 p-6 shadow-[0_22px_70px_rgba(15,23,42,0.08)]">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-white">
+                  <FaClock />
+                </div>
+                <div className="h-2 flex-1 rounded-full bg-green-100">
+                  <div className="h-2 w-3/4 animate-pulse rounded-full bg-gradient-to-r from-green-500 to-emerald-400" />
+                </div>
+              </div>
+              <h3 className="mt-6 text-2xl font-bold text-slate-900">Operational clarity</h3>
+              <p className="mt-3 text-sm leading-7 text-slate-600">
+                Cleaner handoffs, clearer request details, and a more confident customer-facing logistics experience.
+              </p>
+              <div className="mt-6 space-y-3">
+                <div className="flex items-center justify-between rounded-2xl bg-white px-4 py-3">
+                  <span className="text-sm text-slate-500">Booking confirmation</span>
+                  <span className="font-semibold text-slate-900">Instant</span>
+                </div>
+                <div className="flex items-center justify-between rounded-2xl bg-white px-4 py-3">
+                  <span className="text-sm text-slate-500">Request visibility</span>
+                  <span className="font-semibold text-slate-900">Structured</span>
+                </div>
+                <div className="flex items-center justify-between rounded-2xl bg-white px-4 py-3">
+                  <span className="text-sm text-slate-500">Dispatch tone</span>
+                  <span className="font-semibold text-green-700">Professional</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="booking" className="mx-auto max-w-7xl px-6 py-12 lg:px-8 lg:py-16">
+          <div className="grid gap-8 lg:grid-cols-[0.78fr_1.22fr]">
+            <div className="rounded-[32px] bg-slate-900 p-8 text-white shadow-[0_30px_90px_rgba(15,23,42,0.28)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-green-300">Booking desk</p>
+              <h2 className="mt-4 text-3xl font-black tracking-tight">Request a pickup with the right details from the start.</h2>
+              <p className="mt-4 text-sm leading-7 text-slate-300">
+                Share pickup instructions, delivery destination, service type, and a package image so the dispatch team can process faster.
+              </p>
+
+              <div className="mt-8 space-y-4">
+                <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-green-500 text-slate-950">
+                      <FaBoxOpen />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-white">Package clarity</p>
+                      <p className="text-sm text-slate-300">Better dispatch routing starts with better booking details.</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-green-500 text-slate-950">
+                      <FaTruck />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-white">Express routing</p>
+                      <p className="text-sm text-slate-300">Choose standard, express, or business dispatch based on urgency.</p>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <Button className="w-full bg-green-600 text-white py-3 hover:bg-green-700">Submit Booking</Button>
+              {previewUrl ? (
+                <div className="mt-8 overflow-hidden rounded-[28px] border border-white/10 bg-white/5 p-3">
+                  <img src={previewUrl} alt="Selected package preview" className="h-56 w-full rounded-[22px] object-cover" />
+                  <p className="mt-3 text-sm text-green-200">Ready to submit: {selectedFile?.name}</p>
+                </div>
+              ) : (
+                <div className="mt-8 flex h-56 items-center justify-center rounded-[28px] border border-dashed border-white/15 bg-white/5 p-6 text-center text-sm leading-7 text-slate-300">
+                  Add a package image to give dispatch clearer context before pickup starts.
+                </div>
+              )}
+            </div>
+
+            <form onSubmit={handleSubmit} className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-[0_24px_90px_rgba(15,23,42,0.08)] sm:p-8">
+              <div className="grid gap-5 sm:grid-cols-2">
+                <label className="block">
+                  <span className="mb-2 block text-sm font-semibold text-slate-800">Full name</span>
+                  <input name="name" type="text" placeholder="Enter your full name" required className="min-h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-green-500 focus:bg-white" />
+                </label>
+                <label className="block">
+                  <span className="mb-2 block text-sm font-semibold text-slate-800">Phone number</span>
+                  <input name="phone" type="tel" placeholder="Enter active phone number" required className="min-h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-green-500 focus:bg-white" />
+                </label>
+                <label className="block">
+                  <span className="mb-2 block text-sm font-semibold text-slate-800">Service type</span>
+                  <select name="serviceType" defaultValue="Marketplace delivery" className="min-h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-green-500 focus:bg-white">
+                    <option>Marketplace delivery</option>
+                    <option>Business dispatch</option>
+                    <option>Interstate movement</option>
+                    <option>Fragile package handling</option>
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="mb-2 block text-sm font-semibold text-slate-800">Urgency</span>
+                  <select name="urgency" defaultValue="Standard" className="min-h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-green-500 focus:bg-white">
+                    <option>Standard</option>
+                    <option>Express</option>
+                    <option>Same day</option>
+                    <option>Scheduled delivery</option>
+                  </select>
+                </label>
+                <label className="block sm:col-span-2">
+                  <span className="mb-2 block text-sm font-semibold text-slate-800">Pickup address</span>
+                  <input name="pickup" type="text" placeholder="Enter pickup address" required className="min-h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-green-500 focus:bg-white" />
+                </label>
+                <label className="block sm:col-span-2">
+                  <span className="mb-2 block text-sm font-semibold text-slate-800">Delivery address</span>
+                  <input name="delivery" type="text" placeholder="Enter delivery address" required className="min-h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-green-500 focus:bg-white" />
+                </label>
+                <label className="block sm:col-span-2">
+                  <span className="mb-2 block text-sm font-semibold text-slate-800">Package description</span>
+                  <textarea name="description" placeholder="Describe the package, quantity, handling instructions, or delivery notes" required rows="5" className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm outline-none transition focus:border-green-500 focus:bg-white" />
+                </label>
+                <label className="block sm:col-span-2">
+                  <span className="mb-2 block text-sm font-semibold text-slate-800">Package image</span>
+                  <div className="rounded-[28px] border border-dashed border-slate-300 bg-slate-50 p-4">
+                    <input type="file" accept="image/*" onChange={handleFileChange} className="block w-full text-sm text-slate-500 file:mr-4 file:rounded-full file:border-0 file:bg-green-600 file:px-4 file:py-2 file:font-semibold file:text-white hover:file:bg-green-700" />
+                    <p className="mt-3 text-xs leading-6 text-slate-500">Add an image when you want dispatch or support to see package condition before pickup.</p>
+                  </div>
+                </label>
+              </div>
+
+              <div className="mt-8 flex flex-col gap-4 border-t border-slate-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-sm text-slate-500">
+                  Booking requests are submitted instantly and routed into the admin logistics queue.
+                </div>
+                <Button type="submit" className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-green-600 px-8 text-sm font-bold text-white transition duration-300 hover:-translate-y-1 hover:bg-green-700">
+                  Submit booking
+                  <FaArrowRight />
+                </Button>
+              </div>
             </form>
           </div>
         </section>
 
-        <Footer />
-      </div>
+        <section className="mx-auto max-w-7xl px-6 pb-10 lg:px-8">
+          <div className="rounded-[34px] bg-gradient-to-r from-green-700 via-emerald-600 to-slate-900 px-6 py-8 text-white shadow-[0_25px_80px_rgba(7,89,46,0.26)] sm:px-8 lg:flex lg:items-center lg:justify-between lg:px-10">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.26em] text-green-100">Need status visibility?</p>
+              <h2 className="mt-3 text-3xl font-black tracking-tight">Track active shipments without leaving the LantaXpress flow.</h2>
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-green-50/90">
+                Once your request is approved, the tracking page keeps movement history visible from dispatch to delivery.
+              </p>
+            </div>
+            <div className="mt-6 lg:mt-0">
+              <Link href="/track" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-6 py-4 text-sm font-bold text-slate-900 transition duration-300 hover:-translate-y-1 hover:bg-green-50">
+                Open tracking
+                <FaArrowRight />
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <Footer />
+
+      <ConfirmationModal
+        isOpen={feedbackOpen}
+        title="Booking Submitted"
+        message="Your logistics request has been submitted successfully. The dispatch team can now review it and assign the next step."
+        onCancel={() => setFeedbackOpen(false)}
+        onConfirm={() => setFeedbackOpen(false)}
+        confirmLabel="OK"
+        hideCancel
+      />
     </div>
   );
 };

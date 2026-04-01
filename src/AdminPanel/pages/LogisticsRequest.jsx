@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../Layout/AdminLayout";
+import ConfirmationModal from "../../components/ConfirmationModal";
 
 export default function LogisticsRequest() {
   const [requests, setRequests] = useState([]);
   const [reason, setReason] = useState("");
+  const [feedbackModal, setFeedbackModal] = useState({ open: false, title: "", message: "", tone: "default" });
+
+  const openFeedbackModal = (title, message, tone = "default") => {
+    setFeedbackModal({ open: true, title, message, tone });
+  };
 
   useEffect(() => {
     const data = JSON.parse(localStorage.getItem("logistics_requests")) || [];
@@ -46,7 +52,10 @@ export default function LogisticsRequest() {
   };
 
   const declineRequest = (req, reasonText) => {
-    if (!reasonText) return alert("Enter reason for declining");
+    if (!reasonText) {
+      openFeedbackModal("Reason Required", "Enter reason for declining.", "danger");
+      return;
+    }
 
     const history = JSON.parse(localStorage.getItem("logistics_history")) || [];
     history.push({ ...req, status: "Declined", reason: reasonText, actionDate: new Date().toISOString() });
@@ -117,6 +126,16 @@ export default function LogisticsRequest() {
           </div>
         ))}
       </div>
+      <ConfirmationModal
+        isOpen={feedbackModal.open}
+        title={feedbackModal.title}
+        message={feedbackModal.message}
+        onCancel={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+        onConfirm={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+        confirmLabel="OK"
+        hideCancel
+        tone={feedbackModal.tone}
+      />
     </AdminLayout>
   );
 }

@@ -1,5 +1,6 @@
 // src/pages/seller/SellerSettingsPage.jsx
 import React, { useState, useEffect } from "react";
+import ConfirmationModal from "../../components/ConfirmationModal";
 
 const SellerSettingsPage = () => {
   const [seller, setSeller] = useState({
@@ -20,6 +21,11 @@ const SellerSettingsPage = () => {
     messages: true,
     promotions: false,
   });
+  const [feedbackModal, setFeedbackModal] = useState({ open: false, title: "", message: "", tone: "default" });
+
+  const openFeedbackModal = (title, message, tone = "default") => {
+    setFeedbackModal({ open: true, title, message, tone });
+  };
 
   // Load seller data from localStorage
   useEffect(() => {
@@ -50,17 +56,17 @@ const SellerSettingsPage = () => {
   const handleSaveProfile = (e) => {
     e.preventDefault();
     localStorage.setItem("currentSeller", JSON.stringify(seller));
-    alert("Profile updated successfully!");
+    openFeedbackModal("Profile Updated", "Profile updated successfully!");
   };
 
   const handleChangePassword = (e) => {
     e.preventDefault();
     if (passwords.new !== passwords.confirm) {
-      alert("New passwords do not match!");
+      openFeedbackModal("Password Update Failed", "New passwords do not match!", "danger");
       return;
     }
     // Simulate backend call here
-    alert("Password updated successfully!");
+    openFeedbackModal("Password Updated", "Password updated successfully!");
     setPasswords({ current: "", new: "", confirm: "" });
   };
 
@@ -196,6 +202,17 @@ const SellerSettingsPage = () => {
           </label>
         </div>
       </section>
+
+      <ConfirmationModal
+        isOpen={feedbackModal.open}
+        title={feedbackModal.title}
+        message={feedbackModal.message}
+        onCancel={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+        onConfirm={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+        confirmLabel="OK"
+        hideCancel
+        tone={feedbackModal.tone}
+      />
 
     </div>
   );

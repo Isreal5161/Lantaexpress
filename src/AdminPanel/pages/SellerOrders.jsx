@@ -1,6 +1,7 @@
 // src/pages/admin/AdminSellerOrders.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { getAdminOrders, updateAdminOrderStatus } from "../../api/orders";
+import ConfirmationModal from "../../components/ConfirmationModal";
 
 const orderStages = [
   "Pending",
@@ -17,6 +18,11 @@ export default function AdminSellerOrders() {
   const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState("");
   const previousOrderCount = useRef(0);
+  const [feedbackModal, setFeedbackModal] = useState({ open: false, title: "", message: "", tone: "default" });
+
+  const openFeedbackModal = (title, message, tone = "default") => {
+    setFeedbackModal({ open: true, title, message, tone });
+  };
 
   const loadOrders = async () => {
     const token = localStorage.getItem("token");
@@ -27,7 +33,7 @@ export default function AdminSellerOrders() {
 
     // Notify if new order arrived
     if (previousOrderCount.current && allOrders.length > previousOrderCount.current) {
-      alert("🔔 New order received!");
+      openFeedbackModal("New Order Received", "A new order has been received.");
     }
     previousOrderCount.current = allOrders.length;
   };
@@ -49,7 +55,7 @@ export default function AdminSellerOrders() {
       await updateAdminOrderStatus(recordId, newStatus, token);
       await loadOrders();
     } catch (error) {
-      alert(error.message || "Unable to update order status.");
+      openFeedbackModal("Status Update Failed", error.message || "Unable to update order status.", "danger");
     }
   };
 
@@ -173,6 +179,16 @@ export default function AdminSellerOrders() {
           </div>
         ))}
       </div>
+      <ConfirmationModal
+        isOpen={feedbackModal.open}
+        title={feedbackModal.title}
+        message={feedbackModal.message}
+        onCancel={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+        onConfirm={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+        confirmLabel="OK"
+        hideCancel
+        tone={feedbackModal.tone}
+      />
     </div>
   );
 }

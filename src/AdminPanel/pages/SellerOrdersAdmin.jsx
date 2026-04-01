@@ -12,6 +12,8 @@ import {
 import AdminLayout from "../Layout/AdminLayout";
 import StatCard from "../components/StatCard";
 import { getAdminOrders } from "../../api/orders";
+import ConfirmationModal from "../../components/ConfirmationModal";
+import Modal from "../../components/Modal";
 
 export default function SellerOrdersAdmin() {
   const navigate = useNavigate();
@@ -19,6 +21,11 @@ export default function SellerOrdersAdmin() {
   const [search, setSearch] = useState("");
   const [productPopup, setProductPopup] = useState(null);
   const previousOrderCount = useRef(0);
+  const [feedbackModal, setFeedbackModal] = useState({ open: false, title: "", message: "", tone: "default" });
+
+  const openFeedbackModal = (title, message, tone = "default") => {
+    setFeedbackModal({ open: true, title, message, tone });
+  };
 
   const formatPrice = (value) => {
     if (!value) return "₦0";
@@ -49,7 +56,7 @@ export default function SellerOrdersAdmin() {
     setBrands(brandStats);
 
     if (previousOrderCount.current && allOrders.length > previousOrderCount.current) {
-      alert("🔔 New order received!");
+      openFeedbackModal("New Order Received", "A new order has been received.");
     }
     previousOrderCount.current = allOrders.length;
   };
@@ -158,9 +165,8 @@ export default function SellerOrdersAdmin() {
         </div>
 
         {/* Product Popup */}
-        {productPopup && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl p-6 max-w-md w-full relative">
+        <Modal isOpen={Boolean(productPopup)} onClose={() => setProductPopup(null)} panelClassName="max-w-md">
+            <div className="bg-white rounded-[24px] p-6 w-full relative">
               <button
                 className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 font-bold"
                 onClick={() => setProductPopup(null)}
@@ -177,8 +183,17 @@ export default function SellerOrdersAdmin() {
               <p className="text-gray-500 mt-1">Price: {formatPrice(productPopup.amount || productPopup.price)}</p>
               <p className="text-gray-500 mt-1">Quantity: {productPopup.quantity}</p>
             </div>
-          </div>
-        )}
+        </Modal>
+        <ConfirmationModal
+          isOpen={feedbackModal.open}
+          title={feedbackModal.title}
+          message={feedbackModal.message}
+          onCancel={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+          onConfirm={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+          confirmLabel="OK"
+          hideCancel
+          tone={feedbackModal.tone}
+        />
       </div>
     </AdminLayout>
   );

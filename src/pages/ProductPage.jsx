@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, Link as RouterLink } from 'react-router-dom';
+import { useNavigate, useParams, Link as RouterLink } from 'react-router-dom';
 import { useCart } from "../context/CartContextTemp";
 import { getProductById, getProducts } from "../service/ProductService";
 import { Icon } from '../components/Icon';
@@ -70,7 +70,8 @@ const normalizeDescriptionParts = (description = "") => {
 };
 
 export const ProductPage = () => {
-  const { addToCart } = useCart();
+  const { cartItems, addToCart, removeFromCart } = useCart();
+  const navigate = useNavigate();
   const { id } = useParams(); 
   const [product, setProduct] = useState(null);
   const [exploreProducts, setExploreProducts] = useState([]);
@@ -79,6 +80,9 @@ export const ProductPage = () => {
   const [selectedMedia, setSelectedMedia] = useState({ type: "image", src: "" });
   const [loadingPage, setLoadingPage] = useState(true);
   const [pageError, setPageError] = useState(null);
+  const [isCartAnimating, setIsCartAnimating] = useState(false);
+  const [recentCartAction, setRecentCartAction] = useState(null);
+  const [isBuyNowOpen, setIsBuyNowOpen] = useState(false);
   const effectivePrice = getEffectiveProductPrice(product || {});
   const originalPrice = getOriginalProductPrice(product || {});
   const hasDiscount = hasActiveProductDiscount(product || {});
@@ -107,6 +111,14 @@ export const ProductPage = () => {
     return explicitFeatures.length > 0 ? explicitFeatures : productDescription.highlights;
   }, [product?.keyFeatures, productDescription.highlights]);
   const productReviews = product?.reviews || [];
+  const previewImage = useMemo(
+    () => mediaGallery.find((item) => item.type === "image")?.src || product?.image || "",
+    [mediaGallery, product?.image]
+  );
+  const isInCart = useMemo(
+    () => cartItems.some((item) => String(item.id) === String(product?.id)),
+    [cartItems, product?.id]
+  );
   const ratingBreakdown = product?.ratingBreakdown || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
   const reviewBreakdownRows = [5, 4, 3, 2, 1].map((star) => {
     const count = Number(ratingBreakdown[star]) || 0;
@@ -152,6 +164,7 @@ export const ProductPage = () => {
 
   useEffect(() => {
     setShowFullDetails(false);
+    setIsBuyNowOpen(false);
   }, [id]);
 
   useEffect(() => {
@@ -166,6 +179,129 @@ export const ProductPage = () => {
 
     setQuantity((prev) => Math.min(Math.max(prev, 1), availableStock));
   }, [availableStock]);
+
+  useEffect(() => {
+    if (!recentCartAction) {
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setIsCartAnimating(false);
+      setRecentCartAction(null);
+    }, 550);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [recentCartAction]);
+
+  useEffect(() => {
+    if (!isBuyNowOpen) {
+      return undefined;
+    }
+
+    const originalOverflow = document.body.style.overflow;
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setIsBuyNowOpen(false);
+      }
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isBuyNowOpen]);
+
+  const decreaseSelectedQuantity = () => {
+    setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+  };
+
+  const increaseSelectedQuantity = () => {
+    setQuantity((prev) => Math.min(prev + 1, availableStock || 1));
+  };
+
+  const handleCartToggle = () => {
+    if (!product || availableStock <= 0) {
+      return;
+    }
+
+    const nextAction = isInCart ? "removed" : "added";
+
+    setRecentCartAction(nextAction);
+    setIsCartAnimating(true);
+
+    if (isInCart) {
+      removeFromCart(product.id);
+      return;
+    }
+
+    addToCart({ ...product, quantity });
+  };
+
+  const handleBuyNow = () => {
+    if (!product || availableStock <= 0) {
+      return;
+    }
+
+    setIsBuyNowOpen(true);
+  };
+
+  const handleBuyNowCheckout = () => {
+    if (!product || availableStock <= 0) {
+      return;
+    }
+
+    const userRaw = localStorage.getItem("currentUser") || localStorage.getItem("user");
+    let user = null;
+
+    if (!userRaw) {
+      setIsBuyNowOpen(false);
+      navigate("/login");
+      return;
+    }
+
+    try {
+      user = JSON.parse(userRaw);
+      if (!user || typeof user !== "object") {
+        user = { email: userRaw };
+      }
+    } catch {
+      user = { email: userRaw };
+    }
+
+    const directCheckoutItem = {
+      ...product,
+      price: effectivePrice,
+      image: previewImage,
+      quantity,
+    };
+
+    const directSubtotal = effectivePrice * quantity;
+    const directShipping = 0;
+    const directTax = directSubtotal * 0.08;
+    const directTotal = directSubtotal + directShipping + directTax;
+
+    localStorage.setItem(
+      "checkoutData",
+      JSON.stringify({
+        user,
+        cartItems: [directCheckoutItem],
+        subtotal: directSubtotal,
+        shipping: directShipping,
+        tax: directTax,
+        total: directTotal,
+        shouldClearCart: false,
+        checkoutSource: "buy-now",
+      })
+    );
+
+    setIsBuyNowOpen(false);
+    navigate("/checkout");
+  };
 
   return (
     <div className="font-body text-slate-600 antialiased bg-white">
@@ -279,50 +415,102 @@ export const ProductPage = () => {
   </div>
 
 {/* Quantity + Long Rectangular Cart Icon Button */}
-<div className="flex items-center gap-3 mb-6">
+<div className="mb-6 rounded-[28px] border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+  <div className="flex flex-col gap-3">
   {/* Quantity Selector */}
-  <div className="flex items-center border border-gray-300 overflow-hidden">
+  <div className="flex h-12 items-center overflow-hidden rounded-2xl border border-slate-300 bg-slate-50 shadow-sm">
     <button
       type="button"
-      className="px-3 py-1 bg-gray-100 hover:bg-gray-200 transition"
-      onClick={() => setQuantity(prev => (prev > 1 ? prev - 1 : 1))}
+      className="flex h-full w-12 items-center justify-center text-lg font-semibold text-slate-600 transition hover:bg-slate-100"
+      onClick={decreaseSelectedQuantity}
       disabled={availableStock <= 0}
     >
       -
     </button>
-    <span className="px-4 py-1 text-center">{quantity}</span>
+    <span className="flex min-w-[3.5rem] items-center justify-center px-4 text-center text-base font-semibold text-slate-900">{quantity}</span>
     <button
       type="button"
-      className="px-3 py-1 bg-gray-100 hover:bg-gray-200 transition"
-      onClick={() => setQuantity(prev => Math.min(prev + 1, availableStock || 1))}
+      className="flex h-full w-12 items-center justify-center text-lg font-semibold text-slate-600 transition hover:bg-slate-100"
+      onClick={increaseSelectedQuantity}
       disabled={availableStock <= 0 || quantity >= availableStock}
     >
       +
     </button>
   </div>
 
-  {/* Long Rectangular Cart Icon Button */}
-  <button
-    type="button"
-    onClick={() => addToCart({ ...product, quantity })}
-    disabled={availableStock <= 0}
-    className={`flex items-center justify-center w-32 h-10 shadow-md transition-all ${availableStock > 0 ? "bg-green-600 hover:bg-green-700" : "cursor-not-allowed bg-slate-300"}`}
-    title="Add to Cart"
-  >
-    <Icon
-      className={`h-6 w-6 ${availableStock > 0 ? "text-white" : "text-slate-500"}`}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
+  <div className="grid grid-cols-2 gap-3">
+    {/* Long Rectangular Cart Icon Button */}
+    <button
+      type="button"
+      onClick={handleCartToggle}
+      disabled={availableStock <= 0}
+      aria-pressed={isInCart}
+      className={`relative flex h-12 min-w-0 items-center justify-center overflow-hidden rounded-2xl border px-3 shadow-sm transition-all duration-300 ease-out ${
+        availableStock <= 0
+          ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+          : isInCart
+            ? `border-green-700 bg-slate-950 text-white ${isCartAnimating ? "scale-[1.02] shadow-lg ring-4 ring-slate-200" : "hover:bg-slate-900"}`
+            : `border-green-600 bg-white text-green-700 ${isCartAnimating ? "scale-[1.02] shadow-lg ring-4 ring-green-100" : "hover:bg-green-50"}`
+      }`}
+      title={isInCart ? "Remove from Cart" : "Add to Cart"}
     >
-      <path
-        d="M3 3h2l.4 2M7 13h14l-1.5 8H6.5L5 13zm0 0L3 3m4 10v6m6-6v6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
+      <span
+        className={`pointer-events-none absolute inset-0 ${
+          isCartAnimating
+            ? isInCart
+              ? "bg-white/10"
+              : "bg-white/15"
+            : "bg-transparent"
+        } transition-opacity duration-300`}
       />
-    </Icon>
-  </button>
+      <span
+        className={`relative flex items-center gap-2 text-xs font-bold tracking-[0.06em] uppercase transition-all duration-300 sm:text-sm ${
+          isCartAnimating ? "scale-105" : "scale-100"
+        }`}
+      >
+        {isInCart ? (
+          <>
+            <Icon className={`h-5 w-5 transition-transform duration-300 ${isCartAnimating ? "scale-110" : "scale-100"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" />
+            </Icon>
+            <span>{recentCartAction === "removed" ? "Removed" : "In Cart"}</span>
+          </>
+        ) : (
+          <>
+            <Icon className={`h-5 w-5 transition-transform duration-300 ${isCartAnimating ? "-translate-y-0.5 scale-110" : "scale-100"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path
+                d="M3 3h2l.4 2M7 13h14l-1.5 8H6.5L5 13zm0 0L3 3m4 10v6m6-6v6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+              />
+            </Icon>
+            <span>{recentCartAction === "added" ? "Added" : "Add to Cart"}</span>
+          </>
+        )}
+      </span>
+    </button>
+
+    <button
+      type="button"
+      onClick={handleBuyNow}
+      disabled={availableStock <= 0}
+      className={`flex h-12 min-w-0 items-center justify-center gap-2 rounded-2xl px-3 text-xs font-bold uppercase tracking-[0.06em] shadow-sm transition-all duration-300 sm:text-sm ${
+        availableStock > 0
+          ? "bg-green-600 text-white hover:bg-green-700"
+          : "cursor-not-allowed bg-slate-200 text-slate-500"
+      }`}
+    >
+      <Icon className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M13 3L4 14h6l-1 7 9-11h-6l1-7z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+      </Icon>
+      <span>Buy Now</span>
+    </button>
+  </div>
+  <p className="mt-3 text-[11px] font-medium uppercase tracking-[0.12em] text-slate-400">
+    Fast checkout with secure payment
+  </p>
+</div>
 </div>
   <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(260px,1fr)]">
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -505,6 +693,180 @@ export const ProductPage = () => {
       </main>
 
       <Footer />
+
+      {isBuyNowOpen && product ? (
+        <div className="fixed inset-0 z-[70]">
+          <button
+            type="button"
+            aria-label="Close buy now modal"
+            onClick={() => setIsBuyNowOpen(false)}
+            className="absolute inset-0 bg-slate-950/50 backdrop-blur-[2px] animate-buyNowFade"
+          />
+
+          <div className="absolute inset-x-0 bottom-0 animate-buyNowSheet md:left-1/2 md:top-1/2 md:w-[min(760px,92vw)] md:-translate-x-1/2 md:-translate-y-1/2">
+            <div className="flex max-h-[50vh] w-full flex-col overflow-hidden rounded-t-[28px] bg-white shadow-[0_-24px_70px_rgba(15,23,42,0.24)] md:max-h-[86vh] md:rounded-[28px] md:shadow-[0_32px_100px_rgba(15,23,42,0.24)]">
+              <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 md:px-7">
+                <div>
+                  <div className="mx-auto mb-3 h-1.5 w-14 rounded-full bg-slate-200 md:hidden" />
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Instant Checkout</p>
+                  <h3 className="mt-1 text-lg font-bold text-slate-900 md:text-xl">Buy {product.name}</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsBuyNowOpen(false)}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:text-slate-900"
+                >
+                  <span className="text-xl leading-none">×</span>
+                </button>
+              </div>
+
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                <div className="grid gap-0 md:grid-cols-[280px_minmax(0,1fr)]">
+                  <div className="hidden bg-slate-100 md:block">
+                    <div className="flex h-full items-center justify-center p-6">
+                      <div className="overflow-hidden rounded-[24px] bg-white shadow-sm">
+                        <Image
+                          preset="detail"
+                          variant="cover"
+                          className="h-[320px] w-[220px] object-cover"
+                          src={previewImage}
+                          alt={product.name}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-5 md:p-7">
+                    <div className="flex items-start gap-4 md:hidden">
+                      <div className="overflow-hidden rounded-2xl bg-slate-100 shadow-sm">
+                        <Image
+                          preset="thumb"
+                          variant="cover"
+                          className="h-24 w-24 object-cover"
+                          src={previewImage}
+                          alt={product.name}
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="line-clamp-2 text-base font-bold text-slate-900">{product.name}</h4>
+                        <p className="mt-1 text-sm text-slate-500">{product.brand || "LantaXpress"}</p>
+                        <p className="mt-3 text-lg font-bold text-slate-900">₦{effectivePrice.toLocaleString()}</p>
+                      </div>
+                    </div>
+
+                    <div className="hidden md:block">
+                      <p className="text-sm font-semibold text-green-700">Ready for express checkout</p>
+                      <p className="mt-3 text-3xl font-bold leading-tight text-slate-900">₦{effectivePrice.toLocaleString()}</p>
+                      <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500">
+                        Review the quantity and continue to the same payment flow used on checkout. Shipping remains free and tax is calculated automatically.
+                      </p>
+                    </div>
+
+                    <div className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-4 md:mt-8 md:p-5">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Quantity</p>
+                          <p className="mt-1 text-sm text-slate-500">Adjust before continuing to payment</p>
+                        </div>
+                        <div className="flex items-center overflow-hidden rounded-full border border-slate-200 bg-white shadow-sm">
+                          <button
+                            type="button"
+                            onClick={decreaseSelectedQuantity}
+                            disabled={quantity <= 1}
+                            className="flex h-11 w-11 items-center justify-center text-lg text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-300"
+                          >
+                            -
+                          </button>
+                          <span className="min-w-[3rem] text-center text-base font-semibold text-slate-900">{quantity}</span>
+                          <button
+                            type="button"
+                            onClick={increaseSelectedQuantity}
+                            disabled={quantity >= availableStock}
+                            className="flex h-11 w-11 items-center justify-center text-lg text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-300"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 space-y-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
+                      <div className="flex items-center justify-between gap-3 text-sm text-slate-600">
+                        <span>{product.name} × {quantity}</span>
+                        <span className="font-semibold text-slate-900">₦{(effectivePrice * quantity).toLocaleString()}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-3 text-sm text-slate-600">
+                        <span>Shipping</span>
+                        <span className="font-semibold text-green-700">Free</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-3 text-sm text-slate-600">
+                        <span>Tax</span>
+                        <span className="font-semibold text-slate-900">₦{(effectivePrice * quantity * 0.08).toLocaleString()}</span>
+                      </div>
+                      <div className="border-t border-slate-200 pt-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-400">Total</span>
+                          <span className="text-2xl font-bold text-slate-900">₦{(effectivePrice * quantity * 1.08).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 flex flex-col gap-3 md:mt-6 md:flex-row">
+                      <button
+                        type="button"
+                        onClick={() => setIsBuyNowOpen(false)}
+                        className="flex h-12 items-center justify-center rounded-full border border-slate-200 px-5 text-sm font-semibold uppercase tracking-[0.08em] text-slate-600 transition hover:border-slate-300 hover:text-slate-900 md:flex-1"
+                      >
+                        Keep Browsing
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleBuyNowCheckout}
+                        className="flex h-12 items-center justify-center rounded-full bg-[#f68b1e] px-5 text-sm font-bold uppercase tracking-[0.04em] text-white shadow-lg shadow-[#f68b1e]/25 transition hover:bg-[#e07d16] md:flex-[1.35]"
+                      >
+                        Pay Now
+                      </button>
+                    </div>
+
+                    <p className="mt-3 text-xs leading-5 text-slate-400">
+                      You will continue to the checkout payment page with this product only. Your existing cart will stay unchanged.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <style>
+            {`
+              @keyframes buyNowFade {
+                from { opacity: 0; }
+                to { opacity: 1; }
+              }
+
+              @keyframes buyNowSheet {
+                from { transform: translateY(28px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+              }
+
+              .animate-buyNowFade {
+                animation: buyNowFade 0.22s ease-out;
+              }
+
+              .animate-buyNowSheet {
+                animation: buyNowSheet 0.3s ease-out;
+              }
+
+              @media (min-width: 768px) {
+                @keyframes buyNowSheet {
+                  from { transform: translate(-50%, calc(-50% + 18px)) scale(0.98); opacity: 0; }
+                  to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+                }
+              }
+            `}
+          </style>
+        </div>
+      ) : null}
     </div>
   );
 };

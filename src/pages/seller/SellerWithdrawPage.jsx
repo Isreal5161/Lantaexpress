@@ -39,6 +39,11 @@ const SellerWithdrawPage = () => {
   });
   const [confirmWithdrawalOpen, setConfirmWithdrawalOpen] = useState(false);
   const [pendingWithdrawal, setPendingWithdrawal] = useState(null);
+  const [feedbackModal, setFeedbackModal] = useState({ open: false, title: "", message: "", tone: "default" });
+
+  const openFeedbackModal = (title, message, tone = "default") => {
+    setFeedbackModal({ open: true, title, message, tone });
+  };
 
   const loadFinanceData = async () => {
     const token = localStorage.getItem("sellerToken");
@@ -92,16 +97,16 @@ const SellerWithdrawPage = () => {
     const parsedAmount = Number(amount);
 
     if (!token) {
-      alert("Please log in again.");
+      openFeedbackModal("Login Required", "Please log in again.", "danger");
       return;
     }
 
     if (!parsedAmount || parsedAmount <= 0) {
-      alert("Please enter a valid amount");
+      openFeedbackModal("Invalid Amount", "Please enter a valid amount.", "neutral");
       return;
     }
     if (parsedAmount > summary.withdrawableBalance) {
-      alert("Insufficient balance");
+      openFeedbackModal("Insufficient Balance", "Insufficient balance for this withdrawal request.", "danger");
       return;
     }
 
@@ -154,17 +159,17 @@ const SellerWithdrawPage = () => {
       });
       setFeeSettings(summaryData.feeSettings || { withdrawalChargePercent: 0, productChargePercent: 0 });
       setWithdrawals(withdrawalData || []);
-      alert(data.message || "Withdrawal request submitted successfully");
       setAmount("");
       setBankName("");
       setAccountName("");
       setAccountNumber("");
       setConfirmWithdrawalOpen(false);
       setPendingWithdrawal(null);
+      openFeedbackModal("Withdrawal Submitted", data.message || "Withdrawal request submitted successfully");
     } catch (error) {
       console.error(error);
       setError(error.message || "Failed to create withdrawal request");
-      alert(error.message || "Failed to create withdrawal request");
+      openFeedbackModal("Withdrawal Failed", error.message || "Failed to create withdrawal request", "danger");
     } finally {
       setSubmitting(false);
     }
@@ -353,6 +358,16 @@ const SellerWithdrawPage = () => {
         confirmLabel="Continue"
         cancelLabel="Cancel"
         loading={submitting}
+      />
+      <ConfirmationModal
+        isOpen={feedbackModal.open}
+        title={feedbackModal.title}
+        message={feedbackModal.message}
+        onCancel={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+        onConfirm={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+        confirmLabel="OK"
+        hideCancel
+        tone={feedbackModal.tone}
       />
 
     </div>

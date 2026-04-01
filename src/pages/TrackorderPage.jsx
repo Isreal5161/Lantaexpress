@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import ConfirmationModal from "../components/ConfirmationModal";
 import { Header } from "../components/header";
 import { Footer } from "../components/footer";
 import { confirmOrderReceived, submitOrderReview, trackOrder } from "../api/orders";
@@ -42,6 +43,12 @@ export const TrackorderPage = () => {
   const [orderId, setOrderId] = useState("");
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
+  const [confirmReceivedOpen, setConfirmReceivedOpen] = useState(false);
+  const [feedbackModal, setFeedbackModal] = useState({ open: false, title: "", message: "", tone: "default" });
+
+  const openFeedbackModal = (title, message, tone = "default") => {
+    setFeedbackModal({ open: true, title, message, tone });
+  };
 
   const getUserToken = () => localStorage.getItem("authToken");
 
@@ -80,14 +87,14 @@ export const TrackorderPage = () => {
 
   const handleTrackOrder = async () => {
     if (!orderId) {
-      alert("Please enter an Order ID");
+      openFeedbackModal("Order ID Required", "Please enter an Order ID before tracking your shipment.", "neutral");
       return;
     }
 
     try {
       await loadOrder(orderId);
     } catch (error) {
-      alert(error.message || "Order not found");
+      openFeedbackModal("Unable to Track Order", error.message || "Order not found", "danger");
       setOrder(null);
     }
   };
@@ -115,31 +122,32 @@ export const TrackorderPage = () => {
   }, [orderId]);
 
   const confirmReceived = async () => {
-    if (!window.confirm("Confirm you have received this order?")) return;
-
     const token = localStorage.getItem("authToken");
     if (!token) {
-      alert("Please log in to confirm delivery.");
+      openFeedbackModal("Login Required", "Please log in to confirm delivery.", "danger");
       return;
     }
 
     try {
       const updated = await confirmOrderReceived(order.recordId, token);
       setOrder(updated);
+      setConfirmReceivedOpen(false);
+      openFeedbackModal("Order Confirmed", "Your delivery has been confirmed successfully.");
     } catch (error) {
-      alert(error.message || "Unable to confirm delivery.");
+      setConfirmReceivedOpen(false);
+      openFeedbackModal("Confirmation Failed", error.message || "Unable to confirm delivery.", "danger");
     }
   };
 
   const handleSubmitReview = async () => {
     if (!rating || !comment.trim()) {
-      alert("Please add rating and comment");
+      openFeedbackModal("Review Incomplete", "Please add both a rating and comment before submitting.", "neutral");
       return;
     }
 
     const token = localStorage.getItem("authToken");
     if (!token) {
-      alert("Please log in to submit a review.");
+      openFeedbackModal("Login Required", "Please log in to submit a review.", "danger");
       return;
     }
 
@@ -148,9 +156,9 @@ export const TrackorderPage = () => {
       setOrder(updated);
       setRating(0);
       setComment("");
-      alert("⭐ Thank you for your review!");
+      openFeedbackModal("Review Submitted", "Thank you for your review. Your feedback has been recorded.");
     } catch (error) {
-      alert(error.message || "Unable to save your review.");
+      openFeedbackModal("Review Failed", error.message || "Unable to save your review.", "danger");
     }
   };
 
@@ -297,7 +305,7 @@ export const TrackorderPage = () => {
             {canConfirmOrder && (
               <div className="mt-6">
                 <button
-                  onClick={confirmReceived}
+                  onClick={() => setConfirmReceivedOpen(true)}
                   className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition"
                 >
                   ✔ Confirm Order Received
@@ -351,6 +359,26 @@ export const TrackorderPage = () => {
           </div>
         )}
       </div>
+
+      <ConfirmationModal
+        isOpen={confirmReceivedOpen}
+        title="Confirm Delivery"
+        message="Please confirm that you have received this order. This will mark the order as completed."
+        onCancel={() => setConfirmReceivedOpen(false)}
+        onConfirm={confirmReceived}
+        confirmLabel="Yes, Confirm"
+        cancelLabel="Cancel"
+      />
+      <ConfirmationModal
+        isOpen={feedbackModal.open}
+        title={feedbackModal.title}
+        message={feedbackModal.message}
+        onCancel={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+        onConfirm={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+        confirmLabel="OK"
+        hideCancel
+        tone={feedbackModal.tone}
+      />
 
       <Footer />
     </div>

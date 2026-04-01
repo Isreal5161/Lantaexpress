@@ -4,6 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useSellerAuth } from "../../context/SellerAuthContext";
 import "../../styles/globals.css";
 import { getCategories } from "../../service/CategoryService";
+import { SellerHeader } from "../../components/SellerHeader";
 
 const nigeriaStates = [
   "Lagos","Abuja (FCT)","Oyo","Ogun","Rivers","Kano",
@@ -175,74 +176,133 @@ const SellerSignup = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-green-50 px-4 py-8">
-      {/* Navigation Buttons */}
-      <div className="flex space-x-3 mb-6 animate-fade-pulse">
-        <Link
-          to="/seller-login"
-          className="px-4 py-1 text-sm bg-green-100 text-green-700 font-medium rounded-lg hover:bg-green-200 hover:opacity-90 transition opacity-70"
-        >
-          Sign In
-        </Link>
-        <Link
-          to="/"
-          className="px-4 py-1 text-sm bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 hover:opacity-90 transition opacity-70"
-        >
-          Home
-        </Link>
-      </div>
+    <div className="min-h-screen bg-[#f5f7f3] font-body text-slate-800">
+      <SellerHeader />
 
-      {/* Welcome Section */}
-      <div className="bg-white w-full max-w-3xl p-6 rounded-3xl shadow-xl border border-green-100 flex items-center space-x-4 mb-10">
-        <img src="lantalogo1.jpg" alt="LantaXeller Logo" className="w-16 h-16 object-contain" />
-        <div>
-          <h1 className="text-3xl font-bold text-green-700">Welcome to LantaXeller!</h1>
-          <p className="text-green-800 mt-1">Create your seller account and start selling with ease.</p>
-        </div>
-      </div>
+      <main className="overflow-hidden px-4 pb-12 pt-24 sm:px-6 lg:px-8 lg:pt-28">
+        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.98fr_1.02fr]">
+          <section className="relative isolate overflow-hidden rounded-[34px] bg-[#071a10] text-white shadow-[0_30px_110px_rgba(2,12,7,0.3)]">
+            <img src="/lantaexpressimage2.jpg" alt="Seller signup background" className="absolute inset-0 h-full w-full object-cover" />
+            <video
+              className="absolute inset-0 h-full w-full object-cover"
+              src="/SmartSeller.mov"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              poster="/lantaexpressimage2.jpg"
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(140deg,rgba(7,26,16,0.92),rgba(7,26,16,0.58)_48%,rgba(7,26,16,0.86)),radial-gradient(circle_at_top_right,rgba(57,181,115,0.24),transparent_28%)]" />
+            <div className="relative flex h-full flex-col justify-between p-6 sm:p-8 lg:p-10">
+              <div>
+                <div className="inline-flex items-center rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-100 backdrop-blur-md">
+                  Seller onboarding
+                </div>
+                <h1 className="mt-6 max-w-xl text-4xl font-black leading-tight tracking-tight sm:text-5xl">
+                  Create a seller account that feels like the start of a real business journey.
+                </h1>
+                <p className="mt-5 max-w-xl text-base leading-8 text-slate-200">
+                  Set up your brand, choose product categories, and prepare your store for approval with a cleaner, more lively signup experience.
+                </p>
+              </div>
 
-      {/* Signup Form Card */}
-      <div className="bg-white w-full max-w-3xl p-10 rounded-3xl shadow-xl border border-green-100">
-        {/* Stepper */}
-        <div className="flex justify-between mb-10">
-          {[1,2,3].map((num) => (
-            <div
-              key={num}
-              className={`flex-1 text-center py-3 rounded-full mx-1 font-medium transition-all
-              ${step === num ? "bg-green-600 text-white shadow-lg scale-105" : "bg-green-100 text-green-700"}`}
-            >
-              Step {num}
+              <div className="space-y-4">
+                <div className="rounded-[24px] border border-white/10 bg-white/10 p-5 backdrop-blur-md">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-green-300">What you unlock</p>
+                  <p className="mt-2 text-base font-bold">Product management, seller dashboard access, order tracking, and income monitoring.</p>
+                </div>
+                <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-white/10 p-3 backdrop-blur-md">
+                  <video
+                    className="h-[220px] w-full rounded-[22px] object-cover sm:h-[280px]"
+                    src="/Seller.mov"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="auto"
+                    poster="/lantaexpressimage1.jpg"
+                  />
+                  <div className="absolute inset-x-6 bottom-6 hidden rounded-[22px] border border-white/20 bg-slate-950/65 p-4 text-white backdrop-blur-md sm:block">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-green-300">Seller launch</p>
+                    <p className="mt-2 text-base font-bold">A stronger first impression before your seller even reaches the dashboard.</p>
+                  </div>
+                </div>
+                <div className="rounded-[22px] border border-white/10 bg-white/10 p-4 text-white backdrop-blur-md sm:hidden">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-green-300">Seller launch</p>
+                  <p className="mt-2 text-base font-bold leading-7">A stronger first impression before your seller even reaches the dashboard.</p>
+                </div>
+              </div>
             </div>
-          ))}
-        </div>
+          </section>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+          <section className="rounded-[34px] border border-slate-200 bg-white p-6 shadow-[0_24px_90px_rgba(15,23,42,0.08)] sm:p-8 lg:p-10">
+            <div className="flex flex-col gap-4 rounded-[24px] border border-green-100 bg-gradient-to-r from-green-50 to-white p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-4">
+                <img src="/lantalogo1.jpg" alt="LantaXeller Logo" className="h-14 w-14 rounded-2xl object-contain bg-white p-2 shadow-sm" />
+                <div>
+                  <h2 className="text-2xl font-black text-green-700">Create Seller Account</h2>
+                  <p className="mt-1 text-sm text-slate-600">Three simple steps to set up your store details.</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <Link
+                  to="/seller-login"
+                  className="inline-flex items-center justify-center rounded-2xl bg-green-100 px-4 py-2 text-sm font-semibold text-green-700 transition hover:bg-green-200"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/"
+                  className="inline-flex items-center justify-center rounded-2xl bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700"
+                >
+                  Home
+                </Link>
+              </div>
+            </div>
+
+            <div className="mt-8 grid gap-3 sm:grid-cols-3">
+              {[1, 2, 3].map((num) => (
+                <div
+                  key={num}
+                  className={`rounded-2xl px-4 py-4 text-center text-sm font-semibold transition-all ${
+                    step === num
+                      ? "bg-green-600 text-white shadow-lg"
+                      : "bg-green-50 text-green-700"
+                  }`}
+                >
+                  Step {num}
+                </div>
+              ))}
+            </div>
+
+            <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           {/* Step 1 */}
           {step === 1 && (
             <>
-              <h2 className="text-2xl font-bold text-green-700 mb-4">Personal Information</h2>
+              <h2 className="mb-4 text-2xl font-bold text-green-700">Personal Information</h2>
               <input type="text" name="fullName" placeholder="Full Name"
                 value={formData.fullName} onChange={handleChange} required
-                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none" />
+                className="min-h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-green-500 focus:bg-white" />
               <input type="email" name="email" placeholder="Email"
                 value={formData.email} onChange={handleChange} required
-                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none" />
+                className="min-h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-green-500 focus:bg-white" />
               <input type="tel" name="phone" placeholder="Phone Number"
                 value={formData.phone} onChange={handleChange} required
-                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none" />
+                className="min-h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-green-500 focus:bg-white" />
             </>
           )}
 
           {/* Step 2 */}
           {step === 2 && (
             <>
-              <h2 className="text-2xl font-bold text-green-700 mb-4">Brand Information</h2>
+              <h2 className="mb-4 text-2xl font-bold text-green-700">Brand Information</h2>
               <input type="text" name="brandName" placeholder="Brand Name"
                 value={formData.brandName} onChange={handleChange} required
-                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none" />
+                className="min-h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-green-500 focus:bg-white" />
               <textarea name="description" placeholder="Store Description"
                 value={formData.description} onChange={handleChange}
-                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none" />
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm outline-none transition focus:border-green-500 focus:bg-white" />
               <div>
                 <p className="font-medium mb-2 text-green-800">Select Categories</p>
                 <div className="rounded-2xl border border-green-200 bg-green-50/70 p-3 sm:p-4">
@@ -279,7 +339,9 @@ const SellerSignup = () => {
               </div>
               <div>
                 <p className="font-medium mb-2 text-green-800">Upload Brand Logo</p>
-                <input type="file" accept="image/*" onChange={handleLogoUpload} className="mb-2" />
+                <div className="rounded-[24px] border border-dashed border-slate-300 bg-slate-50 p-4">
+                  <input type="file" accept="image/*" onChange={handleLogoUpload} className="mb-2 block w-full text-sm text-slate-500 file:mr-4 file:rounded-full file:border-0 file:bg-green-600 file:px-4 file:py-2 file:font-semibold file:text-white hover:file:bg-green-700" />
+                </div>
                 {formData.logoPreview && (
                   <img src={formData.logoPreview} alt="Preview"
                     className="mt-2 h-28 w-28 object-cover rounded-full border-2 border-green-200 shadow" />
@@ -291,12 +353,12 @@ const SellerSignup = () => {
           {/* Step 3 */}
           {step === 3 && (
             <>
-              <h2 className="text-2xl font-bold text-green-700 mb-4">Location & Security</h2>
+              <h2 className="mb-4 text-2xl font-bold text-green-700">Location & Security</h2>
               <input type="text" value="Nigeria" disabled
-                className="w-full border rounded-xl px-4 py-3 bg-green-50 text-green-700 mb-4" />
+                className="mb-4 min-h-14 w-full rounded-2xl border border-green-100 bg-green-50 px-4 text-sm text-green-700" />
 
               <select name="state" value={formData.state} onChange={handleChange} required
-                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none mb-4">
+                className="mb-4 min-h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-green-500 focus:bg-white">
                 <option value="">Select State</option>
                 {nigeriaStates.map((state) => (
                   <option key={state}>{state}</option>
@@ -305,7 +367,7 @@ const SellerSignup = () => {
 
               <input type="text" name="address" placeholder="Business Address"
                 value={formData.address} onChange={handleChange} required
-                className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none mb-4" />
+                className="mb-4 min-h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-green-500 focus:bg-white" />
 
               {/* Password Fields */}
               <div className="relative mb-4">
@@ -316,7 +378,7 @@ const SellerSignup = () => {
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none pr-12"
+                  className="min-h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 pr-14 text-sm outline-none transition focus:border-green-500 focus:bg-white"
                 />
                 <button
                   type="button"
@@ -335,7 +397,7 @@ const SellerSignup = () => {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
-                  className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none pr-12"
+                  className="min-h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 pr-14 text-sm outline-none transition focus:border-green-500 focus:bg-white"
                 />
                 <button
                   type="button"
@@ -346,7 +408,7 @@ const SellerSignup = () => {
                 </button>
               </div>
 
-              <label className="flex items-center space-x-2">
+              <label className="flex items-center space-x-2 rounded-2xl bg-slate-50 px-4 py-4">
                 <input type="checkbox" name="agree"
                   checked={formData.agree} onChange={handleChange}
                   className="accent-green-600" />
@@ -356,11 +418,11 @@ const SellerSignup = () => {
           )}
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between pt-6">
+          <div className="flex justify-between border-t border-slate-100 pt-6">
             {step > 1 && (
               <button type="button"
                 onClick={() => setStep(step - 1)}
-                className="px-6 py-2 rounded-xl bg-green-100 text-green-700 font-medium hover:bg-green-200 transition">
+                className="rounded-2xl bg-green-100 px-6 py-3 font-medium text-green-700 transition hover:bg-green-200">
                 Back
               </button>
             )}
@@ -368,18 +430,26 @@ const SellerSignup = () => {
             {step < 3 ? (
               <button type="button"
                 onClick={() => setStep(step + 1)}
-                className="ml-auto px-6 py-2 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 transition">
+                className="ml-auto rounded-2xl bg-green-600 px-6 py-3 font-medium text-white transition hover:bg-green-700">
                 Next
               </button>
             ) : (
               <button type="submit"
-                className="ml-auto px-6 py-2 rounded-xl bg-green-700 text-white font-semibold hover:bg-green-800 transition">
+                className="ml-auto rounded-2xl bg-green-700 px-6 py-3 font-semibold text-white transition hover:bg-green-800">
                 {loading ? "Registering..." : "Create Seller Account"}
               </button>
             )}
           </div>
         </form>
-      </div>
+            <p className="mt-8 text-center text-sm text-slate-600">
+              Already have a seller account?{" "}
+              <Link to="/seller-login" className="font-semibold text-green-700 hover:underline">
+                Sign In
+              </Link>
+            </p>
+          </section>
+        </div>
+      </main>
     </div>
   );
 };

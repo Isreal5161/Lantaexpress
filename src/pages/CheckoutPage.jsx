@@ -27,6 +27,18 @@ const generateOrderId = () => `ORD${Date.now()}`;
 export const CheckoutPage = ({ userCurrency = "NGN" }) => {
   const { cartItems, clearCart } = useCart();
   const navigate = useNavigate();
+  const [checkoutOverride] = useState(() => {
+    if (typeof window === "undefined") {
+      return null;
+    }
+
+    try {
+      const storedCheckout = window.localStorage.getItem("checkoutData");
+      return storedCheckout ? JSON.parse(storedCheckout) : null;
+    } catch {
+      return null;
+    }
+  });
 
   const [shippingAddress, setShippingAddress] = useState({
     name: "",
@@ -44,9 +56,11 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
   const [orderId, setOrderId] = useState("");
   const [submittingOrder, setSubmittingOrder] = useState(false);
   const [orderError, setOrderError] = useState(null);
+  const checkoutItems = checkoutOverride?.cartItems?.length ? checkoutOverride.cartItems : cartItems;
+  const shouldClearCart = checkoutOverride?.shouldClearCart ?? true;
 
   // Totals
-  const subtotal = cartItems.reduce(
+  const subtotal = checkoutItems.reduce(
     (sum, item) => sum + convertPrice(item.price, userCurrency) * item.quantity,
     0
   );
@@ -114,7 +128,7 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
     try {
       const response = await createOrders(
         {
-          cartItems,
+          cartItems: checkoutItems,
           shippingAddress,
           paymentMethod,
           currency: userCurrency,
@@ -122,7 +136,11 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
         token
       );
 
-      clearCart();
+      if (shouldClearCart) {
+        clearCart();
+      }
+
+      localStorage.removeItem("checkoutData");
 
       setOrderId(response.primaryOrderNumber || generateOrderId());
       setShowSuccess(true);
@@ -134,7 +152,7 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
   };
 
   // Show empty cart only if success modal not open
-  if (cartItems.length === 0 && !showSuccess) {
+  if (checkoutItems.length === 0 && !showSuccess) {
     return (
       <div className="font-body text-slate-600 bg-white min-h-screen">
         <Header />
@@ -281,7 +299,7 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
             ) : null}
 
             <div className="space-y-4">
-              {cartItems.map((item) => (
+              {checkoutItems.map((item) => (
                 <div key={item.id} className="flex justify-between">
                   <Text>
                     {item.name} x {item.quantity}

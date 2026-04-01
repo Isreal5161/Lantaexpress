@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import AdminLayout from "../Layout/AdminLayout";
 import { getAdminSellerPayments, updateAdminPlatformFees, updateAdminWithdrawalStatus } from "../../api/sellerFinance";
 import { PageLoadErrorState, TablePanelSkeleton } from "../../components/LoadingSkeletons";
+import ConfirmationModal from "../../components/ConfirmationModal";
 
 const formatCurrency = (value) =>
   new Intl.NumberFormat("en-NG", {
@@ -21,6 +22,11 @@ export default function SellerPayments() {
   const [processingId, setProcessingId] = useState(null);
   const [feeSettings, setFeeSettings] = useState({ productChargePercent: 0, withdrawalChargePercent: 0 });
   const [savingFees, setSavingFees] = useState(false);
+  const [feedbackModal, setFeedbackModal] = useState({ open: false, title: "", message: "", tone: "default" });
+
+  const openFeedbackModal = (title, message, tone = "default") => {
+    setFeedbackModal({ open: true, title, message, tone });
+  };
 
   const loadPayments = async () => {
     const token = localStorage.getItem("token");
@@ -75,7 +81,7 @@ export default function SellerPayments() {
       setFeeSettings(refreshed.feeSettings || { productChargePercent: 0, withdrawalChargePercent: 0 });
     } catch (error) {
       console.error(error);
-      alert(error.message || `Failed to ${status.toLowerCase()} withdrawal`);
+      openFeedbackModal("Withdrawal Update Failed", error.message || `Failed to ${status.toLowerCase()} withdrawal`, "danger");
     } finally {
       setProcessingId(null);
     }
@@ -94,9 +100,10 @@ export default function SellerPayments() {
       setSellers(refreshed.sellers || []);
       setWithdrawals(refreshed.pendingWithdrawals || []);
       setFeeSettings(refreshed.feeSettings || updated.feeSettings || { productChargePercent: 0, withdrawalChargePercent: 0 });
+      openFeedbackModal("Fees Updated", "Platform fee settings updated successfully.");
     } catch (error) {
       console.error(error);
-      alert(error.message || "Failed to update platform fees");
+      openFeedbackModal("Fee Update Failed", error.message || "Failed to update platform fees", "danger");
     } finally {
       setSavingFees(false);
     }
@@ -308,6 +315,16 @@ export default function SellerPayments() {
       </>
       )}
       </div>
+      <ConfirmationModal
+        isOpen={feedbackModal.open}
+        title={feedbackModal.title}
+        message={feedbackModal.message}
+        onCancel={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+        onConfirm={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+        confirmLabel="OK"
+        hideCancel
+        tone={feedbackModal.tone}
+      />
     </AdminLayout>
   );
 }

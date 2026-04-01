@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { MdAdd, MdEdit, MdDelete } from "react-icons/md";
 import { FiSearch } from "react-icons/fi";
 import ConfirmationModal from "../../components/ConfirmationModal";
+import Modal from "../../components/Modal";
 import { PageLoadErrorState, ProductGridSkeleton } from "../../components/LoadingSkeletons";
 import { getSellerPlatformFees } from "../../api/sellerFinance";
 import { getSellerApprovalLabel, getSellerApprovalMessage, isSellerApproved } from "../../utils/sellerApproval";
@@ -36,6 +37,7 @@ const SellerProductsPage = () => {
   const [categoryDefinitions, setCategoryDefinitions] = useState([]);
   const [feeSettings, setFeeSettings] = useState({ productChargePercent: 0, withdrawalChargePercent: 0 });
   const [productFeeModalOpen, setProductFeeModalOpen] = useState(false);
+  const [feedbackModal, setFeedbackModal] = useState({ open: false, title: "", message: "", tone: "default" });
   const [formData, setFormData] = useState({
     name: "",
     brand: "",
@@ -48,6 +50,10 @@ const SellerProductsPage = () => {
   });
 
   const token = localStorage.getItem("sellerToken");
+
+  const openFeedbackModal = (title, message, tone = "default") => {
+    setFeedbackModal({ open: true, title, message, tone });
+  };
 
   // Fetch seller's products
   const loadProducts = async () => {
@@ -150,7 +156,7 @@ const SellerProductsPage = () => {
 
   const handleOpenModal = (product = null) => {
     if (!sellerApproved) {
-      alert(getSellerApprovalMessage(currentSeller));
+      openFeedbackModal("Seller Approval Required", getSellerApprovalMessage(currentSeller), "neutral");
       return;
     }
 
@@ -186,7 +192,7 @@ const SellerProductsPage = () => {
     if (files.length === 0) return;
 
     if (files.length < 3 || files.length > 5) {
-      alert("Please upload between 3 and 5 product images.");
+      openFeedbackModal("Image Upload Requirement", "Please upload between 3 and 5 product images.", "neutral");
       return;
     }
 
@@ -264,20 +270,20 @@ const SellerProductsPage = () => {
       setVideoPreview("");
 
       if (editingProduct && editingProduct._id) {
-        alert('Product updated and sent for admin approval');
+        openFeedbackModal('Product Updated', 'Product updated and sent for admin approval');
       } else {
-        alert('Product submitted for approval');
+        openFeedbackModal('Product Submitted', 'Product submitted for approval');
       }
     } catch (err) {
       console.error(err);
-      alert(err.message || 'Save failed');
+      openFeedbackModal('Save Failed', err.message || 'Save failed', 'danger');
     }
     setSubmitting(false);
   };
 
   const handleDelete = async (id) => {
     if (!sellerApproved) {
-      alert(getSellerApprovalMessage(currentSeller));
+      openFeedbackModal("Seller Approval Required", getSellerApprovalMessage(currentSeller), "neutral");
       return;
     }
 
@@ -298,10 +304,10 @@ const SellerProductsPage = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Delete failed');
       await loadProducts();
-      alert('Product deleted');
+      openFeedbackModal('Product Deleted', 'Product deleted successfully');
     } catch (err) {
       console.error(err);
-      alert(err.message || 'Delete failed');
+      openFeedbackModal('Delete Failed', err.message || 'Delete failed', 'danger');
     } finally {
       setConfirmTarget(null);
       setDeleting(false);
@@ -423,9 +429,8 @@ const SellerProductsPage = () => {
       {/* MODAL */}
         </>
       )}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 px-3 py-4 sm:flex sm:items-center sm:justify-center sm:px-4 sm:py-6">
-          <div className="mx-auto flex max-h-[calc(100vh-2rem)] w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-white shadow-xl sm:max-h-[calc(100vh-3rem)]">
+      <Modal isOpen={modalOpen} onClose={() => { setModalOpen(false); setEditingProduct(null); setVideoFile(null); setVideoPreview(""); }} panelClassName="max-w-3xl">
+          <div className="mx-auto flex max-h-[calc(100vh-2rem)] w-full flex-col overflow-hidden rounded-[24px] bg-white shadow-xl sm:max-h-[calc(100vh-3rem)]">
             <div className="border-b border-slate-200 px-4 py-4 sm:px-6">
               <h2 className="text-lg font-semibold sm:text-xl">{editingProduct ? "Edit Product" : "Add New Product"}</h2>
             </div>
@@ -576,8 +581,7 @@ const SellerProductsPage = () => {
               </div>
             </div>
           </div>
-        </div>
-      )}
+      </Modal>
       <ConfirmationModal
         isOpen={confirmOpen}
         title="Confirm Delete"
@@ -602,6 +606,16 @@ const SellerProductsPage = () => {
         confirmLabel={editingProduct ? "Save Changes" : "Submit Product"}
         cancelLabel="Cancel"
         loading={submitting}
+      />
+      <ConfirmationModal
+        isOpen={feedbackModal.open}
+        title={feedbackModal.title}
+        message={feedbackModal.message}
+        onCancel={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+        onConfirm={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+        confirmLabel="OK"
+        hideCancel
+        tone={feedbackModal.tone}
       />
     </div>
   );
