@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import AdminLayout from "../Layout/AdminLayout";
-import { createCategory, getCategories } from "../../service/CategoryService";
+import { createCategory, deleteCategory, getCategories } from "../../service/CategoryService";
 
 export default function AdminProductsPage() {
   const [allProducts, setAllProducts] = useState([]);
@@ -10,9 +10,10 @@ export default function AdminProductsPage() {
   const API_BASE = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
   const token = localStorage.getItem('token');
   const [editingProduct, setEditingProduct] = useState(null);
-  const [editForm, setEditForm] = useState({ name: '', price: '', stock: '', category: '', brand: '', description: '' });
+  const [editForm, setEditForm] = useState({ name: '', price: '', stock: '', category: '', brand: '', description: '', keyFeatures: '' });
   const [newCategoryTitle, setNewCategoryTitle] = useState("");
   const [creatingCategory, setCreatingCategory] = useState(false);
+  const [deletingCategoryId, setDeletingCategoryId] = useState("");
 
   const availableCategories = useMemo(() => {
     const fetchedCategories = categories.map((category) => ({
@@ -123,6 +124,33 @@ export default function AdminProductsPage() {
     }
   };
 
+  const handleDeleteCategory = async (category) => {
+    if (!category?.id) {
+      return;
+    }
+
+    if (!window.confirm(`Remove category "${category.title}"?`)) {
+      return;
+    }
+
+    try {
+      setDeletingCategoryId(category.id);
+      await deleteCategory({ id: category.id, token });
+      await loadCategories();
+
+      if (filteredCategory === category.title) {
+        setFilteredCategory("All");
+      }
+
+      alert("Category deleted");
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to delete category");
+    } finally {
+      setDeletingCategoryId("");
+    }
+  };
+
   // Approve seller product (call backend)
   const handleApprove = async (product) => {
     try {
@@ -188,6 +216,25 @@ export default function AdminProductsPage() {
             {creatingCategory ? 'Adding...' : 'Add Category'}
           </button>
         </form>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {categories.length === 0 ? (
+            <p className="text-sm text-slate-500">No categories available yet.</p>
+          ) : (
+            categories.map((category) => (
+              <div key={category.id} className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-slate-700">
+                <span>{category.title}</span>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteCategory(category)}
+                  disabled={deletingCategoryId === category.id}
+                  className="rounded bg-red-600 px-2 py-1 text-xs text-white disabled:cursor-not-allowed disabled:bg-red-300"
+                >
+                  {deletingCategoryId === category.id ? 'Removing...' : 'Remove'}
+                </button>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       <div className="mb-4 flex gap-4 items-center">
@@ -244,7 +291,15 @@ export default function AdminProductsPage() {
                 <div className="flex gap-2 mt-3">
                   <button onClick={() => {
                     setEditingProduct(product);
-                    setEditForm({ name: product.name, price: product.price, stock: product.stock, category: product.category, brand: product.brand, description: product.description || '' });
+                    setEditForm({
+                      name: product.name,
+                      price: product.price,
+                      stock: product.stock,
+                      category: product.category,
+                      brand: product.brand,
+                      description: product.description || '',
+                      keyFeatures: Array.isArray(product.raw?.keyFeatures) ? product.raw.keyFeatures.join('\n') : '',
+                    });
                   }} className="px-3 py-1 bg-blue-600 text-white rounded text-sm">Edit</button>
                   <button onClick={async () => {
                     if (!confirm('Delete this product?')) return;
@@ -280,6 +335,7 @@ export default function AdminProductsPage() {
               </select>
               <input value={editForm.brand} onChange={e => setEditForm({...editForm, brand: e.target.value})} className="border p-2" />
               <textarea value={editForm.description} onChange={e => setEditForm({...editForm, description: e.target.value})} className="border p-2 md:col-span-2" />
+              <textarea value={editForm.keyFeatures} onChange={e => setEditForm({...editForm, keyFeatures: e.target.value})} placeholder="Key features, one per line" className="border p-2 md:col-span-2" />
             </div>
             <div className="flex justify-end gap-2 mt-4">
               <button onClick={() => setEditingProduct(null)} className="px-3 py-2 bg-gray-300 rounded">Cancel</button>

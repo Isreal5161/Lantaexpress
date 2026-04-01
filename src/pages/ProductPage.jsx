@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link as RouterLink } from 'react-router-dom';
 import { useCart } from "../context/CartContextTemp";
 import { getProductById, getProducts } from "../service/ProductService";
@@ -37,18 +37,75 @@ const formatReviewDate = (value) => {
   });
 };
 
+const normalizeDescriptionParts = (description = "") => {
+  const normalized = String(description || "")
+    .replace(/[•●◦▪]/g, "\n")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!normalized) {
+    return { overview: "", highlights: [] };
+  }
+
+  const lines = normalized
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const sentencePool = (lines.length > 0 ? lines : [normalized])
+    .flatMap((line) =>
+      line
+        .split(/(?<=[.!?])\s+(?=[A-Z0-9])/)
+        .map((part) => part.trim())
+        .filter(Boolean)
+    );
+
+  const deduped = Array.from(new Set(sentencePool));
+  const [overview = normalized, ...rest] = deduped;
+
+  return {
+    overview,
+    highlights: rest.slice(0, 6),
+  };
+};
+
 export const ProductPage = () => {
   const { addToCart } = useCart();
   const { id } = useParams(); 
   const [product, setProduct] = useState(null);
   const [exploreProducts, setExploreProducts] = useState([]);
   const [quantity, setQuantity] = useState(1);
+  const [showFullDetails, setShowFullDetails] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState({ type: "image", src: "" });
   const [loadingPage, setLoadingPage] = useState(true);
   const [pageError, setPageError] = useState(null);
   const effectivePrice = getEffectiveProductPrice(product || {});
   const originalPrice = getOriginalProductPrice(product || {});
   const hasDiscount = hasActiveProductDiscount(product || {});
   const discountPercent = getProductDiscountPercent(product || {});
+  const availableStock = Math.max(Number(product?.stock) || 0, 0);
+  const productDescription = useMemo(() => normalizeDescriptionParts(product?.description), [product?.description]);
+  const mediaGallery = useMemo(() => {
+    const images = Array.isArray(product?.images) ? product.images.filter(Boolean) : [];
+    const media = images.map((src, index) => ({ id: `image-${index}`, type: "image", src }));
+
+    if (product?.video) {
+      media.unshift({ id: "video-0", type: "video", src: product.video });
+    }
+
+    if (media.length === 0 && product?.image) {
+      media.push({ id: "image-fallback", type: "image", src: product.image });
+    }
+
+    return media;
+  }, [product?.images, product?.video, product?.image]);
+  const keyFeatures = useMemo(() => {
+    const explicitFeatures = Array.isArray(product?.keyFeatures)
+      ? product.keyFeatures.map((feature) => String(feature || "").trim()).filter(Boolean)
+      : [];
+
+    return explicitFeatures.length > 0 ? explicitFeatures : productDescription.highlights;
+  }, [product?.keyFeatures, productDescription.highlights]);
   const productReviews = product?.reviews || [];
   const ratingBreakdown = product?.ratingBreakdown || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
   const reviewBreakdownRows = [5, 4, 3, 2, 1].map((star) => {
@@ -93,6 +150,23 @@ export const ProductPage = () => {
     loadProductPage();
   }, [id]);
 
+  useEffect(() => {
+    setShowFullDetails(false);
+  }, [id]);
+
+  useEffect(() => {
+    setSelectedMedia(mediaGallery[0] || { type: "image", src: product?.image || "" });
+  }, [mediaGallery, product?.image]);
+
+  useEffect(() => {
+    if (availableStock <= 0) {
+      setQuantity(1);
+      return;
+    }
+
+    setQuantity((prev) => Math.min(Math.max(prev, 1), availableStock));
+  }, [availableStock]);
+
   return (
     <div className="font-body text-slate-600 antialiased bg-white">
       <Header />
@@ -122,21 +196,59 @@ export const ProductPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Image */}
             <div className="space-y-4">
-              <div className="aspect-w-4 aspect-h-3 bg-gray-100 overflow-hidden">
-                <Image
-                  preset="detail"
-                  variant="cover"
-                  className="w-full h-full object-center object-cover"
-                  src={product.image}
-                  alt={product.name}
-                  loading="eager"
-                  fetchPriority="high"
-                />
+              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-gray-100">
+                <div className="aspect-[4/3] w-full">
+                  {selectedMedia.type === "video" ? (
+                    <video
+                      src={selectedMedia.src}
+                      controls
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <Image
+                      preset="detail"
+                      variant="cover"
+                      className="w-full h-full object-center object-cover"
+                      src={selectedMedia.src || product.image}
+                      alt={product.name}
+                      loading="eager"
+                      fetchPriority="high"
+                    />
+                  )}
+                </div>
               </div>
+
+              {mediaGallery.length > 1 && (
+                <div className="grid grid-cols-4 gap-3 sm:grid-cols-5">
+                  {mediaGallery.map((media) => {
+                    const isActive = selectedMedia.type === media.type && selectedMedia.src === media.src;
+
+                    return (
+                      <button
+                        key={media.id}
+                        type="button"
+                        onClick={() => setSelectedMedia(media)}
+                        className={`overflow-hidden rounded-xl border ${isActive ? "border-green-600 ring-2 ring-green-200" : "border-slate-200"}`}
+                      >
+                        <div className="relative aspect-square bg-slate-100">
+                          {media.type === "video" ? (
+                            <div className="flex h-full w-full items-center justify-center bg-slate-900 text-xs font-semibold uppercase tracking-[0.14em] text-white">
+                              Video
+                            </div>
+                          ) : (
+                            <img src={media.src} alt={`${product.name} preview`} className="h-full w-full object-cover" />
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 {/* Info */}
-<div>
-  <h1 className="text-3xl font-heading font-bold text-slate-900 mb-2">
+<div className="space-y-6">
+  <div>
+  <h1 className="text-3xl font-heading font-bold text-slate-900 mb-2 leading-tight">
     {product.name}
   </h1>
   <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -161,21 +273,29 @@ export const ProductPage = () => {
       </>
     )}
   </div>
+  <p className={`mb-4 text-sm font-medium ${availableStock > 0 ? "text-green-600" : "text-red-600"}`}>
+    {availableStock > 0 ? `Available stock: ${availableStock}` : "Out of stock"}
+  </p>
+  </div>
 
 {/* Quantity + Long Rectangular Cart Icon Button */}
 <div className="flex items-center gap-3 mb-6">
   {/* Quantity Selector */}
   <div className="flex items-center border border-gray-300 overflow-hidden">
     <button
+      type="button"
       className="px-3 py-1 bg-gray-100 hover:bg-gray-200 transition"
       onClick={() => setQuantity(prev => (prev > 1 ? prev - 1 : 1))}
+      disabled={availableStock <= 0}
     >
       -
     </button>
     <span className="px-4 py-1 text-center">{quantity}</span>
     <button
+      type="button"
       className="px-3 py-1 bg-gray-100 hover:bg-gray-200 transition"
-      onClick={() => setQuantity(prev => prev + 1)}
+      onClick={() => setQuantity(prev => Math.min(prev + 1, availableStock || 1))}
+      disabled={availableStock <= 0 || quantity >= availableStock}
     >
       +
     </button>
@@ -183,12 +303,14 @@ export const ProductPage = () => {
 
   {/* Long Rectangular Cart Icon Button */}
   <button
+    type="button"
     onClick={() => addToCart({ ...product, quantity })}
-    className="flex items-center justify-center w-32 h-10 bg-green-600 hover:bg-green-700 shadow-md transition-all"
+    disabled={availableStock <= 0}
+    className={`flex items-center justify-center w-32 h-10 shadow-md transition-all ${availableStock > 0 ? "bg-green-600 hover:bg-green-700" : "cursor-not-allowed bg-slate-300"}`}
     title="Add to Cart"
   >
     <Icon
-      className="h-6 w-6 text-white"
+      className={`h-6 w-6 ${availableStock > 0 ? "text-white" : "text-slate-500"}`}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -202,25 +324,90 @@ export const ProductPage = () => {
     </Icon>
   </button>
 </div>
-  {/* Product Details Subtitle */}
-  <h2 className="mt-8 text-xl font-semibold text-slate-900">Product Details</h2>
+  <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(260px,1fr)]">
+    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Product Overview</p>
+      <p className="mt-3 text-sm leading-7 text-slate-600 sm:text-[15px]">
+        {productDescription.overview || "No product description available yet."}
+      </p>
 
-  {/* Description */}
-  <p className="text-slate-600 mt-2">{product.description}</p>
+      {keyFeatures.length > 0 && (
+        <div className="mt-5">
+          <p className="text-sm font-semibold text-slate-900">Key Features</p>
+          <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+            {(showFullDetails ? keyFeatures : keyFeatures.slice(0, 4)).map((feature, index) => (
+              <li key={`${feature}-${index}`} className="flex items-start gap-3 rounded-xl bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600">
+                <span className="mt-1 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-100 text-[11px] font-bold text-green-700">
+                  {index + 1}
+                </span>
+                <span>{feature}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-  {/* Features */}
-  {product.features && (
-    <ul className="mt-4 space-y-3 text-sm text-slate-600">
-      {product.features.map((f, idx) => (
-        <li key={idx} className="flex items-center gap-2">
-          <Icon className="w-5 h-5 text-green-500" viewBox="0 0 24 24" fill="none">
-            <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
-          </Icon>
-          {f}
-        </li>
-      ))}
-    </ul>
-  )}
+      {(keyFeatures.length > 4 || (product?.description || "").length > 220) && (
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={() => setShowFullDetails((prev) => !prev)}
+            className="text-sm font-semibold text-green-700 transition hover:text-green-800 hover:underline"
+          >
+            {showFullDetails ? "See less" : "See more"}
+          </button>
+        </div>
+      )}
+
+      {showFullDetails && product?.description && (
+        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-4">
+          <p className="text-sm font-semibold text-slate-900">Full Product Details</p>
+          <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-slate-600">
+            {product.description}
+          </p>
+        </div>
+      )}
+
+      {product.features && (
+        <ul className="mt-4 space-y-3 text-sm text-slate-600">
+          {product.features.map((f, idx) => (
+            <li key={idx} className="flex items-center gap-2">
+              <Icon className="w-5 h-5 text-green-500" viewBox="0 0 24 24" fill="none">
+                <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
+              </Icon>
+              {f}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+
+    <aside className="rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Specifications</p>
+      <dl className="mt-4 space-y-4 text-sm">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-3">
+          <dt className="font-medium text-slate-500">Brand</dt>
+          <dd className="text-right font-semibold text-slate-900">{product.brand || "Generic"}</dd>
+        </div>
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-3">
+          <dt className="font-medium text-slate-500">Category</dt>
+          <dd className="text-right font-semibold text-slate-900">{product.category || "Uncategorized"}</dd>
+        </div>
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-3">
+          <dt className="font-medium text-slate-500">Availability</dt>
+          <dd className={`text-right font-semibold ${availableStock > 0 ? "text-green-700" : "text-red-600"}`}>
+            {availableStock > 0 ? `${availableStock} unit${availableStock === 1 ? "" : "s"} left` : "Out of stock"}
+          </dd>
+        </div>
+        <div className="flex items-start justify-between gap-4">
+          <dt className="font-medium text-slate-500">Seller Notes</dt>
+          <dd className="max-w-[16rem] text-right text-slate-600">
+            Carefully review the feature list and description before placing your order.
+          </dd>
+        </div>
+      </dl>
+    </aside>
+  </div>
 </div>
 </div>
 

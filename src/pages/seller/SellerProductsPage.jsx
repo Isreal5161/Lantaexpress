@@ -25,6 +25,8 @@ const SellerProductsPage = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [previewList, setPreviewList] = useState([]);
   const [imageFiles, setImageFiles] = useState([]);
+  const [videoFile, setVideoFile] = useState(null);
+  const [videoPreview, setVideoPreview] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState(null);
@@ -42,6 +44,7 @@ const SellerProductsPage = () => {
     discountPercent: "",
     stock: "",
     description: "",
+    keyFeatures: "",
   });
 
   const token = localStorage.getItem("sellerToken");
@@ -114,12 +117,26 @@ const SellerProductsPage = () => {
   }, []);
 
   const categories = useMemo(() => {
-    const orderedCategories = categoryDefinitions.map((category) => category.title);
+    const orderedCategories = categoryDefinitions
+      .filter((category) => category?.title)
+      .map((category) => ({
+        id: category.id,
+        title: category.title,
+      }));
+    const orderedCategoryTitles = new Set(orderedCategories.map((category) => category.title));
     const productCategories = Array.from(
       new Set(products.map((product) => product?.category?.trim()).filter(Boolean))
     );
 
-    return [...orderedCategories, ...productCategories.filter((category) => !orderedCategories.includes(category))];
+    return [
+      ...orderedCategories,
+      ...productCategories
+        .filter((category) => !orderedCategoryTitles.has(category))
+        .map((category) => ({
+          id: `product-${category}`,
+          title: category,
+        })),
+    ];
   }, [categoryDefinitions, products]);
 
   const filteredProducts = products.filter(
@@ -147,14 +164,19 @@ const SellerProductsPage = () => {
         discountPercent: getProductDiscountPercent(product) || "",
         stock: product.stock || "",
         description: product.description || "",
+        keyFeatures: Array.isArray(product.keyFeatures) ? product.keyFeatures.join("\n") : "",
       });
       setPreviewList((product.images || []).map(src => ({ src })));
+      setVideoPreview(product.video || "");
+      setVideoFile(null);
       setImageFiles([]);
     } else {
       setEditingProduct(null);
-      setFormData({ name: "", brand: "", category: "", price: "", discountPercent: "", stock: "", description: "" });
+      setFormData({ name: "", brand: "", category: "", price: "", discountPercent: "", stock: "", description: "", keyFeatures: "" });
       setPreviewList([]);
       setImageFiles([]);
+      setVideoFile(null);
+      setVideoPreview("");
     }
     setModalOpen(true);
   };
@@ -162,10 +184,29 @@ const SellerProductsPage = () => {
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
+
+    if (files.length < 3 || files.length > 5) {
+      alert("Please upload between 3 and 5 product images.");
+      return;
+    }
+
     setImageFiles(files);
     // create preview urls
     const previews = files.map(f => ({ src: URL.createObjectURL(f), name: f.name }));
     setPreviewList(previews);
+  };
+
+  const handleVideoChange = (e) => {
+    const file = e.target.files?.[0];
+
+    if (!file) {
+      setVideoFile(null);
+      setVideoPreview(editingProduct?.video || "");
+      return;
+    }
+
+    setVideoFile(file);
+    setVideoPreview(URL.createObjectURL(file));
   };
 
   // Save product to backend (create or edit)
@@ -185,8 +226,12 @@ const SellerProductsPage = () => {
       fd.append('stock', formData.stock);
       fd.append('category', formData.category);
       fd.append('brand', formData.brand);
+      fd.append('keyFeatures', formData.keyFeatures);
       const files = imageFiles || [];
       files.forEach(file => fd.append('images', file));
+      if (videoFile) {
+        fd.append('video', videoFile);
+      }
 
       let res;
       if (editingProduct && editingProduct._id) {
@@ -212,9 +257,11 @@ const SellerProductsPage = () => {
       setModalOpen(false);
       setEditingProduct(null);
       setProductFeeModalOpen(false);
-      setFormData({ name: "", brand: "", category: "", price: "", discountPercent: "", stock: "", description: "" });
+      setFormData({ name: "", brand: "", category: "", price: "", discountPercent: "", stock: "", description: "", keyFeatures: "" });
       setPreviewList([]);
       setImageFiles([]);
+      setVideoFile(null);
+      setVideoPreview("");
 
       if (editingProduct && editingProduct._id) {
         alert('Product updated and sent for admin approval');
@@ -320,7 +367,10 @@ const SellerProductsPage = () => {
                     <p className="text-xs text-gray-400 line-through">₦{getOriginalProductPrice(p).toLocaleString()}</p>
                   )}
                 </div>
-                <p className="text-xs text-yellow-600 mt-1">Status: {p.status || 'pending'}</p>
+                <p className="text-xs text-slate-500 mt-1">Available stock: {p.stock ?? 0}</p>
+                <p className={`text-xs mt-1 font-medium ${(Number(p.stock) || 0) > 0 ? "text-yellow-600" : "text-red-600"}`}>
+                  {(Number(p.stock) || 0) > 0 ? `Status: ${p.status || 'pending'}` : "Status: Out of stock"}
+                </p>
               </div>
               <div className="flex flex-col gap-2">
                 <button onClick={() => handleOpenModal(p)} className="px-3 py-1 bg-blue-600 text-white rounded">Edit</button>
@@ -344,7 +394,10 @@ const SellerProductsPage = () => {
                     <p className="text-xs text-gray-400 line-through">₦{getOriginalProductPrice(p).toLocaleString()}</p>
                   )}
                 </div>
-                <p className="text-xs text-green-600 mt-1">Status: {p.status || 'approved'}</p>
+                <p className="text-xs text-slate-500 mt-1">Available stock: {p.stock ?? 0}</p>
+                <p className={`text-xs mt-1 font-medium ${(Number(p.stock) || 0) > 0 ? "text-green-600" : "text-red-600"}`}>
+                  {(Number(p.stock) || 0) > 0 ? `Status: ${p.status || 'approved'}` : "Status: Out of stock"}
+                </p>
               </div>
               <div className="flex flex-col gap-2">
                 <button onClick={() => handleOpenModal(p)} className="px-3 py-1 bg-blue-600 text-white rounded">Edit</button>
@@ -357,11 +410,11 @@ const SellerProductsPage = () => {
       )}
 
       {/* Floating Add Product button at bottom-right */}
-      <div className="fixed right-6 bottom-6 z-40">
+      <div className="fixed bottom-4 right-4 z-40 sm:bottom-6 sm:right-6">
         <button
           onClick={() => handleOpenModal()}
           disabled={!sellerApproved}
-          className={`flex items-center gap-2 px-4 py-3 rounded-full shadow-lg ${sellerApproved ? "bg-green-600 text-white" : "cursor-not-allowed bg-slate-300 text-slate-600"}`}
+          className={`flex items-center gap-2 rounded-full px-4 py-3 text-sm shadow-lg sm:text-base ${sellerApproved ? "bg-green-600 text-white" : "cursor-not-allowed bg-slate-300 text-slate-600"}`}
         >
           <MdAdd /> Add Product
         </button>
@@ -371,10 +424,13 @@ const SellerProductsPage = () => {
         </>
       )}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg w-full max-w-3xl p-6">
-            <h2 className="text-xl font-semibold mb-4">{editingProduct ? "Edit Product" : "Add New Product"}</h2>
-            <form onSubmit={handleSaveProduct} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 px-3 py-4 sm:flex sm:items-center sm:justify-center sm:px-4 sm:py-6">
+          <div className="mx-auto flex max-h-[calc(100vh-2rem)] w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-white shadow-xl sm:max-h-[calc(100vh-3rem)]">
+            <div className="border-b border-slate-200 px-4 py-4 sm:px-6">
+              <h2 className="text-lg font-semibold sm:text-xl">{editingProduct ? "Edit Product" : "Add New Product"}</h2>
+            </div>
+            <form id="seller-product-form" onSubmit={handleSaveProduct} className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="col-span-1 md:col-span-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
                 {Number(feeSettings.productChargePercent) > 0
                   ? `Product earnings charge: ${feeSettings.productChargePercent}% will be deducted from completed sales for this product before it becomes withdrawable.`
@@ -416,9 +472,20 @@ const SellerProductsPage = () => {
                   name="description"
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  rows={4}
+                  rows={5}
                   className="w-full border px-3 py-2 rounded"
                 />
+
+                <label className="text-sm">Key Features</label>
+                <textarea
+                  name="keyFeatures"
+                  value={formData.keyFeatures}
+                  onChange={(e) => setFormData(prev => ({ ...prev, keyFeatures: e.target.value }))}
+                  rows={5}
+                  placeholder="Enter one feature per line"
+                  className="w-full border px-3 py-2 rounded"
+                />
+                <p className="text-xs text-gray-500">Each line becomes a bullet in the product details page.</p>
               </div>
 
               <div className="space-y-2">
@@ -466,6 +533,20 @@ const SellerProductsPage = () => {
                   onChange={handleFileChange}
                   className="w-full"
                 />
+                <p className="text-xs text-gray-500">Upload 3 to 5 clear images showing front, side, back, or close-up views.</p>
+
+                <label className="text-sm">Product Video</label>
+                <input
+                  type="file"
+                  accept="video/mp4,video/webm,video/quicktime,video/x-m4v"
+                  onChange={handleVideoChange}
+                  className="w-full"
+                />
+                <p className="text-xs text-gray-500">Upload one short video to showcase the product in use.</p>
+
+                {videoPreview && (
+                  <video src={videoPreview} controls className="mt-2 h-32 w-full rounded object-cover" />
+                )}
 
                 <div className="flex gap-2 mt-2 flex-wrap">
                   {previewList.map((p, idx) => (
@@ -473,12 +554,27 @@ const SellerProductsPage = () => {
                   ))}
                 </div>
               </div>
-
-              <div className="col-span-1 md:col-span-2 flex justify-end gap-2 mt-4">
-                <button type="button" onClick={() => { setModalOpen(false); setEditingProduct(null); }} className="px-4 py-2 bg-gray-300 rounded">Cancel</button>
-                <button type="submit" disabled={submitting} className="px-4 py-2 bg-green-600 text-white rounded">{submitting ? 'Submitting...' : (editingProduct ? 'Save Changes' : 'Submit for Approval')}</button>
               </div>
             </form>
+            <div className="border-t border-slate-200 bg-white px-4 py-3 sm:px-6">
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => { setModalOpen(false); setEditingProduct(null); setVideoFile(null); setVideoPreview(""); }}
+                  className="w-full rounded bg-gray-300 px-4 py-2 sm:w-auto"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  form="seller-product-form"
+                  disabled={submitting}
+                  className="w-full rounded bg-green-600 px-4 py-2 text-white sm:w-auto"
+                >
+                  {submitting ? 'Submitting...' : (editingProduct ? 'Save Changes' : 'Submit for Approval')}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

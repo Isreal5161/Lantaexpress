@@ -55,6 +55,11 @@ export const ProductCard = ({ product, userCurrency = "NGN" }) => {
   const handleCartToggle = (e) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if ((Number(product.stock) || 0) <= 0) {
+      return;
+    }
+
     isInCart ? removeFromCart(product.id) : addToCart(product);
     showCartForProduct(product.id);
   };
@@ -97,9 +102,11 @@ export const ProductCard = ({ product, userCurrency = "NGN" }) => {
           {/* Cart Button */}
           <button
             onClick={handleCartToggle}
+            disabled={(Number(product.stock) || 0) <= 0 && !isInCart}
             className={`absolute bottom-3 right-3 p-3 rounded-full shadow-md transform hover:scale-110 transition-all duration-300 
               ${isCartVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}
               ${isInCart ? "bg-green-600 text-white animate-pulse" : "bg-white text-slate-700 hover:bg-green-100"}
+              ${((Number(product.stock) || 0) <= 0 && !isInCart) ? "cursor-not-allowed opacity-100 !translate-y-0 bg-slate-200 text-slate-400 hover:bg-slate-200" : ""}
             `}
           >
             <ShoppingCart size={18} />

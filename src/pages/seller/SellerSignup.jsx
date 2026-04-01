@@ -55,6 +55,15 @@ const SellerSignup = () => {
     }));
   };
 
+  const toggleCategorySelection = (categoryTitle) => {
+    setFormData((prev) => ({
+      ...prev,
+      categories: prev.categories.includes(categoryTitle)
+        ? prev.categories.filter((category) => category !== categoryTitle)
+        : [...prev.categories, categoryTitle],
+    }));
+  };
+
   useEffect(() => {
     let active = true;
 
@@ -62,7 +71,15 @@ const SellerSignup = () => {
       try {
         const data = await getCategories();
         if (active) {
-          setCategoriesList(data.map((category) => category.title));
+          setCategoriesList(
+            Array.from(
+              new Set(
+                (data || [])
+                  .map((category) => category?.title?.trim())
+                  .filter(Boolean)
+              )
+            )
+          );
         }
       } catch (error) {
         console.error("Failed to load seller signup categories:", error);
@@ -228,19 +245,37 @@ const SellerSignup = () => {
                 className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-300 focus:outline-none" />
               <div>
                 <p className="font-medium mb-2 text-green-800">Select Categories</p>
-                <select
-                  multiple
-                  value={formData.categories}
-                  onChange={handleCategoryChange}
-                  className="min-h-40 w-full rounded-xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-300"
-                >
-                  {categoriesList.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-                <p className="mt-2 text-sm text-green-700">Hold Ctrl or Cmd to choose multiple categories.</p>
+                <div className="rounded-2xl border border-green-200 bg-green-50/70 p-3 sm:p-4">
+                  {categoriesList.length === 0 ? (
+                    <p className="text-sm text-green-700">No categories available right now.</p>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      {categoriesList.map((cat) => {
+                        const isSelected = formData.categories.includes(cat);
+
+                        return (
+                          <label
+                            key={cat}
+                            className={`flex min-h-[52px] items-center gap-3 rounded-2xl border px-4 py-3 text-sm transition ${
+                              isSelected
+                                ? "border-green-600 bg-green-600 text-white shadow-sm"
+                                : "border-green-200 bg-white text-green-900"
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleCategorySelection(cat)}
+                              className="h-4 w-4 shrink-0 accent-green-600"
+                            />
+                            <span className="leading-snug">{cat}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+                <p className="mt-2 text-sm text-green-700">Tap one or more categories that match your store.</p>
               </div>
               <div>
                 <p className="font-medium mb-2 text-green-800">Upload Brand Logo</p>

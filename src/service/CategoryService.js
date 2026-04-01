@@ -47,3 +47,14 @@ export const createCategory = async ({ title, token }) => {
 
   return response?.category ? mapCategory(response.category, 0) : null;
 };
+
+export const deleteCategory = async ({ id, token }) => {
+  const response = await fetchJson(`${API_BASE}/categories/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  return response?.category ? mapCategory(response.category, 0) : null;
+};

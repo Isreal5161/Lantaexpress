@@ -68,6 +68,8 @@ const SellerProfilePage = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [previewList, setPreviewList] = useState([]);
   const [imageFiles, setImageFiles] = useState([]);
+  const [videoFile, setVideoFile] = useState(null);
+  const [videoPreview, setVideoPreview] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState(null);
@@ -80,6 +82,7 @@ const SellerProfilePage = () => {
     discountPercent: "",
     stock: "",
     description: "",
+    keyFeatures: "",
   });
 
   const token = localStorage.getItem("sellerToken");
@@ -205,7 +208,9 @@ const SellerProfilePage = () => {
   }, []);
 
   const categoriesList = useMemo(() => {
-    const orderedCategories = categoryDefinitions.map((category) => category.title);
+    const orderedCategories = Array.from(
+      new Set(categoryDefinitions.map((category) => category?.title?.trim()).filter(Boolean))
+    );
     const productCategories = Array.from(
       new Set(products.map((product) => product?.category?.trim()).filter(Boolean))
     );
@@ -297,8 +302,11 @@ const SellerProfilePage = () => {
       discountPercent: getProductDiscountPercent(product) || "",
       stock: product.stock || "",
       description: product.description || "",
+      keyFeatures: Array.isArray(product.keyFeatures) ? product.keyFeatures.join("\n") : "",
     });
     setPreviewList((product.images || []).map((src) => ({ src })));
+    setVideoPreview(product.video || "");
+    setVideoFile(null);
     setImageFiles([]);
     setModalOpen(true);
   };
@@ -307,8 +315,26 @@ const SellerProfilePage = () => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
+    if (files.length < 3 || files.length > 5) {
+      alert("Please upload between 3 and 5 product images.");
+      return;
+    }
+
     setImageFiles(files);
     setPreviewList(files.map((file) => ({ src: URL.createObjectURL(file), name: file.name })));
+  };
+
+  const handleVideoChange = (e) => {
+    const file = e.target.files?.[0];
+
+    if (!file) {
+      setVideoFile(null);
+      setVideoPreview(editingProduct?.video || "");
+      return;
+    }
+
+    setVideoFile(file);
+    setVideoPreview(URL.createObjectURL(file));
   };
 
   const handleSaveProduct = async (e) => {
@@ -325,7 +351,11 @@ const SellerProfilePage = () => {
       payload.append("stock", formData.stock);
       payload.append("category", formData.category);
       payload.append("brand", formData.brand);
+      payload.append("keyFeatures", formData.keyFeatures);
       imageFiles.forEach((file) => payload.append("images", file));
+      if (videoFile) {
+        payload.append("video", videoFile);
+      }
 
       const res = await fetch(`${API_URL}/seller/products/${editingProduct._id}`, {
         method: "PUT",
@@ -341,6 +371,8 @@ const SellerProfilePage = () => {
       setEditingProduct(null);
       setPreviewList([]);
       setImageFiles([]);
+      setVideoFile(null);
+      setVideoPreview("");
       alert("Product updated and sent for admin approval");
     } catch (error) {
       console.error(error);
@@ -476,7 +508,10 @@ const SellerProfilePage = () => {
                     <p className="text-xs text-gray-400 line-through">₦{getOriginalProductPrice(product).toLocaleString()}</p>
                   )}
                 </div>
-                <p className="text-gray-400 text-xs">Stock: {product.stock ?? 0}</p>
+                <p className="text-gray-500 text-xs">Available stock: {product.stock ?? 0}</p>
+                <p className={`text-xs font-medium ${(Number(product.stock) || 0) > 0 ? "text-green-600" : "text-red-600"}`}>
+                  {(Number(product.stock) || 0) > 0 ? "In stock" : "Out of stock"}
+                </p>
                 <div className="flex gap-2 mt-3">
                   <button
                     type="button"
@@ -680,6 +715,17 @@ const SellerProfilePage = () => {
                   rows={4}
                   className="w-full rounded border px-3 py-2"
                 />
+
+                <label className="text-sm">Key Features</label>
+                <textarea
+                  name="keyFeatures"
+                  value={formData.keyFeatures}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, keyFeatures: e.target.value }))}
+                  rows={5}
+                  placeholder="Enter one feature per line"
+                  className="w-full rounded border px-3 py-2"
+                />
+                <p className="text-xs text-gray-500">Each line becomes a bullet in the product details page.</p>
               </div>
 
               <div className="space-y-2">
@@ -727,6 +773,20 @@ const SellerProfilePage = () => {
                   onChange={handleFileChange}
                   className="w-full"
                 />
+                <p className="text-xs text-gray-500">Upload 3 to 5 clear images showing front, side, back, or close-up views.</p>
+
+                <label className="text-sm">Product Video</label>
+                <input
+                  type="file"
+                  accept="video/mp4,video/webm,video/quicktime,video/x-m4v"
+                  onChange={handleVideoChange}
+                  className="w-full"
+                />
+                <p className="text-xs text-gray-500">Upload one short video to showcase the product in use.</p>
+
+                {videoPreview && (
+                  <video src={videoPreview} controls className="mt-2 h-32 w-full rounded object-cover" />
+                )}
 
                 <div className="mt-2 flex flex-wrap gap-2">
                   {previewList.map((preview, index) => (
@@ -748,6 +808,8 @@ const SellerProfilePage = () => {
                     setEditingProduct(null);
                     setPreviewList([]);
                     setImageFiles([]);
+                    setVideoFile(null);
+                    setVideoPreview("");
                   }}
                   className="rounded bg-gray-300 px-4 py-2"
                 >
