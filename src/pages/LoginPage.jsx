@@ -5,6 +5,32 @@ import { FaArrowLeft, FaEye, FaEyeSlash } from "react-icons/fa";
 import { loginUser } from "../api/auth";
 import ConfirmationModal from "../components/ConfirmationModal";
 
+const getLoginErrorMessage = (error) => {
+  const message = error?.message?.trim();
+
+  if (!message) {
+    return "Unable to log you in right now. Please try again.";
+  }
+
+  if (message === "Invalid credentials") {
+    return "Incorrect email or password. Please check your details and try again.";
+  }
+
+  if (message === "Email and password are required") {
+    return "Enter both your email and password to continue.";
+  }
+
+  if (message === "Please use the admin login endpoint") {
+    return "This account must be signed in from the admin login page.";
+  }
+
+  if (message === "Too many login attempts. Try again later.") {
+    return message;
+  }
+
+  return message;
+};
+
 export default function LoginPage({ onLogin }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -26,10 +52,6 @@ export default function LoginPage({ onLogin }) {
     try {
       const data = await loginUser({ email, password });
 
-      if (!data || data.message === "Invalid credentials") {
-        throw new Error(data?.message || "Login failed");
-      }
-
       // If seller, show role choice modal
       if (data.user.role === "seller") {
         setPendingUser(data);
@@ -41,7 +63,7 @@ export default function LoginPage({ onLogin }) {
       completeLogin(data);
     } catch (err) {
       console.error(err);
-      openFeedbackModal("Login Failed", err.message || "Server error. Try again later.", "danger");
+      openFeedbackModal("Login Failed", getLoginErrorMessage(err), "danger");
     } finally {
       setLoading(false);
     }

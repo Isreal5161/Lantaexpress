@@ -7,6 +7,24 @@ import ConfirmationModal from "../components/ConfirmationModal";
 
 const countries = ["Nigeria", "United States", "United Kingdom", "Canada", "Ghana", "South Africa"];
 
+const getSignupErrorMessage = (error) => {
+  const message = error?.message?.trim();
+
+  if (!message) {
+    return "Unable to create your account right now. Please try again.";
+  }
+
+  if (message === "User already exists") {
+    return "An account with this email already exists. Please log in or use another email.";
+  }
+
+  if (message === "Name, email, and password are required") {
+    return "Enter your name, email, and password to create your account.";
+  }
+
+  return message;
+};
+
 export default function SignupPage() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
@@ -36,19 +54,15 @@ export default function SignupPage() {
     try {
       const data = await registerUser({ name, email, password, country, role: "user" });
 
-      if (data.token) {
-        // Save token & user info
-        localStorage.setItem("authToken", data.token);
-        localStorage.setItem("currentUser", JSON.stringify(data.user));
+      // Save token & user info
+      localStorage.setItem("authToken", data.token);
+      localStorage.setItem("currentUser", JSON.stringify(data.user));
 
-        setRedirectAfterModal("/account");
-        openFeedbackModal("Registration Successful", "Your account has been created successfully.");
-      } else {
-        openFeedbackModal("Signup Failed", data.message || "Something went wrong. Try again.", "danger");
-      }
+      setRedirectAfterModal("/account");
+      openFeedbackModal("Registration Successful", "Your account has been created successfully.");
     } catch (err) {
       console.error(err);
-      openFeedbackModal("Signup Failed", err.message || "Server error. Try again later.", "danger");
+      openFeedbackModal("Signup Failed", getSignupErrorMessage(err), "danger");
     } finally {
       setLoading(false);
     }
