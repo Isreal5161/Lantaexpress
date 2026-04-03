@@ -154,7 +154,7 @@ export const Footer = () => {
         </div>
       </footer>
 
-      <div className="md:hidden fixed inset-x-0 bottom-0 z-50 pb-[max(env(safe-area-inset-bottom),0.2rem)]">
+      <div className="md:hidden fixed inset-x-0 bottom-0 z-50">
         <div className="relative mx-auto max-w-md">
           <div className="absolute inset-x-0 bottom-0 top-0 overflow-hidden drop-shadow-[0_-10px_22px_rgba(15,23,42,0.12)]">
             <svg
@@ -177,14 +177,14 @@ export const Footer = () => {
             </svg>
           </div>
 
-          <div className="relative px-2 pb-1.5 pt-3">
+          <div className="relative px-2 pb-0 pt-3">
             <div className="grid grid-cols-5 gap-0.5">
               {mobileNavItems.map((item) => (
                 <Link key={item.key} href={item.href} className="block">
                   <motion.div
                     whileTap={{ scale: 0.92 }}
                     transition={{ type: "spring", stiffness: 420, damping: 24 }}
-                    className={`relative flex min-h-[4.05rem] flex-col items-center justify-end gap-1 overflow-hidden rounded-[1.15rem] px-1 pb-1.5 pt-2 transition-colors duration-300 ${
+                    className={`relative flex min-h-[4.05rem] flex-col items-center justify-end gap-1 overflow-hidden rounded-[1.15rem] px-1 pb-1 pt-2 transition-colors duration-300 ${
                       item.isActive ? "text-green-700" : "text-slate-500"
                     }`}
                   >
