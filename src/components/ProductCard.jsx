@@ -33,6 +33,7 @@ export const ProductCard = ({ product, userCurrency = "NGN" }) => {
   const [showButton, setShowButton] = useState(false);
   const [isInCart, setIsInCart] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [activePromoIndex, setActivePromoIndex] = useState(0);
 
   const isTouchDevice = useRef(
     "ontouchstart" in window || navigator.maxTouchPoints > 0
@@ -64,15 +65,21 @@ export const ProductCard = ({ product, userCurrency = "NGN" }) => {
     showCartForProduct(product.id);
   };
 
-  const handleMobileTap = (e) => {
-    if (isTouchDevice) {
-      if (e.target.closest("button")) return;
+  const isCardActive = visibleProductId === product.id;
+
+  const handleCardActivation = (e) => {
+    if (!isTouchDevice || e.target.closest("button")) {
+      return;
+    }
+
+    if (!isCardActive) {
+      e.preventDefault();
       e.stopPropagation();
       showCartForProduct(product.id);
     }
   };
 
-  const isCartVisible = showButton || visibleProductId === product.id;
+  const isCartVisible = showButton || isCardActive;
 
   const effectivePrice = getEffectiveProductPrice(product);
   const originalPrice = getOriginalProductPrice(product);
@@ -80,21 +87,118 @@ export const ProductCard = ({ product, userCurrency = "NGN" }) => {
   const discountPercent = getProductDiscountPercent(product);
   const price = formatCurrency(convertPrice(effectivePrice, userCurrency), userCurrency);
   const originalPriceLabel = formatCurrency(convertPrice(originalPrice, userCurrency), userCurrency);
+  const averageRating = Number(product.averageRating || 0);
+  const reviewCount = Number(product.reviewCount || 0);
+  const hasReviews = reviewCount > 0;
+  const promoSlides = [];
+
+  if (hasDiscount) {
+    promoSlides.push({
+      id: "discount",
+      content: (
+        <div className="flex h-full flex-col justify-center text-left">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-red-600">
+            Discount price
+          </span>
+          <div className="mt-0.5 flex items-center gap-2 text-xs leading-none">
+            <span className="text-slate-400 line-through">{originalPriceLabel}</span>
+            <span className="font-semibold text-red-600">Save {discountPercent}%</span>
+          </div>
+        </div>
+      ),
+    });
+  }
+
+  if (hasReviews) {
+    promoSlides.push({
+      id: "reviews",
+      content: (
+        <div className="flex h-full flex-col justify-center text-left">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-600">
+            Customer reviews
+          </span>
+          <div className="mt-0.5 flex items-center justify-between gap-2">
+            <RatingStars
+              rating={averageRating}
+              reviewCount={reviewCount}
+              showCount
+              sizeClass="h-3.5 w-3.5"
+              textClass="text-[11px] text-slate-500"
+            />
+            <span className="text-[11px] font-semibold text-emerald-700">
+              {averageRating.toFixed(1)}/5
+            </span>
+          </div>
+        </div>
+      ),
+    });
+  }
+
+  if (hasDiscount && hasReviews) {
+    promoSlides.push({
+      id: "combined",
+      content: (
+        <div className="flex h-full flex-col justify-center text-left">
+          <div className="flex items-center gap-2 text-xs leading-none">
+            <span className="text-slate-400 line-through">{originalPriceLabel}</span>
+            <span className="font-semibold text-red-600">Save {discountPercent}%</span>
+          </div>
+          <div className="mt-1 flex items-center justify-between gap-2">
+            <RatingStars
+              rating={averageRating}
+              reviewCount={reviewCount}
+              showCount
+              sizeClass="h-3.5 w-3.5"
+              textClass="text-[11px] text-slate-500"
+            />
+            <span className="text-[11px] font-semibold text-emerald-700">
+              {averageRating.toFixed(1)}/5
+            </span>
+          </div>
+        </div>
+      ),
+    });
+  }
+
+  useEffect(() => {
+    if (promoSlides.length <= 1) {
+      setActivePromoIndex(0);
+      return undefined;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setActivePromoIndex((currentIndex) => (currentIndex + 1) % promoSlides.length);
+    }, 3600);
+
+    return () => window.clearInterval(intervalId);
+  }, [promoSlides.length]);
 
   return (
     <div
       ref={cardRef}
-      className="relative border border-gray-200 bg-white overflow-hidden group flex flex-col mt-0 first:mt-0"
+      className={[
+        "relative h-full overflow-hidden border border-gray-200 bg-white group mt-0 first:mt-0",
+        "flex flex-col transform-gpu transition-all duration-300 ease-out",
+        isCardActive
+          ? "z-10 scale-[1.03] -translate-y-1 border-emerald-300 shadow-[0_20px_45px_-18px_rgba(15,23,42,0.35)]"
+          : "scale-100 translate-y-0 shadow-sm",
+      ].join(" ")}
       onMouseEnter={() => !isTouchDevice && setShowButton(true)}
       onMouseLeave={() => !isTouchDevice && setShowButton(false)}
-      onClick={handleMobileTap}
     >
-      <Link to={`/product/${product.id}`} className="block relative">
-        <div className="w-full aspect-[2/3] bg-gray-100 overflow-hidden relative">
+      <Link
+        to={`/product/${product.id}`}
+        className="relative flex h-full flex-col"
+        onClick={handleCardActivation}
+      >
+        <div className="flex w-full aspect-[2/3] items-center justify-center bg-slate-50 overflow-hidden relative p-3">
           <Image
             preset="card"
-            variant="cover"
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            variant="contain"
+            className={[
+              "h-full w-full object-contain transition-transform duration-300",
+              isCardActive ? "scale-110" : "group-hover:scale-105",
+            ].join(" ")}
             src={product.image}
             alt={product.name}
           />
@@ -125,7 +229,6 @@ export const ProductCard = ({ product, userCurrency = "NGN" }) => {
             )}
           </div>
         </div>
-      </Link>
 
       <div className="absolute top-2 right-2 bg-white p-1.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:text-red-500">
         <Icon className="h-5 w-5" viewBox="0 0 24 24" fill="none">
@@ -139,28 +242,22 @@ export const ProductCard = ({ product, userCurrency = "NGN" }) => {
         </Icon>
       </div>
 
-      <div className="px-2 py-2 relative">
+      <div className="relative flex flex-1 flex-col px-2 py-2">
         <h3 className="text-sm text-slate-700 font-medium line-clamp-2">{product.name}</h3>
-        <div className="mt-1 flex items-center justify-between gap-2">
-          <RatingStars
-            rating={product.averageRating}
-            reviewCount={product.reviewCount}
-            showCount
-            sizeClass="h-3.5 w-3.5"
-            textClass="text-[11px] text-slate-400"
-          />
-          {product.reviewCount > 0 && (
-            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-green-600">
-              Verified
-            </span>
-          )}
-        </div>
         <p className="text-xs text-gray-500 mt-1">Brand: {product.brand}</p>
         <p className="mt-1 text-base font-semibold text-slate-900">{price}</p>
-        {hasDiscount && (
-          <div className="mt-1 flex items-center gap-2 text-xs">
-            <span className="text-slate-400 line-through">{originalPriceLabel}</span>
-            <span className="font-medium text-red-600">Save {discountPercent}%</span>
+        {promoSlides.length > 0 && (
+          <div className="mt-1.5 h-[2.9rem] overflow-hidden">
+            <div
+              className="transition-transform duration-1000 ease-in-out motion-reduce:transition-none"
+              style={{ transform: `translateY(-${activePromoIndex * 2.9}rem)` }}
+            >
+              {promoSlides.map((slide) => (
+                <div key={slide.id} className="h-[2.9rem]" aria-hidden={slide.id !== promoSlides[activePromoIndex]?.id}>
+                  {slide.content}
+                </div>
+              ))}
+            </div>
           </div>
         )}
         <p className={`text-xs mt-1 font-medium ${product.stock > 0 ? "text-green-600" : "text-red-600"}`}>
@@ -192,6 +289,13 @@ export const ProductCard = ({ product, userCurrency = "NGN" }) => {
           </div>
         )}
       </div>
+      </Link>
+
+      {isTouchDevice && isCardActive && (
+        <div className="pointer-events-none absolute inset-x-3 bottom-3 rounded-full bg-slate-950/80 px-3 py-1.5 text-center text-[10px] font-semibold uppercase tracking-[0.16em] text-white">
+          Tap To View product
+        </div>
+      )}
     </div>
   );
 };

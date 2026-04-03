@@ -78,6 +78,8 @@ const normalizeHeroSlide = (slide, index) => ({
   isActive: slide.isActive !== false,
 });
 
+export const getDefaultHeroSlides = () => DEFAULT_HERO_SLIDES.map(normalizeHeroSlide);
+
 export const getHeroSlides = async () => {
   try {
     const response = await fetch(`${API_BASE}/user/hero-slides`);
@@ -87,8 +89,8 @@ export const getHeroSlides = async () => {
 
     const data = await response.json();
     const normalized = Array.isArray(data) ? data.map(normalizeHeroSlide) : [];
-    return normalized.length > 0 ? normalized : DEFAULT_HERO_SLIDES.map(normalizeHeroSlide);
+    return normalized.length > 0 ? normalized : getDefaultHeroSlides();
   } catch (error) {
-    return DEFAULT_HERO_SLIDES.map(normalizeHeroSlide);
+    return getDefaultHeroSlides();
   }
 };

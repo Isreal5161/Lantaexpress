@@ -154,63 +154,84 @@ export const Footer = () => {
         </div>
       </footer>
 
-      <div className="md:hidden fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white px-1 pb-[max(env(safe-area-inset-bottom),0.2rem)] pt-1 shadow-[0_-6px_18px_rgba(15,23,42,0.06)]">
-        <div className="grid grid-cols-5 gap-0.5">
-            {mobileNavItems.map((item) => (
-              <Link key={item.key} href={item.href} className="block">
-                <motion.div
-                  whileTap={{ scale: 0.92 }}
-                  transition={{ type: "spring", stiffness: 420, damping: 24 }}
-                  className={`relative flex flex-col items-center justify-center gap-0.5 overflow-hidden px-1 py-1.5 transition-colors duration-300 ${
-                    item.isActive ? "text-green-700" : "text-slate-500"
-                  }`}
-                >
-                  {item.isActive ? (
-                    <motion.div
-                      layoutId="mobile-footer-active-pill"
-                      className="absolute inset-x-1 top-1 bottom-1 bg-orange-50/85"
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                    />
-                  ) : null}
+      <div className="md:hidden fixed inset-x-0 bottom-0 z-50 pb-[max(env(safe-area-inset-bottom),0.2rem)]">
+        <div className="relative mx-auto max-w-md">
+          <div className="absolute inset-x-0 bottom-0 top-0 overflow-hidden drop-shadow-[0_-10px_22px_rgba(15,23,42,0.12)]">
+            <svg
+              viewBox="0 0 400 92"
+              preserveAspectRatio="none"
+              className="absolute inset-0 h-full w-full"
+              aria-hidden="true"
+            >
+              <path
+                d="M0,24 C20,24 20,12 40,12 C60,12 60,24 80,24 C100,24 100,12 120,12 C140,12 140,24 160,24 C180,24 180,12 200,12 C220,12 220,24 240,24 C260,24 260,12 280,12 C300,12 300,24 320,24 C340,24 340,12 360,12 C380,12 380,24 400,24 L400,92 L0,92 Z"
+                fill="rgba(255,255,255,0.96)"
+              />
+              <path
+                d="M0,24 C20,24 20,12 40,12 C60,12 60,24 80,24 C100,24 100,12 120,12 C140,12 140,24 160,24 C180,24 180,12 200,12 C220,12 220,24 240,24 C260,24 260,12 280,12 C300,12 300,24 320,24 C340,24 340,12 360,12 C380,12 380,24 400,24"
+                fill="none"
+                stroke="rgba(226,232,240,0.96)"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
 
-                  {item.isActive ? (
-                    <motion.span
-                      layoutId="mobile-footer-active-bar"
-                      className="absolute inset-x-3 top-0 h-[2px] bg-orange-500"
-                      transition={{ type: "spring", stiffness: 420, damping: 32 }}
-                    />
-                  ) : null}
-
+          <div className="relative px-2 pb-1.5 pt-3">
+            <div className="grid grid-cols-5 gap-0.5">
+              {mobileNavItems.map((item) => (
+                <Link key={item.key} href={item.href} className="block">
                   <motion.div
-                    animate={item.isActive ? { y: [0, -2, 0], scale: [1, 1.05, 1] } : { y: 0, scale: 1 }}
-                    transition={{ duration: 0.28, ease: "easeOut" }}
-                    className={`relative z-10 flex h-7 w-7 items-center justify-center ${item.isActive ? "text-green-700" : "text-slate-500"}`}
+                    whileTap={{ scale: 0.92 }}
+                    transition={{ type: "spring", stiffness: 420, damping: 24 }}
+                    className={`relative flex min-h-[4.05rem] flex-col items-center justify-end gap-1 overflow-hidden rounded-[1.15rem] px-1 pb-1.5 pt-2 transition-colors duration-300 ${
+                      item.isActive ? "text-green-700" : "text-slate-500"
+                    }`}
                   >
-                    <Icon className={`h-[18px] w-[18px] ${item.isActive ? "text-green-700" : "text-slate-500"}`} viewBox="0 0 24 24" fill="none">
-                      {item.icon}
-                    </Icon>
-                  </motion.div>
+                    {item.isActive ? (
+                      <motion.div
+                        layoutId="mobile-footer-active-pill"
+                        className="absolute inset-x-1 bottom-1 top-1 rounded-[1.05rem] bg-gradient-to-b from-orange-50/80 via-white to-emerald-50/70"
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      />
+                    ) : null}
 
-                  <motion.span
-                    animate={item.isActive ? { opacity: 1, y: 0 } : { opacity: 0.86, y: 0 }}
-                    className={`relative z-10 text-[9px] font-medium tracking-[0.01em] ${item.isActive ? "text-green-700" : "text-slate-500"}`}
-                  >
-                    {item.label}
-                  </motion.span>
+                    <motion.div
+                      animate={item.isActive ? { y: [0, -2, 0], scale: [1, 1.05, 1] } : { y: 0, scale: 1 }}
+                      transition={{ duration: 0.28, ease: "easeOut" }}
+                      className={`relative z-10 flex h-10 w-10 items-center justify-center rounded-full border transition-colors duration-300 ${
+                        item.isActive
+                          ? "border-orange-100 bg-white text-green-700 shadow-[0_8px_18px_rgba(251,146,60,0.18)]"
+                          : "border-slate-200 bg-white/88 text-slate-500"
+                      }`}
+                    >
+                      <Icon className={`h-[18px] w-[18px] ${item.isActive ? "text-green-700" : "text-slate-500"}`} viewBox="0 0 24 24" fill="none">
+                        {item.icon}
+                      </Icon>
+                    </motion.div>
 
-                  {item.isActive ? (
                     <motion.span
-                      initial={{ scale: 0.4, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ duration: 0.22, ease: "easeOut" }}
-                      className="relative z-10 h-1 w-3 rounded-full bg-green-600"
-                    />
-                  ) : null}
-                </motion.div>
-              </Link>
-            ))}
+                      animate={item.isActive ? { opacity: 1, y: 0 } : { opacity: 0.86, y: 0 }}
+                      className={`relative z-10 text-[9px] font-medium tracking-[0.01em] ${item.isActive ? "text-green-700" : "text-slate-500"}`}
+                    >
+                      {item.label}
+                    </motion.span>
+
+                    {item.isActive ? (
+                      <motion.span
+                        initial={{ scale: 0.4, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ duration: 0.22, ease: "easeOut" }}
+                        className="relative z-10 h-1 w-4 rounded-full bg-green-600"
+                      />
+                    ) : null}
+                  </motion.div>
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
+      </div>
     </>
   );
 };

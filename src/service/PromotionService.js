@@ -35,7 +35,8 @@ const normalizeFlyer = (flyer, index) => ({
   isActive: flyer.isActive !== false,
 });
 
-export const getDefaultPromotionFlyers = (section) => (DEFAULT_FLYERS[section] || []).map(normalizeFlyer);
+export const getDefaultPromotionFlyers = (section) =>
+  (DEFAULT_FLYERS[section] || []).map((flyer, index) => normalizeFlyer({ ...flyer, section }, index));
 
 export const getPromotionFlyers = async (section) => {
   try {
