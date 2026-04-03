@@ -16,7 +16,8 @@ const AccountPage = ({ onSignOut }) => {
   const [loading, setLoading] = useState(true);
 
   const showBackButton = location.pathname !== "/account";
-  const showSignOutButton = location.pathname === "/account";
+  const showDesktopSignOutButton = location.pathname === "/account";
+  const showMobileSignOutButton = location.pathname.startsWith("/account");
 
   // Fetch user
   useEffect(() => {
@@ -197,7 +198,7 @@ const AccountPage = ({ onSignOut }) => {
     <div className="min-h-screen flex flex-col bg-gray-100">
       <AccountHeader />
 
-      <div className="flex-1 pb-18">
+      <div className="flex-1 pb-24 md:pb-18">
         <div className="flex-1 flex flex-col md:flex-row">
           {/* Sidebar */}
           <div className="hidden md:block md:w-1/4">
@@ -217,17 +218,17 @@ const AccountPage = ({ onSignOut }) => {
                 </button>
               )}
 
-              {showSignOutButton && (
+              {showDesktopSignOutButton && (
                 <h1 className="text-2xl font-bold mb-6">Welcome, {userName}!</h1>
               )}
 
               {/* Pass user to nested routes (Dashboard) via context or props */}
               <Outlet context={{ user, setUser, API_URL }} />
 
-              {showSignOutButton && (
+              {showDesktopSignOutButton && (
                 <button
                   onClick={handleSignOut}
-                  className="mt-6 w-full bg-green-600 text-white py-3 font-medium rounded-md hover:bg-green-700 transition flex items-center justify-center gap-2"
+                  className="mt-6 hidden w-full bg-green-600 text-white py-3 font-medium rounded-md hover:bg-green-700 transition items-center justify-center gap-2 md:flex"
                 >
                   <FaSignOutAlt />
                   Sign Out
@@ -236,6 +237,30 @@ const AccountPage = ({ onSignOut }) => {
             </div>
           </div>
         </div>
+
+        {showMobileSignOutButton && (
+          <div className="px-4 pb-4 md:hidden">
+            <div className="mx-auto w-full max-w-[22rem] rounded-[28px] border border-white/70 bg-white/92 p-3 shadow-[0_22px_55px_rgba(15,23,42,0.16)] backdrop-blur-xl">
+              <div className="mb-2 flex items-center justify-between px-1">
+                <div>
+                  <p className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-slate-400">Account Action</p>
+                  <p className="text-sm font-semibold text-slate-700">Securely leave your session</p>
+                </div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-50 text-red-500">
+                  <FaSignOutAlt />
+                </div>
+              </div>
+
+              <button
+                onClick={handleSignOut}
+                className="flex w-full items-center justify-center gap-2 rounded-[20px] bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 px-4 py-3.5 font-semibold text-white shadow-[0_14px_28px_rgba(22,163,74,0.28)] transition hover:from-emerald-700 hover:via-green-700 hover:to-teal-700"
+              >
+                <FaSignOutAlt />
+                Sign Out
+              </button>
+            </div>
+          </div>
+        )}
 
         <Footer />
       </div>

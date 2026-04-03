@@ -17,6 +17,7 @@ import Modal from "../components/Modal";
 import { MobileHero } from "../components/MobileHero";
 import { BecomeSeller } from "../components/BecomeSeller";
 import PromotionalBanner from "../components/PromotionalBanner";
+import PromotionalFlyerShowcase from "../components/PromotionalFlyerShowcase";
 import PromoStrip from "../components/PromoStrip";
 import { getProducts } from "../service/ProductService";
 import { AnimatePresence, motion } from "framer-motion";
@@ -411,6 +412,8 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
 
           <div className="pb-16 md:pb-0">
 
+        <PromotionalFlyerShowcase section="home" className="max-w-7xl mx-auto px-4 py-5 sm:px-6 lg:px-8 sm:py-6" />
+
         {hasSearch && (
           <section className="py-6 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -485,7 +488,7 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
               slides={promoSlides}
               slideInterval={4200}
               heightClasses="h-28 sm:h-32"
-              link="/promotions"
+              link="/hot-sales"
             />
           </div>
         )}

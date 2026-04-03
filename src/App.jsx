@@ -7,6 +7,8 @@ import "./styles/globals.css";
 // Public Pages
 import { IndexPage } from "./pages/IndexPage";
 import { ShopPage } from "./pages/ShopPage";
+import HotSalesPage from "./pages/HotSalesPage";
+import FlashSalesPage from "./pages/FlashSalesPage";
 import { ProductPage } from "./pages/ProductPage";
 import { CartPage } from "./pages/CartPage";
 import { LogisticsPage } from "./pages/LogisticsPage";
@@ -45,6 +47,8 @@ import Dashboard from "./AdminPanel/pages/Dashboard";
 import Users from "./AdminPanel/pages/Users";
 import Sellers from "./AdminPanel/pages/Sellers";
 import Products from "./AdminPanel/pages/Products";
+import Promotions from "./AdminPanel/pages/Promotions";
+import HeroSlides from "./AdminPanel/pages/HeroSlides";
 import Logistics from "./AdminPanel/pages/Logistics";
 import SellerDetailPage from "./AdminPanel/components/SellerDetails";
 import AdminLogin from "./AdminPanel/AdminLogin";
@@ -130,6 +134,8 @@ const App = () => {
             {/* PUBLIC PAGES */}
             <Route path="/" element={<IndexPage />} />
             <Route path="/shop" element={<ShopPage />} />
+            <Route path="/hot-sales" element={<HotSalesPage />} />
+            <Route path="/flash-sales" element={<FlashSalesPage />} />
             <Route path="/product/:id" element={<ProductPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/logistics" element={<LogisticsPage />} />
@@ -165,6 +171,8 @@ const App = () => {
 
             {/* PRODUCTS */}
             <Route path="/AdminPanel/products" element={<AdminRoute><Products /></AdminRoute>} />
+            <Route path="/AdminPanel/promotions" element={<AdminRoute><Promotions /></AdminRoute>} />
+            <Route path="/AdminPanel/hero-slides" element={<AdminRoute><HeroSlides /></AdminRoute>} />
 
             {/* LOGISTICS */}
             <Route path="/AdminPanel/logistics" element={<AdminRoute><Logistics /></AdminRoute>} />

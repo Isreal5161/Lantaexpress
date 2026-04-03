@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaEye, FaEyeSlash } from "react-icons/fa";
 import { registerUser } from "../api/auth";
+import ConfirmationModal from "../components/ConfirmationModal";
 
 const countries = ["Nigeria", "United States", "United Kingdom", "Canada", "Ghana", "South Africa"];
 
@@ -15,12 +16,18 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [acceptPrivacy, setAcceptPrivacy] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [feedbackModal, setFeedbackModal] = useState({ open: false, title: "", message: "", tone: "default" });
+  const [redirectAfterModal, setRedirectAfterModal] = useState("");
+
+  const openFeedbackModal = (title, message, tone = "default") => {
+    setFeedbackModal({ open: true, title, message, tone });
+  };
 
   const handleSignup = async (e) => {
     e.preventDefault();
 
     if (!acceptPrivacy) {
-      alert("You must accept the Privacy & Policy to sign up.");
+      openFeedbackModal("Policy Required", "You must accept the Privacy & Policy to sign up.", "neutral");
       return;
     }
 
@@ -34,14 +41,14 @@ export default function SignupPage() {
         localStorage.setItem("authToken", data.token);
         localStorage.setItem("currentUser", JSON.stringify(data.user));
 
-        alert("Registration successful!");
-        navigate("/account"); // redirect to account/dashboard
+        setRedirectAfterModal("/account");
+        openFeedbackModal("Registration Successful", "Your account has been created successfully.");
       } else {
-        alert(data.message || "Something went wrong. Try again.");
+        openFeedbackModal("Signup Failed", data.message || "Something went wrong. Try again.", "danger");
       }
     } catch (err) {
       console.error(err);
-      alert("Server error. Try again later.");
+      openFeedbackModal("Signup Failed", err.message || "Server error. Try again later.", "danger");
     } finally {
       setLoading(false);
     }
@@ -192,6 +199,29 @@ export default function SignupPage() {
       <footer className="bg-slate-100 text-gray-500 text-center py-4 text-sm">
         © 2026 Lanta Express. All rights reserved.
       </footer>
+
+      <ConfirmationModal
+        isOpen={feedbackModal.open}
+        title={feedbackModal.title}
+        message={feedbackModal.message}
+        onCancel={() => {
+          setFeedbackModal({ open: false, title: "", message: "", tone: "default" });
+          if (redirectAfterModal) {
+            navigate(redirectAfterModal);
+            setRedirectAfterModal("");
+          }
+        }}
+        onConfirm={() => {
+          setFeedbackModal({ open: false, title: "", message: "", tone: "default" });
+          if (redirectAfterModal) {
+            navigate(redirectAfterModal);
+            setRedirectAfterModal("");
+          }
+        }}
+        confirmLabel="OK"
+        hideCancel
+        tone={feedbackModal.tone}
+      />
     </div>
   );
 }

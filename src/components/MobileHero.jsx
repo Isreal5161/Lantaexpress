@@ -1,234 +1,192 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "./Link";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 import { motion } from "framer-motion";
+import { getHeroSlides } from "../service/HeroService";
 import "swiper/css";
 
 export const MobileHero = () => {
-  const textSwiperRef = useRef(null);
-  const imageSwiperRef = useRef(null);
+  const swiperRef = useRef(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [slides, setSlides] = useState([]);
 
-  const slides = [
-    {
-      title: "Your Marketplace, ",
-      highlight: "Your Way",
-      desc: "Connect with buyers, sell with ease, and let Lanta Express handle logistics.",
-      btnText: "Shop Collection",
-      btnLink: "/shop",
-      btnStyle: "bg-green-600 text-white",
-      image: "/BANNER4.jpg",
-      promoImg:
-        "https://images.unsplash.com/photo-1606813908004-7f75f8d14d0b?auto=format&fit=crop&w=200&q=80",
-    },
-    {
-      title: "Fast Delivery, ",
-      highlight: "All State",
-      desc: "Reliable logistics from pickup to doorstep.",
-      btnText: "Track Your Order",
-      btnLink: "/track",
-      btnStyle: "bg-green-100 text-green-700",
-      image: "/banner5.jpg",
-      promoImg:
-        "https://images.unsplash.com/photo-1567427018141-0584cfcbf1e6?auto=format&fit=crop&w=200&q=80",
-    },
-    {
-      title: "Shop Smart, ",
-      highlight: "Live Better",
-      desc: "Discover trending products at unbeatable prices.",
-      btnText: "Shop Now",
-      btnLink: "/shop",
-      btnStyle: "bg-green-600 text-white",
-      image: "/lantaexpressimage1.jpg",
-      promoImg:
-        "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=200&q=80",
-    },
-    {
-      title: "Buy and Earn ",
-      highlight: "LantaCoin",
-      desc: "Shop on Lanta Express and earn LantaCoin rewards with every purchase!",
-      btnText: "Start Earning",
-      btnLink: "/earn",
-      btnStyle: "bg-green-600 text-white",
-      image: "/LantaCoin.png",
-      coinImg: "/LantaCoin.png",
-    },
-  ];
+  useEffect(() => {
+    let mounted = true;
 
-  // Animations
-  const container = {
-    hidden: {},
-    show: {
-      transition: { staggerChildren: 0.15 },
-    },
-  };
+    const loadSlides = async () => {
+      const heroSlides = await getHeroSlides();
+      if (mounted) {
+        setSlides(heroSlides);
+      }
+    };
 
-  const item = {
-    hidden: { opacity: 0, y: 30 },
-    show: { opacity: 1, y: 0 },
-  };
+    loadSlides();
 
-  const highlightAnim = {
-    hidden: { opacity: 0, y: 20, scale: 0.8 },
-    show: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: { type: "spring", stiffness: 200 },
-    },
-  };
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (!slides.length) {
+    return null;
+  }
 
   return (
-    <section className="relative bg-white pt-3 md:pt-5">
+    <section className="relative overflow-hidden bg-[linear-gradient(180deg,#f8fafc_0%,#ffffff_36%,#f7fee7_100%)] pt-3 md:pt-5">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top_left,_rgba(22,163,74,0.16),_rgba(255,255,255,0)_58%)]" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-          {/* IMAGE SLIDER */}
-          <div className="h-[220px] sm:h-[260px] md:h-[340px]">
-            <Swiper
-              modules={[Autoplay]}
-              onSwiper={(swiper) => (imageSwiperRef.current = swiper)}
-              onRealIndexChange={(swiper) => {
-                if (
-                  textSwiperRef.current &&
-                  textSwiperRef.current.realIndex !== swiper.realIndex
-                ) {
-                  textSwiperRef.current.slideToLoop(swiper.realIndex);
-                }
-              }}
-              autoplay={{ delay: 4000, disableOnInteraction: false }}
-              loop
-              speed={800}
-              allowTouchMove={false}
-              className="h-full overflow-hidden"
-            >
-              {slides.map((slide, index) => (
-                <SwiperSlide key={index}>
-                  <div className="relative w-full h-full">
-                    <img
-                      src={slide.image}
-                      alt=""
-                      className="w-full h-full object-contain md:object-cover"
-                    />
+        <div className="overflow-hidden border border-slate-200 bg-white shadow-[0_24px_60px_rgba(15,23,42,0.08)]">
+          <Swiper
+            modules={[Autoplay]}
+            autoplay={{ delay: 4400, disableOnInteraction: false }}
+            loop
+            speed={900}
+            onSwiper={(swiper) => {
+              swiperRef.current = swiper;
+            }}
+            onSlideChange={(swiper) => setActiveIndex(swiper.realIndex)}
+            className="h-full"
+          >
+            {slides.map((slide, index) => (
+              <SwiperSlide key={index}>
+                <div className={`relative overflow-hidden bg-gradient-to-br ${slide.surface}`}>
+                  <div className="absolute inset-0 opacity-60">
+                    <div className={`absolute -left-10 top-0 h-36 w-36 rounded-full bg-gradient-to-br ${slide.accent} blur-3xl`} />
+                    <div className="absolute right-0 top-8 h-32 w-32 rounded-full bg-white/70 blur-2xl" />
+                    <div className="absolute inset-y-0 left-[56%] hidden w-px bg-white/55 lg:block" />
                   </div>
-                </SwiperSlide>
-              ))}
-            </Swiper>
-          </div>
 
-          {/* TEXT SLIDER */}
-          <div className="h-[240px] sm:h-[280px] md:h-[340px]">
-            <Swiper
-              modules={[Autoplay]}
-              onSwiper={(swiper) => (textSwiperRef.current = swiper)}
-              onRealIndexChange={(swiper) => {
-                if (
-                  imageSwiperRef.current &&
-                  imageSwiperRef.current.realIndex !== swiper.realIndex
-                ) {
-                  imageSwiperRef.current.slideToLoop(swiper.realIndex);
-                }
-              }}
-              autoplay={{ delay: 4000, disableOnInteraction: false }}
-              loop
-              speed={800}
-              allowTouchMove={false}
-              className="h-full"
-            >
-              {slides.map((slide, index) => (
-                <SwiperSlide key={index}>
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="h-full w-full flex flex-col justify-center gap-4 px-5 bg-white shadow-xl relative overflow-hidden"
-                  >
+                  <div className="relative grid grid-cols-1 gap-4 min-[0px]:min-h-0 lg:min-h-[430px] lg:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)] lg:gap-0">
+                    <div className="relative z-20 flex min-w-0 flex-col justify-between px-5 pb-0 pt-6 sm:px-7 sm:pt-7 lg:px-8 lg:pb-8 lg:pt-8">
+                      <div>
+                        <div className="inline-flex items-center gap-2 bg-slate-950 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-white">
+                          <span className={`h-2 w-2 rounded-full bg-gradient-to-r ${slide.accent}`} />
+                          {slide.eyebrow}
+                        </div>
 
-                    {/* Floating Promo */}
-                    {slide.promoImg && !slide.coinImg && (
-                      <motion.img
-                        src={slide.promoImg}
-                        alt=""
-                        initial={{ y: -20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ duration: 0.6 }}
-                        className="absolute top-4 right-4 w-16 h-16 rounded-full object-cover shadow-lg"
-                      />
-                    )}
+                        <div className="mt-3 flex items-center justify-between gap-3 lg:hidden">
+                          <span className="border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-900 shadow-sm">
+                            {slide.badge}
+                          </span>
+                          <span className="border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-700 shadow-sm">
+                            {activeIndex + 1} / {slides.length}
+                          </span>
+                        </div>
 
-                    {/* Rotating Coin */}
-                    {slide.coinImg && (
-                      <motion.img
-                        src={slide.coinImg}
-                        alt=""
-                        animate={{ rotate: 360 }}
-                        transition={{
-                          repeat: Infinity,
-                          duration: 6,
-                          ease: "linear",
-                        }}
-                        className="absolute top-4 right-4 w-14 h-14 object-contain"
-                      />
-                    )}
-
-                    {/* TEXT */}
-                    <motion.div
-                      variants={container}
-                      initial="hidden"
-                      animate="show"
-                      className="flex flex-col gap-3"
-                    >
-                      <motion.h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 leading-snug">
-                        <motion.span variants={item}>
-                          {slide.title}
-                        </motion.span>
-
-                        <motion.span
-                          variants={highlightAnim}
-                          className="inline-block ml-1 bg-gradient-to-r from-green-600 to-emerald-400 bg-clip-text text-transparent"
+                        <motion.h1
+                          initial={{ opacity: 0, y: 22 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.45, delay: 0.05 }}
+                          className="mt-4 max-w-xl text-[1.7rem] font-black leading-[1.04] tracking-[-0.05em] text-slate-950 sm:text-[2.1rem] lg:text-[3rem]"
                         >
-                          {slide.highlight}
-                        </motion.span>
-                      </motion.h1>
+                          {slide.title} <span className={`bg-gradient-to-r ${slide.accent} bg-clip-text text-transparent`}>{slide.highlight}</span>
+                        </motion.h1>
 
-                      <motion.p
-                        variants={item}
-                        className="text-sm md:text-base text-slate-500"
-                      >
-                        {slide.desc}
-                      </motion.p>
+                        <motion.p
+                          initial={{ opacity: 0, y: 18 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.42, delay: 0.12 }}
+                          className="mt-4 max-w-lg text-sm leading-6 text-slate-600 sm:text-base sm:leading-7"
+                        >
+                          {slide.desc}
+                        </motion.p>
 
-                      {/* 🔥 PREMIUM BUTTON */}
-                      <motion.div variants={item}>
                         <motion.div
-                          initial={{ scale: 0.8, y: 20, opacity: 0 }}
-                          animate={{
-                            scale: 1,
-                            y: [0, -6, 0],
-                            opacity: 1,
-                          }}
-                          transition={{
-                            duration: 0.6,
-                            delay: 0.2,
-                            y: {
-                              repeat: Infinity,
-                              duration: 1.2,
-                              ease: "easeInOut",
-                            },
-                          }}
+                          initial={{ opacity: 0, y: 18 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.42, delay: 0.18 }}
+                          className="mt-5 flex flex-wrap gap-2"
                         >
-                          <Link
-                            href={slide.btnLink}
-                            className={`px-5 py-2 font-medium rounded-none ${slide.btnStyle} shadow-md hover:scale-105 active:scale-95 transition-transform duration-200`}
-                          >
-                            {slide.btnText}
-                          </Link>
+                          {slide.metrics.map((metric) => (
+                            <span key={metric} className="border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-700 shadow-sm">
+                              {metric}
+                            </span>
+                          ))}
+                        </motion.div>
+                      </div>
+
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.46, delay: 0.22 }}
+                        className="mt-6 flex flex-wrap items-center gap-3 pb-2 lg:pb-0"
+                      >
+                        <Link href={slide.primaryLink} className={`bg-gradient-to-r ${slide.accent} px-5 py-3 text-sm font-bold text-white shadow-[0_16px_28px_rgba(15,23,42,0.12)] transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]`}>
+                          {slide.primaryText}
+                        </Link>
+                        <Link href={slide.secondaryLink} className="border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-900 hover:text-slate-950">
+                          {slide.secondaryText}
+                        </Link>
+                      </motion.div>
+                    </div>
+
+                    <div className="relative z-10 flex items-center justify-center overflow-hidden px-4 pb-5 pt-0 sm:px-6 lg:px-8 lg:pb-8 lg:pt-8">
+                      <motion.div
+                        initial={{ opacity: 0, x: 32, scale: 0.94 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        transition={{ duration: 0.52, delay: 0.16 }}
+                        className="relative flex h-[180px] w-full max-w-[300px] items-center justify-center border border-white/60 bg-white/75 shadow-[0_20px_36px_rgba(15,23,42,0.1)] backdrop-blur-sm sm:h-[220px] sm:max-w-[340px] lg:h-[300px] lg:max-w-[360px]"
+                      >
+                        <div className="absolute inset-0 bg-[linear-gradient(140deg,rgba(255,255,255,0.78),rgba(255,255,255,0.24))]" />
+                        {slide.mediaType === "video" ? (
+                          <video
+                            src={slide.mediaUrl}
+                            autoPlay
+                            muted
+                            loop
+                            playsInline
+                            preload="metadata"
+                            className="relative z-10 h-full w-full object-contain p-3"
+                          />
+                        ) : (
+                          <img
+                            src={slide.mediaUrl}
+                            alt={slide.highlight}
+                            className={`relative z-10 h-full w-full ${slide.imageFit || "object-cover"} p-3`}
+                          />
+                        )}
+
+                        <motion.div
+                          animate={{ y: [0, -5, 0] }}
+                          transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                          className="absolute left-3 top-3 hidden border border-white/70 bg-white/92 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-900 shadow-lg lg:block"
+                        >
+                          {slide.badge}
+                        </motion.div>
+
+                        <motion.div
+                          initial={{ opacity: 0, y: 12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.38, delay: 0.24 }}
+                          className="absolute bottom-3 right-3 hidden border border-slate-200 bg-white/95 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-700 shadow-lg lg:block"
+                        >
+                          {activeIndex + 1} / {slides.length}
                         </motion.div>
                       </motion.div>
-                    </motion.div>
-                  </motion.div>
-                </SwiperSlide>
+                    </div>
+                  </div>
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+
+          <div className="flex items-center justify-between border-t border-slate-200 bg-white px-4 py-3 sm:px-6">
+            <div className="flex items-center gap-2">
+              {slides.map((slide, index) => (
+                <button
+                  key={slide.highlight}
+                  type="button"
+                  onClick={() => {
+                    setActiveIndex(index);
+                    swiperRef.current?.slideToLoop(index);
+                  }}
+                  aria-label={`Go to hero slide ${index + 1}`}
+                  className={`h-1.5 transition-all ${activeIndex === index ? "w-8 bg-green-600" : "w-3 bg-slate-200"}`}
+                />
               ))}
-            </Swiper>
+            </div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-400">Curated for marketplace speed</p>
           </div>
         </div>
       </div>

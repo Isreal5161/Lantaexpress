@@ -74,6 +74,8 @@ const mapProduct = (p) => {
   const originalPrice = Number(p.price) || 0;
   const discountPercent = resolveDiscountPercent(p.price, p.discountPercent, p.discountPrice);
   const discountPrice = resolveDiscountPrice(p.price, p.discountPercent, p.discountPrice);
+  const normalizedDiscountEndsAt = p.discountEndsAt || null;
+  const normalizedFlashSaleEndsAt = p.flashSaleEndsAt || null;
 
   return {
     id: p._id,
@@ -86,8 +88,6 @@ const mapProduct = (p) => {
     discountPercent,
     category: p.category || "Uncategorized",
     image: (p.images && p.images[0]) || "/placeholder.png",
-    images: Array.isArray(p.images) && p.images.length > 0 ? p.images : ["/placeholder.png"],
-    video: p.video || "",
     brand: p.seller?.brandName || p.brand || "",
     stock: p.stock || 0,
     status: p.status || "approved",
@@ -95,6 +95,10 @@ const mapProduct = (p) => {
     reviewCount: Number(p.reviewCount) || 0,
     ratingBreakdown: p.ratingBreakdown || defaultRatingBreakdown(),
     reviews: Array.isArray(p.reviews) ? p.reviews.map(mapReview) : [],
+    discountEndsAt: normalizedDiscountEndsAt,
+    isFlashSale: Boolean(p.isFlashSale),
+    flashSaleEndsAt: normalizedFlashSaleEndsAt,
+    isMostWanted: Boolean(p.isMostWanted),
   };
 };
 
@@ -116,10 +120,32 @@ export const getProductsByCategory = async (categoryName) => {
 
 export const getHotDeals = async () => {
   const all = await getProducts();
-  return all.slice(0, 4);
+  return all
+    .filter((product) => product.discountPrice !== null && product.discountPrice < product.originalPrice)
+    .sort((firstProduct, secondProduct) => {
+      const firstDiscount = firstProduct.discountPercent || 0;
+      const secondDiscount = secondProduct.discountPercent || 0;
+      return secondDiscount - firstDiscount;
+    });
 };
 
 export const getTrendingNow = async () => {
   const all = await getProducts();
-  return all.slice(0, 4);
+  return all.filter((product) => product.isMostWanted).slice(0, 4);
+};
+
+export const getFlashSaleProducts = async () => {
+  const all = await getProducts();
+  return all
+    .filter((product) => product.isFlashSale)
+    .sort((firstProduct, secondProduct) => {
+      const firstDate = firstProduct.flashSaleEndsAt ? new Date(firstProduct.flashSaleEndsAt).getTime() : Number.MAX_SAFE_INTEGER;
+      const secondDate = secondProduct.flashSaleEndsAt ? new Date(secondProduct.flashSaleEndsAt).getTime() : Number.MAX_SAFE_INTEGER;
+      return firstDate - secondDate;
+    });
+};
+
+export const getMostWantedProducts = async () => {
+  const all = await getProducts();
+  return all.filter((product) => product.isMostWanted);
 };

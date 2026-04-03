@@ -12,7 +12,7 @@ export default function AdminProductsPage() {
   const API_BASE = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
   const token = localStorage.getItem('token');
   const [editingProduct, setEditingProduct] = useState(null);
-  const [editForm, setEditForm] = useState({ name: '', price: '', stock: '', category: '', brand: '', description: '', keyFeatures: '' });
+  const [editForm, setEditForm] = useState({ name: '', price: '', stock: '', category: '', brand: '', description: '', keyFeatures: '', discountPrice: '', discountPercent: '', discountEndsAt: '', isFlashSale: false, flashSaleEndsAt: '', isMostWanted: false });
   const [newCategoryTitle, setNewCategoryTitle] = useState("");
   const [creatingCategory, setCreatingCategory] = useState(false);
   const [deletingCategoryId, setDeletingCategoryId] = useState("");
@@ -85,6 +85,12 @@ export default function AdminProductsPage() {
         category: p.category || '',
         stock: p.stock || 0,
         price: p.price || 0,
+        discountPrice: p.discountPrice ?? '',
+        discountPercent: p.discountPercent ?? '',
+        discountEndsAt: p.discountEndsAt || '',
+        isFlashSale: Boolean(p.isFlashSale),
+        flashSaleEndsAt: p.flashSaleEndsAt || '',
+        isMostWanted: Boolean(p.isMostWanted),
         image: (p.images && p.images[0]) || '/default-product.jpg',
         status: p.status || 'approved',
         raw: p,
@@ -97,6 +103,12 @@ export default function AdminProductsPage() {
         category: p.category || '',
         stock: p.stock || 0,
         price: p.price || 0,
+        discountPrice: p.discountPrice ?? '',
+        discountPercent: p.discountPercent ?? '',
+        discountEndsAt: p.discountEndsAt || '',
+        isFlashSale: Boolean(p.isFlashSale),
+        flashSaleEndsAt: p.flashSaleEndsAt || '',
+        isMostWanted: Boolean(p.isMostWanted),
         image: (p.images && p.images[0]) || '/default-product.jpg',
         status: p.status || 'pending',
         raw: p,
@@ -279,6 +291,11 @@ export default function AdminProductsPage() {
                 <p className="text-sm text-gray-500">Category: {product.category}</p>
                 <p className="text-sm text-gray-500">Stock: {product.stock}</p>
                 <p className="text-sm font-medium mt-1">₦{product.price}</p>
+                <div className="mt-2 flex flex-wrap gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
+                  {product.discountPrice ? <span className="rounded-full bg-rose-100 px-2 py-1 text-rose-700">Discount live</span> : null}
+                  {product.isFlashSale ? <span className="rounded-full bg-amber-100 px-2 py-1 text-amber-700">Flash sale</span> : null}
+                  {product.isMostWanted ? <span className="rounded-full bg-emerald-100 px-2 py-1 text-emerald-700">Most wanted</span> : null}
+                </div>
                 <div className="flex gap-2 mt-3">
                   <button onClick={() => handleApprove(product)} className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm">Approve</button>
                   <button onClick={() => handleDecline(product)} className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm">Decline</button>
@@ -304,6 +321,11 @@ export default function AdminProductsPage() {
                 <p className="text-sm text-gray-500">Category: {product.category}</p>
                 <p className="text-sm text-gray-500">Stock: {product.stock}</p>
                 <p className="text-sm font-medium mt-1">₦{product.price}</p>
+                <div className="mt-2 flex flex-wrap gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
+                  {product.discountPrice ? <span className="rounded-full bg-rose-100 px-2 py-1 text-rose-700">Discount live</span> : null}
+                  {product.isFlashSale ? <span className="rounded-full bg-amber-100 px-2 py-1 text-amber-700">Flash sale</span> : null}
+                  {product.isMostWanted ? <span className="rounded-full bg-emerald-100 px-2 py-1 text-emerald-700">Most wanted</span> : null}
+                </div>
                 <div className="flex gap-2 mt-3">
                   <button onClick={() => {
                     setEditingProduct(product);
@@ -315,6 +337,12 @@ export default function AdminProductsPage() {
                       brand: product.brand,
                       description: product.description || '',
                       keyFeatures: Array.isArray(product.raw?.keyFeatures) ? product.raw.keyFeatures.join('\n') : '',
+                      discountPrice: product.raw?.discountPrice ?? '',
+                      discountPercent: product.raw?.discountPercent ?? '',
+                      discountEndsAt: product.raw?.discountEndsAt ? String(product.raw.discountEndsAt).slice(0, 16) : '',
+                      isFlashSale: Boolean(product.raw?.isFlashSale),
+                      flashSaleEndsAt: product.raw?.flashSaleEndsAt ? String(product.raw.flashSaleEndsAt).slice(0, 16) : '',
+                      isMostWanted: Boolean(product.raw?.isMostWanted),
                     });
                   }} className="px-3 py-1 bg-blue-600 text-white rounded text-sm">Edit</button>
                   <button onClick={() => openConfirmModal({
@@ -354,8 +382,20 @@ export default function AdminProductsPage() {
                 ))}
               </select>
               <input value={editForm.brand} onChange={e => setEditForm({...editForm, brand: e.target.value})} className="border p-2" />
+              <input type="number" value={editForm.discountPrice} onChange={e => setEditForm({...editForm, discountPrice: e.target.value})} placeholder="Discount price" className="border p-2" />
+              <input type="number" value={editForm.discountPercent} onChange={e => setEditForm({...editForm, discountPercent: e.target.value})} placeholder="Discount percent" className="border p-2" />
+              <input type="datetime-local" value={editForm.discountEndsAt} onChange={e => setEditForm({...editForm, discountEndsAt: e.target.value})} className="border p-2 md:col-span-2" />
               <textarea value={editForm.description} onChange={e => setEditForm({...editForm, description: e.target.value})} className="border p-2 md:col-span-2" />
               <textarea value={editForm.keyFeatures} onChange={e => setEditForm({...editForm, keyFeatures: e.target.value})} placeholder="Key features, one per line" className="border p-2 md:col-span-2" />
+              <label className="flex items-center gap-3 rounded border border-amber-200 bg-amber-50 p-3 text-sm text-slate-700">
+                <input type="checkbox" checked={editForm.isFlashSale} onChange={e => setEditForm({...editForm, isFlashSale: e.target.checked})} />
+                Feature this product in flash sales
+              </label>
+              <label className="flex items-center gap-3 rounded border border-emerald-200 bg-emerald-50 p-3 text-sm text-slate-700">
+                <input type="checkbox" checked={editForm.isMostWanted} onChange={e => setEditForm({...editForm, isMostWanted: e.target.checked})} />
+                Feature this product in most wanted sales
+              </label>
+              <input type="datetime-local" value={editForm.flashSaleEndsAt} onChange={e => setEditForm({...editForm, flashSaleEndsAt: e.target.value})} disabled={!editForm.isFlashSale} className="border p-2 md:col-span-2 disabled:bg-slate-100" />
             </div>
             <div className="flex justify-end gap-2 mt-4">
               <button onClick={() => setEditingProduct(null)} className="px-3 py-2 bg-gray-300 rounded">Cancel</button>

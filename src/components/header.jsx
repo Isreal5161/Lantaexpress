@@ -120,6 +120,12 @@ export const Header = ({ hideSearchControl = false }) => {
                 <Link className="text-slate-500 font-medium hover:text-green-700 transition-colors" href="/shop">
                   Shop
                 </Link>
+                <Link className="text-slate-500 font-medium hover:text-green-700 transition-colors" href="/hot-sales">
+                  Hot Sales
+                </Link>
+                <Link className="text-slate-500 font-medium hover:text-green-700 transition-colors" href="/flash-sales">
+                  Flash Sales
+                </Link>
                 <Link className="text-slate-500 font-medium hover:text-green-700 transition-colors" href="/logistics">
                   Logistics
                 </Link>

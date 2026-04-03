@@ -136,10 +136,10 @@ const PromoStrip = ({ items }) => {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const defaults = items && items.length ? items : [
-    { title: "Clearance Sales", subtitle: "Up to 80% off best-rated finds", link: "/promotions", badge: "Flash sale" },
+    { title: "Clearance Sales", subtitle: "Up to 80% off best-rated finds", link: "/hot-sales", badge: "Flash sale" },
     { title: "Petite Fashion", subtitle: "Fresh arrivals for everyday style", link: "/shop", badge: "New in" },
     { title: "Men's Fashion", subtitle: "Trending looks picked this week", link: "/shop", badge: "Trending" },
-    { title: "Electronics", subtitle: "Mobile-first gadget deals", link: "/shop", badge: "Hot picks" },
+    { title: "Electronics", subtitle: "Mobile-first gadget deals", link: "/flash-sales", badge: "Hot picks" },
     { title: "Home & Kitchen", subtitle: "Upgrade your space for less", link: "/shop", badge: "Best value" },
   ];
 

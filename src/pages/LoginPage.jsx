@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaEye, FaEyeSlash } from "react-icons/fa";
 import { loginUser } from "../api/auth";
+import ConfirmationModal from "../components/ConfirmationModal";
 
 export default function LoginPage({ onLogin }) {
   const navigate = useNavigate();
@@ -12,6 +13,11 @@ export default function LoginPage({ onLogin }) {
   const [loading, setLoading] = useState(false);
   const [roleChoiceVisible, setRoleChoiceVisible] = useState(false);
   const [pendingUser, setPendingUser] = useState(null);
+  const [feedbackModal, setFeedbackModal] = useState({ open: false, title: "", message: "", tone: "default" });
+
+  const openFeedbackModal = (title, message, tone = "default") => {
+    setFeedbackModal({ open: true, title, message, tone });
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -35,7 +41,7 @@ export default function LoginPage({ onLogin }) {
       completeLogin(data);
     } catch (err) {
       console.error(err);
-      alert("Server error. Try again later.");
+      openFeedbackModal("Login Failed", err.message || "Server error. Try again later.", "danger");
     } finally {
       setLoading(false);
     }
@@ -126,7 +132,7 @@ export default function LoginPage({ onLogin }) {
               <div className="text-right">
                 <button
                   type="button"
-                  onClick={() => alert("Forgot password flow goes here")}
+                  onClick={() => openFeedbackModal("Forgot Password", "Forgot password flow goes here.", "neutral")}
                   className="text-sm text-green-600 hover:underline font-medium"
                 >
                   Forgot Password?
@@ -181,6 +187,17 @@ export default function LoginPage({ onLogin }) {
           </div>
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={feedbackModal.open}
+        title={feedbackModal.title}
+        message={feedbackModal.message}
+        onCancel={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+        onConfirm={() => setFeedbackModal({ open: false, title: "", message: "", tone: "default" })}
+        confirmLabel="OK"
+        hideCancel
+        tone={feedbackModal.tone}
+      />
     </div>
   );
 }

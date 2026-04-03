@@ -17,6 +17,7 @@ import {
 import { useSessionModal } from "../hooks/useSessionModal";
 import { getCategories } from "../service/CategoryService";
 import { matchesProductSearch } from "../utils/productSearch";
+import { FaChevronRight, FaStore, FaTag } from "react-icons/fa";
 
 export const ShopPage = () => {
   const { addToCart } = useCart();
@@ -123,6 +124,42 @@ export const ShopPage = () => {
     });
   }, [activeCategory, products, searchTerm]);
 
+  const categoryCounts = useMemo(() => {
+    return categories.reduce((accumulator, category) => {
+      if (category === "All Products") {
+        accumulator[category] = products.length;
+        return accumulator;
+      }
+
+      accumulator[category] = products.filter((product) => product.category === category).length;
+      return accumulator;
+    }, {});
+  }, [categories, products]);
+
+  const getCategoryAccent = (category, isActive) => {
+    if (isActive) {
+      return "from-emerald-600 via-green-600 to-teal-600 text-white shadow-[0_14px_30px_rgba(22,163,74,0.18)] ring-0";
+    }
+
+    if (category === "All Products") {
+      return "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50 hover:text-slate-900";
+    }
+
+    return "bg-white/90 text-slate-600 ring-1 ring-slate-200/80 hover:bg-white hover:text-slate-900 hover:ring-slate-300";
+  };
+
+  const getCategoryTagTone = (category, isActive) => {
+    if (isActive) {
+      return "bg-white/16 text-white/90";
+    }
+
+    if (category === "All Products") {
+      return "bg-emerald-50 text-emerald-700";
+    }
+
+    return "bg-slate-100 text-slate-500";
+  };
+
   const hasSearch = searchTerm.trim().length > 0;
 
 
@@ -139,14 +176,42 @@ export const ShopPage = () => {
 
       {/* Sticky header: breadcrumb + banner + category tabs */}
       <div className="sticky top-0 z-40 bg-white">
-        <div className="bg-slate-50 border-b border-slate-200">
-          <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
-            <nav className="flex text-sm font-medium text-slate-500">
-              <Link className="hover:text-slate-900" href="/"> Home </Link>
-              <span className="mx-2"> / </span>
-              <span className="text-slate-900"> Shop </span>
-            </nav>
-            <div className="px-4 sm:px-6 lg:px-8" />
+        <div className="border-b border-slate-200 bg-[linear-gradient(90deg,rgba(240,253,244,0.95),rgba(255,255,255,0.96),rgba(239,246,255,0.92))]">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+            <div className="min-w-0">
+              <nav className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 sm:text-sm sm:tracking-[0.22em]">
+                <Link className="transition hover:text-slate-800" href="/">Home</Link>
+                <FaChevronRight className="text-[10px] text-slate-300" />
+                <span className="flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-slate-700 shadow-[0_8px_24px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/70">
+                  <FaStore className="text-[11px] text-emerald-600" />
+                  Shop
+                </span>
+                {activeCategory !== "All Products" && (
+                  <>
+                    <FaChevronRight className="text-[10px] text-slate-300" />
+                    <span className="max-w-[10rem] truncate rounded-full bg-emerald-50 px-3 py-1 text-emerald-700 ring-1 ring-emerald-100 sm:max-w-none">
+                      {activeCategory}
+                    </span>
+                  </>
+                )}
+              </nav>
+
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-medium text-slate-500 sm:text-xs">
+                <span className="rounded-full bg-white/85 px-3 py-1 ring-1 ring-slate-200/80">Curated marketplace picks</span>
+                <span className="rounded-full bg-white/85 px-3 py-1 ring-1 ring-slate-200/80">Trusted sellers</span>
+                {hasSearch && (
+                  <span className="inline-flex max-w-full items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-amber-700 ring-1 ring-amber-100">
+                    <FaTag className="text-[10px]" />
+                    <span className="truncate">Searching: {searchTerm}</span>
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="hidden shrink-0 rounded-[22px] bg-slate-900 px-4 py-2 text-right text-white shadow-[0_16px_32px_rgba(15,23,42,0.18)] sm:block">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/55">Browse</p>
+              <p className="text-sm font-bold">{filteredProducts.length} Items</p>
+            </div>
           </div>
         </div>
 
@@ -158,18 +223,37 @@ export const ShopPage = () => {
 
         <div className="overflow-x-auto bg-white border-b border-slate-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <ul className="flex space-x-4 py-2">
+            <ul className="flex gap-3 py-3">
               {categories.map((cat, idx) => (
                 <li key={idx}>
                   <button
                     onClick={() => setActiveCategory(cat)}
-                    className={`inline-block text-slate-700 px-3 py-2 font-medium whitespace-nowrap border-b-2 transition-all ${
-                      activeCategory === cat
-                        ? "border-green-500 text-green-600"
-                        : "border-transparent hover:border-green-500 hover:text-green-600"
-                    }`}
+                    className={`group relative overflow-hidden rounded-2xl bg-gradient-to-r px-4 py-3 text-left whitespace-nowrap transition-all duration-300 ${getCategoryAccent(
+                      cat,
+                      activeCategory === cat,
+                    )}`}
                   >
-                    {cat}
+                    <div className="flex min-w-[9.5rem] items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold leading-tight">{cat}</p>
+                        <div className="mt-1 flex items-center gap-2 text-[11px] font-medium">
+                          <span className={`rounded-full px-2 py-0.5 transition ${getCategoryTagTone(cat, activeCategory === cat)}`}>
+                            {categoryCounts[cat] ?? 0} items
+                          </span>
+                          <span className={`${activeCategory === cat ? "text-white/70" : "text-slate-400"}`}>
+                            Browse
+                          </span>
+                        </div>
+                      </div>
+
+                      <span
+                        className={`h-2.5 w-2.5 shrink-0 rounded-full transition ${
+                          activeCategory === cat
+                            ? "bg-white shadow-[0_0_0_4px_rgba(255,255,255,0.18)]"
+                            : "bg-slate-300 group-hover:bg-emerald-500"
+                        }`}
+                      />
+                    </div>
                   </button>
                 </li>
               ))}

@@ -6,6 +6,8 @@ import {
   FaStore,
   FaTruck,
   FaBoxOpen,
+  FaImages,
+  FaRegWindowMaximize,
   FaChevronDown,
   FaChevronRight
 } from "react-icons/fa";
@@ -135,6 +137,22 @@ export default function Sidebar() {
         >
           <FaBoxOpen />
           <span>Products</span>
+        </Link>
+
+        <Link
+          to="/AdminPanel/promotions"
+          className="flex items-center gap-3 p-3 hover:bg-green-600 rounded"
+        >
+          <FaImages />
+          <span>Promotions</span>
+        </Link>
+
+        <Link
+          to="/AdminPanel/hero-slides"
+          className="flex items-center gap-3 p-3 hover:bg-green-600 rounded"
+        >
+          <FaRegWindowMaximize />
+          <span>Hero Slides</span>
         </Link>
 
         {/* LOGISTICS */}
