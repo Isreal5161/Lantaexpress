@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
 import "./styles/globals.css";
+import { SplashScreen } from "./SplashScreen";
 
 // Public Pages
 import { IndexPage } from "./pages/IndexPage";
@@ -116,9 +117,7 @@ const App = () => {
   return (
     <SellerAuthProvider>
       {showSplash && (
-        <div className="fixed inset-0 flex items-center justify-center bg-green-700 z-50">
-          <img src="/homescreenlogo.png" alt="LantaXpress Logo" className="w-48 h-48" />
-        </div>
+        <SplashScreen />
       )}
 
       <div style={{ visibility: showSplash ? "hidden" : "visible" }}>
