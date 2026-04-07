@@ -6,17 +6,20 @@ import { CartProvider } from './context/CartContextTemp';
 import { NotificationProvider } from "./context/NotificationContext";
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import { CartButtonProvider } from './context/CartButtonContext';
+import { WishlistProvider } from './context/WishlistContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 root.render(
   <React.StrictMode>
     <NotificationProvider>
-      <CartButtonProvider>
-      <CartProvider>
+      <WishlistProvider>
+        <CartButtonProvider>
+          <CartProvider>
             <App />
-        </CartProvider>
+          </CartProvider>
         </CartButtonProvider>
+      </WishlistProvider>
     </NotificationProvider>
   </React.StrictMode>
 );

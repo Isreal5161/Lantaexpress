@@ -1,9 +1,48 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { getScopedStorageKey, migrateLegacyStorageKey } from "../utils/userScopedStorage";
 
 const CartContext = createContext();
 const CART_STORAGE_KEY = "lantaxpress_cart";
 
 const getProductId = (product) => product?.id || product?._id || product?.productId || null;
+const resolveShippingMethod = (value) => (value === "home_delivery" ? "home_delivery" : "pickup_station");
+const buildCartKey = (id, shippingMethod) => `${id}::${resolveShippingMethod(shippingMethod)}`;
+
+const getCartIdentity = (value, shippingMethod) => {
+  if (value && typeof value === "object") {
+    return {
+      id: value.id || value.productId || value._id || null,
+      shippingMethod: resolveShippingMethod(value.selectedShippingMethod || value.shippingMethod),
+      cartKey: value.cartKey || (value.id || value.productId || value._id ? buildCartKey(value.id || value.productId || value._id, value.selectedShippingMethod || value.shippingMethod) : null),
+    };
+  }
+
+  if (typeof value === "string" && value.includes("::")) {
+    const [id, method] = value.split("::");
+    return {
+      id,
+      shippingMethod: resolveShippingMethod(method),
+      cartKey: buildCartKey(id, method),
+    };
+  }
+
+  const id = value || null;
+  return {
+    id,
+    shippingMethod: shippingMethod ? resolveShippingMethod(shippingMethod) : null,
+    cartKey: id && shippingMethod ? buildCartKey(id, shippingMethod) : null,
+  };
+};
+
+const matchesCartItem = (item, value, shippingMethod) => {
+  const identity = getCartIdentity(value, shippingMethod);
+
+  if (identity.cartKey) {
+    return item.cartKey === identity.cartKey;
+  }
+
+  return String(item.id) === String(identity.id);
+};
 
 const normalizeCartItem = (product = {}) => {
   const id = getProductId(product);
@@ -14,23 +53,27 @@ const normalizeCartItem = (product = {}) => {
 
   const parsedQuantity = Number(product.quantity);
   const parsedStock = Number(product.stock);
+  const selectedShippingMethod = resolveShippingMethod(product.selectedShippingMethod || product.shippingMethod);
 
   return {
     ...product,
     id,
+    cartKey: buildCartKey(id, selectedShippingMethod),
     image: product.image || product.images?.[0] || "",
     stock: Number.isFinite(parsedStock) && parsedStock >= 0 ? parsedStock : 0,
     quantity: Number.isFinite(parsedQuantity) && parsedQuantity > 0 ? parsedQuantity : 1,
+    selectedShippingMethod,
   };
 };
 
-const loadStoredCart = () => {
+const loadStoredCart = (storageKey = getScopedStorageKey(CART_STORAGE_KEY)) => {
   if (typeof window === "undefined") {
     return [];
   }
 
   try {
-    const storedCart = JSON.parse(window.localStorage.getItem(CART_STORAGE_KEY) || "[]");
+    migrateLegacyStorageKey(CART_STORAGE_KEY, storageKey);
+    const storedCart = JSON.parse(window.localStorage.getItem(storageKey) || "[]");
 
     if (!Array.isArray(storedCart)) {
       return [];
@@ -43,15 +86,16 @@ const loadStoredCart = () => {
 };
 
 export const CartProvider = ({ children }) => {
-  const [cartItems, setCartItems] = useState(loadStoredCart);
+  const [storageKey, setStorageKey] = useState(() => getScopedStorageKey(CART_STORAGE_KEY));
+  const [cartItems, setCartItems] = useState(() => loadStoredCart(getScopedStorageKey(CART_STORAGE_KEY)));
 
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
     }
 
-    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
-  }, [cartItems]);
+    window.localStorage.setItem(storageKey, JSON.stringify(cartItems));
+  }, [cartItems, storageKey]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -59,13 +103,17 @@ export const CartProvider = ({ children }) => {
     }
 
     const syncCartFromStorage = () => {
-      setCartItems(loadStoredCart());
+      const nextStorageKey = getScopedStorageKey(CART_STORAGE_KEY);
+      setStorageKey(nextStorageKey);
+      setCartItems(loadStoredCart(nextStorageKey));
     };
 
     window.addEventListener("storage", syncCartFromStorage);
+    window.addEventListener("auth-state-changed", syncCartFromStorage);
 
     return () => {
       window.removeEventListener("storage", syncCartFromStorage);
+      window.removeEventListener("auth-state-changed", syncCartFromStorage);
     };
   }, []);
 
@@ -81,11 +129,11 @@ export const CartProvider = ({ children }) => {
     }
 
     setCartItems((prev) => {
-      const existing = prev.find((item) => String(item.id) === String(normalizedProduct.id));
+      const existing = prev.find((item) => item.cartKey === normalizedProduct.cartKey);
 
       if (existing) {
         return prev.map((item) =>
-          String(item.id) === String(normalizedProduct.id)
+          item.cartKey === normalizedProduct.cartKey
             ? {
                 ...item,
                 quantity: Math.min(
@@ -107,14 +155,14 @@ export const CartProvider = ({ children }) => {
     });
   };
 
-  const removeFromCart = (id) => {
-    setCartItems((prev) => prev.filter((item) => String(item.id) !== String(id)));
+  const removeFromCart = (value, shippingMethod) => {
+    setCartItems((prev) => prev.filter((item) => !matchesCartItem(item, value, shippingMethod)));
   };
 
-  const increaseQuantity = (id) => {
+  const increaseQuantity = (value, shippingMethod) => {
     setCartItems((prev) =>
       prev.map((item) =>
-        String(item.id) === String(id)
+        matchesCartItem(item, value, shippingMethod)
           ? {
               ...item,
               quantity: Math.min(item.quantity + 1, Math.max(Number(item.stock) || 0, 1)),
@@ -124,11 +172,11 @@ export const CartProvider = ({ children }) => {
     );
   };
 
-  const decreaseQuantity = (id) => {
+  const decreaseQuantity = (value, shippingMethod) => {
     setCartItems((prev) =>
       prev
         .map((item) =>
-          String(item.id) === String(id) ? { ...item, quantity: item.quantity - 1 } : item
+          matchesCartItem(item, value, shippingMethod) ? { ...item, quantity: item.quantity - 1 } : item
         )
         .filter((item) => item.quantity > 0)
     );

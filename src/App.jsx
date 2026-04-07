@@ -13,8 +13,10 @@ import FlashSalesPage from "./pages/FlashSalesPage";
 import { ProductPage } from "./pages/ProductPage";
 import { CartPage } from "./pages/CartPage";
 import { LogisticsPage } from "./pages/LogisticsPage";
+import { LogisticsBookingPage } from "./pages/LogisticsBookingPage";
 import { TrackorderPage } from "./pages/TrackorderPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import ShippingReturnsPolicyPage from "./pages/ShippingReturnsPolicyPage";
 
 // Auth Pages
 import LoginPage from "./pages/LoginPage";
@@ -112,6 +114,10 @@ const App = () => {
       localStorage.removeItem("currentUser");
       localStorage.removeItem("authToken");
     }
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("auth-state-changed"));
+    }
   };
 
   return (
@@ -138,8 +144,10 @@ const App = () => {
             <Route path="/product/:id" element={<ProductPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/logistics" element={<LogisticsPage />} />
+            <Route path="/logistics/book" element={<LogisticsBookingPage />} />
             <Route path="/track" element={<TrackorderPage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+            <Route path="/shipping-returns" element={<ShippingReturnsPolicyPage />} />
 
             {/* ADMIN LOGIN */}
             <Route path="/admin/login" element={<AdminLogin />} />

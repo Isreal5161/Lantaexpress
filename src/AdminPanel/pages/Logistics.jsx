@@ -1,75 +1,59 @@
-// src/AdminPanel/components/Logistics.jsx
-
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../Layout/AdminLayout";
+import { getAdminLogisticsRequests, updateAdminLogisticsStatus } from "../../api/logistics";
 
 const shipmentStages = [
+  "Approved",
   "Pickup Scheduled",
   "Picked Up",
-  "Shipped",
   "In Transit",
   "Arrived at Nearest Hub",
   "Out for Delivery",
-  "Delivered"
+  "Delivered",
+  "Completed"
 ];
 
 export default function Logistics() {
   const [shipments, setShipments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Load approved shipments from localStorage
-  const loadShipments = () => {
-    const allRequests = JSON.parse(localStorage.getItem("logistics_requests")) || [];
+  const loadShipments = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setShipments([]);
+      setLoading(false);
+      return;
+    }
 
-    // Only take approved requests
-    const approvedShipments = allRequests
-      .filter(r => r.status === "Approved")
-      .map(r => ({
-        id: r.id,
-        product: r.description || "Package", // Use description as product name
-        image: r.image || null,
-        seller: r.seller || "N/A",
-        customer: r.name,
-        pickup: r.pickup,
-        delivery: r.delivery,
-        stage: r.stage || "Pickup Scheduled"
-      }));
-
-    setShipments(approvedShipments);
+    try {
+      setLoading(true);
+      const data = await getAdminLogisticsRequests(token);
+      setShipments((data.requests || []).filter((item) => !["Awaiting Dispatch", "Declined", "Cancelled"].includes(item.status)));
+    } catch {
+      setShipments([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     loadShipments();
-
-    // Listen for changes in localStorage (approval/decline updates)
-    const handleStorageChange = (e) => {
-      if (e.key === "logistics_requests") {
-        loadShipments();
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  const updateStage = (id, newStage) => {
-    const updated = shipments.map(item =>
-      item.id === id ? { ...item, stage: newStage } : item
-    );
-    setShipments(updated);
+  const updateStage = async (recordId, newStage) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-    // Persist stage updates back to localStorage
-    const allRequests = JSON.parse(localStorage.getItem("logistics_requests")) || [];
-    const updatedRequests = allRequests.map(r => {
-      if (r.id === id && r.status === "Approved") {
-        return { ...r, stage: newStage };
-      }
-      return r;
-    });
-    localStorage.setItem("logistics_requests", JSON.stringify(updatedRequests));
+    try {
+      await updateAdminLogisticsStatus(recordId, { status: newStage }, token);
+      await loadShipments();
+    } catch {
+      // Keep the current view stable if the update fails.
+    }
   };
 
   const statusColor = (stage) => {
-    if (stage === "Delivered") return "bg-green-100 text-green-700";
+    if (stage === "Completed" || stage === "Delivered") return "bg-green-100 text-green-700";
     if (stage === "Out for Delivery") return "bg-blue-100 text-blue-700";
     if (stage === "In Transit") return "bg-yellow-100 text-yellow-700";
     return "bg-gray-100 text-gray-700";
@@ -82,36 +66,38 @@ export default function Logistics() {
           Logistics Management
         </h1>
 
+        {loading ? <div className="rounded bg-gray-100 p-4">Loading logistics shipments...</div> : null}
+
         {/* ---------------- MOBILE CARDS ---------------- */}
         <div className="lg:hidden space-y-4">
           {shipments.map(item => (
-            <div key={item.id} className="bg-white border rounded-lg shadow p-4">
+            <div key={item.recordId} className="bg-white border rounded-lg shadow p-4">
               <div className="flex gap-3 mb-3">
                 {item.image && (
-                  <img src={item.image} alt={item.product} className="w-16 h-16 object-cover rounded" />
+                  <img src={item.image} alt={item.productName} className="w-16 h-16 object-cover rounded" />
                 )}
                 <div>
-                  <h2 className="font-semibold text-slate-800">{item.product}</h2>
-                  <p className="text-xs text-gray-500">Tracking: {item.id}</p>
+                  <h2 className="font-semibold text-slate-800">{item.productName}</h2>
+                  <p className="text-xs text-gray-500">Tracking: {item.trackingId}</p>
                 </div>
               </div>
 
-              <p className="text-sm text-gray-600"><strong>Customer:</strong> {item.customer}</p>
-              <p className="text-sm text-gray-600"><strong>Seller:</strong> {item.seller}</p>
+              <p className="text-sm text-gray-600"><strong>Customer:</strong> {item.userName}</p>
               <p className="text-sm text-gray-600"><strong>Pickup:</strong> {item.pickup}</p>
               <p className="text-sm text-gray-600"><strong>Delivery:</strong> {item.delivery}</p>
+              <p className="text-sm text-gray-600"><strong>Amount:</strong> ₦ {Number(item.amount || 0).toLocaleString()}</p>
 
               <div className="mt-3">
-                <span className={`px-3 py-1 rounded-full text-xs ${statusColor(item.stage)}`}>
-                  {item.stage}
+                <span className={`px-3 py-1 rounded-full text-xs ${statusColor(item.status)}`}>
+                  {item.status}
                 </span>
               </div>
 
               <div className="mt-3">
                 <label className="text-xs text-gray-500">Update Shipment Stage</label>
                 <select
-                  value={item.stage}
-                  onChange={(e) => updateStage(item.id, e.target.value)}
+                  value={item.status}
+                  onChange={(e) => updateStage(item.recordId, e.target.value)}
                   className="w-full border rounded p-2 text-sm mt-1"
                 >
                   {shipmentStages.map(stage => (
@@ -139,29 +125,29 @@ export default function Logistics() {
             </thead>
             <tbody>
               {shipments.map(item => (
-                <tr key={item.id} className="border-t">
+                <tr key={item.recordId} className="border-t">
                   <td className="p-3 flex items-center gap-3">
                     {item.image && (
-                      <img src={item.image} alt={item.product} className="w-12 h-12 rounded object-cover" />
+                      <img src={item.image} alt={item.productName} className="w-12 h-12 rounded object-cover" />
                     )}
                     <div>
-                      <p className="font-semibold">{item.product}</p>
-                      <p className="text-xs text-gray-500">{item.id}</p>
+                      <p className="font-semibold">{item.productName}</p>
+                      <p className="text-xs text-gray-500">{item.trackingId}</p>
                     </div>
                   </td>
-                  <td className="p-3">{item.customer}</td>
-                  <td className="p-3">{item.seller}</td>
+                  <td className="p-3">{item.userName}</td>
                   <td className="p-3">{item.pickup}</td>
                   <td className="p-3">{item.delivery}</td>
+                  <td className="p-3">₦ {Number(item.amount || 0).toLocaleString()}</td>
                   <td className="p-3">
-                    <span className={`px-3 py-1 rounded-full text-xs ${statusColor(item.stage)}`}>
-                      {item.stage}
+                    <span className={`px-3 py-1 rounded-full text-xs ${statusColor(item.status)}`}>
+                      {item.status}
                     </span>
                   </td>
                   <td className="p-3">
                     <select
-                      value={item.stage}
-                      onChange={(e) => updateStage(item.id, e.target.value)}
+                      value={item.status}
+                      onChange={(e) => updateStage(item.recordId, e.target.value)}
                       className="border rounded p-1 text-sm"
                     >
                       {shipmentStages.map(stage => (

@@ -9,6 +9,7 @@ import { Link } from "../components/Link";
 import { Text } from "../components/Text";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
+import { FaBolt, FaFireAlt, FaGift, FaLayerGroup } from "react-icons/fa";
 import { useLocation, useNavigate } from "react-router-dom";
 import "swiper/css";
 import "swiper/css/pagination";
@@ -34,6 +35,7 @@ import {
   getProductDiscountPercent,
   hasActiveProductDiscount,
 } from "../utils/productPricing";
+import { warmHeroMedia } from "../service/HeroService";
 
 const formatPromoPrice = (amount) => `₦${Number(amount || 0).toLocaleString()}`;
 
@@ -44,6 +46,19 @@ const categoryHeaderVariants = {
     y: 0,
     transition: {
       duration: 0.45,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  },
+};
+
+const marketingBoardVariants = {
+  hidden: { opacity: 0, y: 12, scale: 0.985 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.42,
       ease: [0.22, 1, 0.36, 1],
     },
   },
@@ -75,6 +90,10 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
     const params = new URLSearchParams(location.search);
     return params.get("search") || "";
   }, [location.search]);
+
+  useEffect(() => {
+    warmHeroMedia();
+  }, []);
 
   useEffect(() => {
     setSearchInput(searchTerm);
@@ -447,11 +466,38 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
         {/* Shop By Category */}
         <section id="shop_by_category" className="py-12 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="w-full p-[3px] bg-green-700 mb-2">
-              <h2 className="text-sm sm:text-base font-heading font-semibold bg-green-700 text-white px-4 py-2 text-left">
-                Shop by Category
-              </h2>
-            </div>
+            <motion.div
+              className="mb-4 overflow-hidden bg-[linear-gradient(120deg,#052e16_0%,#15803d_48%,#f97316_100%)] shadow-[0_18px_40px_rgba(22,101,52,0.18)]"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.35 }}
+              variants={marketingBoardVariants}
+            >
+              <div className="flex flex-col gap-2.5 px-4 py-3 sm:px-5 sm:py-3.5 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <div className="inline-flex items-center gap-2 border border-white/20 bg-white/10 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-[0.2em] text-white/90 backdrop-blur-sm">
+                    <FaLayerGroup className="text-orange-200" />
+                    Explore curated aisles
+                  </div>
+                  <h2 className="mt-2 text-sm font-heading font-semibold uppercase tracking-[0.08em] text-white sm:text-[15px]">
+                    Shop by Category
+                  </h2>
+                  <p className="mt-1 text-[10px] font-medium leading-5 text-green-50/90 sm:text-[11px]">
+                    Quick-entry boards for shoppers who want the fastest route into the right product lane.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5">
+                  <span className="inline-flex items-center gap-1.5 border border-orange-300/50 bg-orange-400/15 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-orange-50 backdrop-blur-sm">
+                    <FaBolt className="animate-pulse text-orange-200" />
+                    Fast discovery
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 border border-white/20 bg-white/10 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-white/90 backdrop-blur-sm">
+                    Swipe categories
+                  </span>
+                </div>
+              </div>
+            </motion.div>
             <Swiper
               modules={[Autoplay, Pagination]}
               slidesPerView={2}
@@ -496,11 +542,48 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
         {/* Hot Deals */}
         <section id="Hot-deal" className="py-6 bg-white-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="w-full p-[2px] bg-green-700 mb-1 rounded-sm">
-              <h2 className="text-sm sm:text-base font-heading font-semibold bg-green-700 text-white px-4 py-1 text-left">
-                Hot Deals
-              </h2>
-            </div>
+            <motion.div
+              className="mb-4 overflow-hidden bg-[linear-gradient(120deg,#7c2d12_0%,#ea580c_44%,#facc15_100%)] shadow-[0_18px_42px_rgba(249,115,22,0.22)]"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.35 }}
+              variants={marketingBoardVariants}
+            >
+              <div className="relative flex flex-col gap-2.5 px-4 py-3 sm:px-5 sm:py-3.5 lg:flex-row lg:items-center lg:justify-between">
+                <motion.div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute right-0 top-0 h-16 w-16 rounded-full bg-white/20 blur-2xl"
+                  animate={{ scale: [0.9, 1.08, 0.9], opacity: [0.35, 0.6, 0.35] }}
+                  transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+                />
+                <div className="relative z-10">
+                  <div className="inline-flex items-center gap-1.5 border border-white/20 bg-black/10 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-[0.2em] text-white/95 backdrop-blur-sm">
+                    <FaFireAlt className="animate-pulse text-yellow-100" />
+                    Flash promotion board
+                  </div>
+                  <h2 className="mt-2 text-sm font-heading font-semibold uppercase tracking-[0.08em] text-white sm:text-[15px]">
+                    Hot Deals
+                  </h2>
+                  <p className="mt-1 text-[10px] font-medium leading-5 text-orange-50/90 sm:text-[11px]">
+                    High-heat offers, sharper markdowns, and faster-moving picks surfaced for immediate conversion.
+                  </p>
+                </div>
+
+                <div className="relative z-10 flex flex-wrap gap-1.5">
+                  <span className="inline-flex items-center gap-1.5 border border-yellow-200/60 bg-yellow-300/20 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-white backdrop-blur-sm">
+                    <FaGift className="text-yellow-100" />
+                    Deal drop
+                  </span>
+                  <motion.span
+                    className="inline-flex items-center gap-1.5 border border-white/20 bg-white/10 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-white backdrop-blur-sm"
+                    animate={{ y: [0, -2, 0] }}
+                    transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    Limited window
+                  </motion.span>
+                </div>
+              </div>
+            </motion.div>
             <motion.div
               className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 -mt-1"
               initial="hidden"

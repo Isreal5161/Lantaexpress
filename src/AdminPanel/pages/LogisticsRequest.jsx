@@ -1,127 +1,109 @@
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../Layout/AdminLayout";
 import ConfirmationModal from "../../components/ConfirmationModal";
+import { getAdminLogisticsRequests, updateAdminLogisticsStatus } from "../../api/logistics";
 
 export default function LogisticsRequest() {
   const [requests, setRequests] = useState([]);
-  const [reason, setReason] = useState("");
+  const [reasons, setReasons] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [processingId, setProcessingId] = useState(null);
   const [feedbackModal, setFeedbackModal] = useState({ open: false, title: "", message: "", tone: "default" });
 
   const openFeedbackModal = (title, message, tone = "default") => {
     setFeedbackModal({ open: true, title, message, tone });
   };
 
-  useEffect(() => {
-    const data = JSON.parse(localStorage.getItem("logistics_requests")) || [];
-    setRequests(data);
-  }, []);
-
-  // Approve request and create tracking
-  const approveRequest = (req) => {
-    const shipments = JSON.parse(localStorage.getItem("logistics_shipments")) || [];
-    const newShipment = {
-      ...req,
-      status: "Approved",
-      stage: "Pickup Scheduled",
-      trackingId: req.trackingId || `TRK-${Date.now()}`,
-      received: false,
-      stageTimestamps: { "Approved": new Date().toISOString() }
-    };
-    shipments.push(newShipment);
-    localStorage.setItem("logistics_shipments", JSON.stringify(shipments));
-
-    // Add to history
-    const history = JSON.parse(localStorage.getItem("logistics_history")) || [];
-    history.push({ ...newShipment, actionDate: new Date().toISOString() });
-    localStorage.setItem("logistics_history", JSON.stringify(history));
-
-    // Send notification to user
-    const notifications = JSON.parse(localStorage.getItem("user_notifications")) || [];
-    notifications.push({
-      user: req.name,
-      type: "Logistics Request Approved",
-      message: `Your logistics request has been approved! Tracking ID: ${newShipment.trackingId}`,
-      date: new Date().toISOString()
-    });
-    localStorage.setItem("user_notifications", JSON.stringify(notifications));
-
-    // Remove from requests
-    const updatedRequests = requests.filter(r => r.id !== req.id);
-    setRequests(updatedRequests);
-    localStorage.setItem("logistics_requests", JSON.stringify(updatedRequests));
-  };
-
-  const declineRequest = (req, reasonText) => {
-    if (!reasonText) {
-      openFeedbackModal("Reason Required", "Enter reason for declining.", "danger");
+  const loadRequests = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setRequests([]);
+      setLoading(false);
+      openFeedbackModal("Admin Login Required", "Please log in as admin to manage logistics requests.", "danger");
       return;
     }
 
-    const history = JSON.parse(localStorage.getItem("logistics_history")) || [];
-    history.push({ ...req, status: "Declined", reason: reasonText, actionDate: new Date().toISOString() });
-    localStorage.setItem("logistics_history", JSON.stringify(history));
-
-    const updatedRequests = requests.filter(r => r.id !== req.id);
-    setRequests(updatedRequests);
-    localStorage.setItem("logistics_requests", JSON.stringify(updatedRequests));
-
-    const notifications = JSON.parse(localStorage.getItem("user_notifications")) || [];
-    notifications.push({
-      user: req.name,
-      type: "Logistics Request Declined",
-      message: `Your logistics request was declined. Reason: ${reasonText}`,
-      date: new Date().toISOString()
-    });
-    localStorage.setItem("user_notifications", JSON.stringify(notifications));
-    setReason("");
+    try {
+      setLoading(true);
+      const data = await getAdminLogisticsRequests(token);
+      setRequests((data.requests || []).filter((request) => request.status === "Awaiting Dispatch"));
+    } catch (error) {
+      setRequests([]);
+      openFeedbackModal("Unable to Load Requests", error.message || "Failed to load logistics requests.", "danger");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Update shipment status (for admin)
-  const updateShipmentStatus = (shipment, newStatus) => {
-    const shipments = JSON.parse(localStorage.getItem("logistics_shipments")) || [];
-    const updatedShipments = shipments.map(s => {
-      if (s.trackingId === shipment.trackingId) {
-        const timestamps = { ...s.stageTimestamps };
-        timestamps[newStatus] = new Date().toISOString();
-        // Send notification
-        const notifications = JSON.parse(localStorage.getItem("user_notifications")) || [];
-        notifications.push({
-          user: s.name,
-          type: "Shipment Status Updated",
-          message: `Tracking ID ${s.trackingId} status updated to "${newStatus}"`,
-          date: new Date().toISOString()
-        });
-        localStorage.setItem("user_notifications", JSON.stringify(notifications));
+  useEffect(() => {
+    loadRequests();
+  }, []);
 
-        return { ...s, status: newStatus, stageTimestamps: timestamps };
-      }
-      return s;
-    });
-    localStorage.setItem("logistics_shipments", JSON.stringify(updatedShipments));
+  const handleStatusUpdate = async (request, status) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const adminNotes = reasons[request.recordId] || "";
+    if (status === "Declined" && !adminNotes.trim()) {
+      openFeedbackModal("Reason Required", "Enter a reason before declining this logistics request.", "danger");
+      return;
+    }
+
+    try {
+      setProcessingId(request.recordId);
+      await updateAdminLogisticsStatus(request.recordId, { status, adminNotes }, token);
+      await loadRequests();
+    } catch (error) {
+      openFeedbackModal("Update Failed", error.message || "Unable to update logistics request status.", "danger");
+    } finally {
+      setProcessingId(null);
+    }
   };
 
   return (
     <AdminLayout>
-      <h1 className="text-2xl font-bold text-slate-800 mb-6">Logistics Requests</h1>
+      <h1 className="mb-6 text-2xl font-bold text-slate-800">Logistics Requests</h1>
 
-      {requests.length === 0 && <div className="bg-gray-100 p-4 rounded">No new logistics requests at the moment.</div>}
+      {loading ? <div className="rounded bg-gray-100 p-4">Loading logistics requests...</div> : null}
+      {!loading && requests.length === 0 ? <div className="rounded bg-gray-100 p-4">No new logistics requests at the moment.</div> : null}
 
       <div className="space-y-4">
-        {requests.map(req => (
-          <div key={req.id} className="bg-white border rounded-lg shadow p-4">
-            {req.image && <img src={req.image} className="w-full h-40 object-cover rounded mb-3" />}
-            <h2 className="font-semibold">{req.name}</h2>
-            <p className="text-sm text-gray-600">Phone: {req.phone}</p>
-            <p className="text-sm"><strong>Pickup:</strong> {req.pickup}</p>
-            <p className="text-sm"><strong>Delivery:</strong> {req.delivery}</p>
-            <p className="text-sm text-gray-500">{req.description}</p>
-            <p className="text-xs text-gray-400">Request Date: {req.date}</p>
-            <p className="text-xs text-gray-400">Tracking ID: <span className="font-semibold">{req.trackingId || "Pending"}</span></p>
+        {requests.map((request) => (
+          <div key={request.recordId} className="rounded-lg border bg-white p-4 shadow">
+            {request.image ? <img src={request.image} alt={request.productName} className="mb-3 h-40 w-full rounded object-cover" /> : null}
+            <h2 className="font-semibold">{request.userName}</h2>
+            <p className="text-sm text-gray-600">Phone: {request.phone}</p>
+            <p className="text-sm"><strong>Service:</strong> {request.serviceType}</p>
+            <p className="text-sm"><strong>Pickup:</strong> {request.pickup}</p>
+            <p className="text-sm"><strong>Delivery:</strong> {request.delivery}</p>
+            <p className="text-sm"><strong>Distance:</strong> {request.distanceText || "Estimated route"}</p>
+            <p className="text-sm"><strong>Amount:</strong> ₦ {Number(request.amount || 0).toLocaleString()}</p>
+            <p className="text-sm text-gray-500">{request.description}</p>
+            <p className="text-xs text-gray-400">Request Date: {new Date(request.createdAt).toLocaleString()}</p>
+            <p className="text-xs text-gray-400">Tracking ID: <span className="font-semibold">{request.trackingId}</span></p>
 
             <div className="mt-3 flex flex-col gap-2">
-              <button className="bg-green-600 text-white px-3 py-1 rounded" onClick={() => approveRequest(req)}>Approve</button>
-              <input type="text" placeholder="Reason for declining" value={reason} onChange={e => setReason(e.target.value)} className="border p-2" />
-              <button className="bg-red-600 text-white px-3 py-1 rounded" onClick={() => declineRequest(req, reason)}>Decline</button>
+              <button
+                className="rounded bg-green-600 px-3 py-1 text-white"
+                onClick={() => handleStatusUpdate(request, "Approved")}
+                disabled={processingId === request.recordId}
+              >
+                Approve
+              </button>
+              <input
+                type="text"
+                placeholder="Reason for declining"
+                value={reasons[request.recordId] || ""}
+                onChange={(event) => setReasons((current) => ({ ...current, [request.recordId]: event.target.value }))}
+                className="border p-2"
+              />
+              <button
+                className="rounded bg-red-600 px-3 py-1 text-white"
+                onClick={() => handleStatusUpdate(request, "Declined")}
+                disabled={processingId === request.recordId}
+              >
+                Decline
+              </button>
             </div>
           </div>
         ))}

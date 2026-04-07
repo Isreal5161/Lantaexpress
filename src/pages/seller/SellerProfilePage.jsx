@@ -82,6 +82,8 @@ const SellerProfilePage = () => {
     category: "",
     price: "",
     discountPercent: "",
+    pickupStationFee: "",
+    homeDeliveryFee: "",
     stock: "",
     description: "",
     keyFeatures: "",
@@ -306,6 +308,8 @@ const SellerProfilePage = () => {
       category: product.category || "",
       price: product.price || "",
       discountPercent: getProductDiscountPercent(product) || "",
+      pickupStationFee: product.pickupStationFee ?? "",
+      homeDeliveryFee: product.homeDeliveryFee ?? "",
       stock: product.stock || "",
       description: product.description || "",
       keyFeatures: Array.isArray(product.keyFeatures) ? product.keyFeatures.join("\n") : "",
@@ -354,6 +358,8 @@ const SellerProfilePage = () => {
       payload.append("description", formData.description);
       payload.append("price", formData.price);
       payload.append("discountPercent", formData.discountPercent);
+      payload.append("pickupStationFee", formData.pickupStationFee);
+      payload.append("homeDeliveryFee", formData.homeDeliveryFee);
       payload.append("stock", formData.stock);
       payload.append("category", formData.category);
       payload.append("brand", formData.brand);
@@ -779,6 +785,32 @@ const SellerProfilePage = () => {
                   required
                   className="w-full rounded border px-3 py-2"
                 />
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="text-sm">Pickup Station Fee</label>
+                    <input
+                      name="pickupStationFee"
+                      type="number"
+                      min="0"
+                      value={formData.pickupStationFee}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, pickupStationFee: e.target.value }))}
+                      className="w-full rounded border px-3 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm">Home Delivery Fee</label>
+                    <input
+                      name="homeDeliveryFee"
+                      type="number"
+                      min="0"
+                      value={formData.homeDeliveryFee}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, homeDeliveryFee: e.target.value }))}
+                      className="w-full rounded border px-3 py-2"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500">Set separate fees for pickup station and home delivery for this product.</p>
 
                 <label className="text-sm">Product Images</label>
                 <input

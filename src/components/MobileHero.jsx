@@ -3,13 +3,18 @@ import { Link } from "./Link";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 import { motion } from "framer-motion";
-import { getHeroSlides } from "../service/HeroService";
+import {
+  getHeroSlides,
+  getHeroSlidesSnapshot,
+  preloadHeroSlideMedia,
+} from "../service/HeroService";
 import "swiper/css";
 
 export const MobileHero = () => {
   const swiperRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [slides, setSlides] = useState([]);
+  const [slides, setSlides] = useState(() => getHeroSlidesSnapshot());
+  const firstSlide = slides[0];
 
   useEffect(() => {
     let mounted = true;
@@ -28,6 +33,15 @@ export const MobileHero = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (!slides.length) {
+      return;
+    }
+
+    preloadHeroSlideMedia(slides);
+    setActiveIndex((currentIndex) => (currentIndex >= slides.length ? 0 : currentIndex));
+  }, [slides]);
+
   if (!slides.length) {
     return null;
   }
@@ -36,7 +50,18 @@ export const MobileHero = () => {
     <section className="relative overflow-hidden bg-[linear-gradient(180deg,#f8fafc_0%,#ffffff_36%,#f7fee7_100%)] pt-3 md:pt-5">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top_left,_rgba(22,163,74,0.16),_rgba(255,255,255,0)_58%)]" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="overflow-hidden border border-slate-200 bg-white shadow-[0_24px_60px_rgba(15,23,42,0.08)]">
+        <div className="overflow-hidden border border-slate-200 bg-white shadow-[0_24px_60px_rgba(15,23,42,0.08)] min-h-[420px] md:min-h-[500px]">
+          {firstSlide?.mediaType === "image" && firstSlide?.mediaUrl ? (
+            <img
+              src={firstSlide.mediaUrl}
+              alt=""
+              aria-hidden="true"
+              className="pointer-events-none absolute h-0 w-0 opacity-0"
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
+            />
+          ) : null}
           <Swiper
             modules={[Autoplay]}
             autoplay={{ delay: 4400, disableOnInteraction: false }}
@@ -54,18 +79,18 @@ export const MobileHero = () => {
                   <div className="absolute inset-0 opacity-60">
                     <div className={`absolute -left-10 top-0 h-36 w-36 rounded-full bg-gradient-to-br ${slide.accent} blur-3xl`} />
                     <div className="absolute right-0 top-8 h-32 w-32 rounded-full bg-white/70 blur-2xl" />
-                    <div className="absolute inset-y-0 left-[56%] hidden w-px bg-white/55 lg:block" />
+                    <div className="absolute inset-y-0 left-[56%] hidden w-px bg-white/55 md:block" />
                   </div>
 
-                  <div className="relative grid grid-cols-1 gap-4 min-[0px]:min-h-0 lg:min-h-[430px] lg:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)] lg:gap-0">
-                    <div className="relative z-20 flex min-w-0 flex-col justify-between px-5 pb-0 pt-6 sm:px-7 sm:pt-7 lg:px-8 lg:pb-8 lg:pt-8">
+                  <div className="relative grid grid-cols-1 gap-4 min-[0px]:min-h-0 md:min-h-[430px] md:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)] md:gap-0">
+                    <div className="relative z-20 flex min-w-0 flex-col justify-between px-5 pb-0 pt-6 sm:px-7 sm:pt-7 md:px-8 md:pb-8 md:pt-8">
                       <div>
                         <div className="inline-flex items-center gap-2 bg-slate-950 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-white">
                           <span className={`h-2 w-2 rounded-full bg-gradient-to-r ${slide.accent}`} />
                           {slide.eyebrow}
                         </div>
 
-                        <div className="mt-3 flex items-center justify-between gap-3 lg:hidden">
+                        <div className="mt-3 flex items-center justify-between gap-3 md:hidden">
                           <span className="border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-900 shadow-sm">
                             {slide.badge}
                           </span>
@@ -78,7 +103,7 @@ export const MobileHero = () => {
                           initial={{ opacity: 0, y: 22 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.45, delay: 0.05 }}
-                          className="mt-4 max-w-xl text-[1.7rem] font-black leading-[1.04] tracking-[-0.05em] text-slate-950 sm:text-[2.1rem] lg:text-[3rem]"
+                          className="mt-4 max-w-xl text-[1.7rem] font-black leading-[1.04] tracking-[-0.05em] text-slate-950 sm:text-[2.1rem] md:text-[3rem]"
                         >
                           {slide.title} <span className={`bg-gradient-to-r ${slide.accent} bg-clip-text text-transparent`}>{slide.highlight}</span>
                         </motion.h1>
@@ -110,7 +135,7 @@ export const MobileHero = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.46, delay: 0.22 }}
-                        className="mt-6 flex flex-wrap items-center gap-3 pb-2 lg:pb-0"
+                        className="mt-6 flex flex-wrap items-center gap-3 pb-2 md:pb-0"
                       >
                         <Link href={slide.primaryLink} className={`bg-gradient-to-r ${slide.accent} px-5 py-3 text-sm font-bold text-white shadow-[0_16px_28px_rgba(15,23,42,0.12)] transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]`}>
                           {slide.primaryText}
@@ -121,28 +146,32 @@ export const MobileHero = () => {
                       </motion.div>
                     </div>
 
-                    <div className="relative z-10 flex items-center justify-center overflow-hidden px-4 pb-5 pt-0 sm:px-6 lg:px-8 lg:pb-8 lg:pt-8">
+                    <div className="relative z-10 flex items-center justify-center overflow-hidden px-4 pb-5 pt-0 sm:px-6 md:px-8 md:pb-8 md:pt-8">
                       <motion.div
                         initial={{ opacity: 0, x: 32, scale: 0.94 }}
                         animate={{ opacity: 1, x: 0, scale: 1 }}
                         transition={{ duration: 0.52, delay: 0.16 }}
-                        className="relative flex h-[180px] w-full max-w-[300px] items-center justify-center border border-white/60 bg-white/75 shadow-[0_20px_36px_rgba(15,23,42,0.1)] backdrop-blur-sm sm:h-[220px] sm:max-w-[340px] lg:h-[300px] lg:max-w-[360px]"
+                        className="relative flex h-[180px] w-full max-w-[300px] items-center justify-center border border-white/60 bg-white/75 shadow-[0_20px_36px_rgba(15,23,42,0.1)] backdrop-blur-sm sm:h-[220px] sm:max-w-[340px] md:h-[300px] md:max-w-[360px]"
                       >
                         <div className="absolute inset-0 bg-[linear-gradient(140deg,rgba(255,255,255,0.78),rgba(255,255,255,0.24))]" />
                         {slide.mediaType === "video" ? (
                           <video
                             src={slide.mediaUrl}
+                            poster={slide.posterUrl || undefined}
                             autoPlay
                             muted
                             loop
                             playsInline
-                            preload="metadata"
+                            preload={index === 0 ? "auto" : "metadata"}
                             className="relative z-10 h-full w-full object-contain p-3"
                           />
                         ) : (
                           <img
                             src={slide.mediaUrl}
                             alt={slide.highlight}
+                            loading={index === 0 ? "eager" : "lazy"}
+                            fetchPriority={index === 0 ? "high" : "auto"}
+                            decoding="async"
                             className={`relative z-10 h-full w-full ${slide.imageFit || "object-cover"} p-3`}
                           />
                         )}
@@ -150,7 +179,7 @@ export const MobileHero = () => {
                         <motion.div
                           animate={{ y: [0, -5, 0] }}
                           transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-                          className="absolute left-3 top-3 hidden border border-white/70 bg-white/92 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-900 shadow-lg lg:block"
+                          className="absolute left-3 top-3 hidden border border-white/70 bg-white/92 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-900 shadow-lg md:block"
                         >
                           {slide.badge}
                         </motion.div>
@@ -159,7 +188,7 @@ export const MobileHero = () => {
                           initial={{ opacity: 0, y: 12 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.38, delay: 0.24 }}
-                          className="absolute bottom-3 right-3 hidden border border-slate-200 bg-white/95 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-700 shadow-lg lg:block"
+                          className="absolute bottom-3 right-3 hidden border border-slate-200 bg-white/95 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-700 shadow-lg md:block"
                         >
                           {activeIndex + 1} / {slides.length}
                         </motion.div>

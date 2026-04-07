@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="64" viewBox="0 0 220 64" fill="none">
+  <rect width="220" height="64" rx="14" fill="white"/>
+  <g transform="translate(18 14)">
+    <rect x="0" y="18" width="20" height="6" rx="3" fill="#00C37D"/>
+    <rect x="6" y="9" width="20" height="6" rx="3" fill="#00C37D"/>
+    <rect x="12" y="0" width="20" height="6" rx="3" fill="#00C37D"/>
+    <rect x="12" y="27" width="20" height="6" rx="3" fill="#011B33"/>
+  </g>
+  <text x="62" y="41" fill="#011B33" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">Paystack</text>
+</svg>

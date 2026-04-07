@@ -1,4 +1,8 @@
 const API_BASE = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
+const HERO_SLIDES_CACHE_KEY = "lantaxpress:hero-slides";
+const HERO_SLIDES_CACHE_TTL_MS = 5 * 60 * 1000;
+const heroMediaPreloadSet = new Set();
+let hasHeroWarmupStarted = false;
 
 const DEFAULT_HERO_SLIDES = [
   {
@@ -78,9 +82,109 @@ const normalizeHeroSlide = (slide, index) => ({
   isActive: slide.isActive !== false,
 });
 
+const readHeroSlidesCache = ({ allowStale = false } = {}) => {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const rawValue = window.localStorage.getItem(HERO_SLIDES_CACHE_KEY);
+    if (!rawValue) {
+      return [];
+    }
+
+    const parsedValue = JSON.parse(rawValue);
+    const slides = Array.isArray(parsedValue?.slides)
+      ? parsedValue.slides.map(normalizeHeroSlide).filter((slide) => slide.isActive)
+      : [];
+
+    if (!slides.length) {
+      return [];
+    }
+
+    const isFresh = Date.now() - Number(parsedValue?.savedAt || 0) < HERO_SLIDES_CACHE_TTL_MS;
+    if (!allowStale && !isFresh) {
+      return [];
+    }
+
+    return slides;
+  } catch (error) {
+    return [];
+  }
+};
+
+const writeHeroSlidesCache = (slides) => {
+  if (typeof window === "undefined" || !Array.isArray(slides) || !slides.length) {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(
+      HERO_SLIDES_CACHE_KEY,
+      JSON.stringify({
+        savedAt: Date.now(),
+        slides,
+      }),
+    );
+  } catch (error) {
+    // Ignore cache write failures.
+  }
+};
+
+const preloadImage = (src) => {
+  if (typeof window === "undefined" || !src || heroMediaPreloadSet.has(src)) {
+    return;
+  }
+
+  heroMediaPreloadSet.add(src);
+  const image = new window.Image();
+  image.decoding = "async";
+  image.src = src;
+};
+
+const preloadVideo = (src) => {
+  if (typeof document === "undefined" || !src || heroMediaPreloadSet.has(src)) {
+    return;
+  }
+
+  heroMediaPreloadSet.add(src);
+  const video = document.createElement("video");
+  video.preload = "metadata";
+  video.muted = true;
+  video.src = src;
+};
+
 export const getDefaultHeroSlides = () => DEFAULT_HERO_SLIDES.map(normalizeHeroSlide);
 
+export const getHeroSlidesSnapshot = () => {
+  const cachedSlides = readHeroSlidesCache({ allowStale: true });
+  return cachedSlides.length > 0 ? cachedSlides : getDefaultHeroSlides();
+};
+
+export const preloadHeroSlideMedia = (slides) => {
+  slides.slice(0, 2).forEach((slide) => {
+    if (slide.mediaType === "video") {
+      preloadVideo(slide.mediaUrl);
+      return;
+    }
+
+    preloadImage(slide.mediaUrl);
+  });
+};
+
+export const warmHeroMedia = () => {
+  if (hasHeroWarmupStarted || typeof window === "undefined") {
+    return;
+  }
+
+  hasHeroWarmupStarted = true;
+  const snapshotSlides = getHeroSlidesSnapshot();
+  preloadHeroSlideMedia(snapshotSlides);
+};
+
 export const getHeroSlides = async () => {
+  const cachedSlides = readHeroSlidesCache({ allowStale: true });
+
   try {
     const response = await fetch(`${API_BASE}/user/hero-slides`);
     if (!response.ok) {
@@ -88,9 +192,33 @@ export const getHeroSlides = async () => {
     }
 
     const data = await response.json();
-    const normalized = Array.isArray(data) ? data.map(normalizeHeroSlide) : [];
-    return normalized.length > 0 ? normalized : getDefaultHeroSlides();
+    const normalized = Array.isArray(data)
+      ? data.map(normalizeHeroSlide).filter((slide) => slide.isActive)
+      : [];
+
+    if (normalized.length > 0) {
+      writeHeroSlidesCache(normalized);
+      preloadHeroSlideMedia(normalized);
+      return normalized;
+    }
+
+    if (cachedSlides.length > 0) {
+      return cachedSlides;
+    }
+
+    const defaultSlides = getDefaultHeroSlides();
+    preloadHeroSlideMedia(defaultSlides);
+    return defaultSlides;
   } catch (error) {
-    return getDefaultHeroSlides();
+    if (cachedSlides.length > 0) {
+      preloadHeroSlideMedia(cachedSlides);
+      return cachedSlides;
+    }
+
+    const defaultSlides = getDefaultHeroSlides();
+    preloadHeroSlideMedia(defaultSlides);
+    return defaultSlides;
   }
 };
+
+warmHeroMedia();

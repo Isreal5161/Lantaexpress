@@ -99,6 +99,8 @@ const mapProduct = (p) => {
     isFlashSale: Boolean(p.isFlashSale),
     flashSaleEndsAt: normalizedFlashSaleEndsAt,
     isMostWanted: Boolean(p.isMostWanted),
+    pickupStationFee: Math.max(Number(p.pickupStationFee) || 0, 0),
+    homeDeliveryFee: Math.max(Number(p.homeDeliveryFee) || 0, 0),
   };
 };
 

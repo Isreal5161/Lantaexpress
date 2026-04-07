@@ -20,7 +20,25 @@ export default function SellerPayments() {
   const [error, setError] = useState("");
   const [pageError, setPageError] = useState(null);
   const [processingId, setProcessingId] = useState(null);
-  const [feeSettings, setFeeSettings] = useState({ productChargePercent: 0, withdrawalChargePercent: 0 });
+  const [feeSettings, setFeeSettings] = useState({
+    productChargePercent: 0,
+    withdrawalChargePercent: 0,
+    deliveryMinDays: "",
+    deliveryMaxDays: "",
+    returnWindowDays: "",
+    shippingPolicyTitle: "Shipping Policy",
+    shippingPolicyContent: "",
+    returnPolicyTitle: "Return Policy",
+    returnPolicyContent: "",
+    pickupStationPolicyContent: "",
+    homeDeliveryPolicyContent: "",
+    logisticsRateUnit: "kilometer",
+    logisticsRateValue: 1000,
+    logisticsBaseFee: 0,
+    logisticsMinimumFee: 0,
+    logisticsSupportPhone: "",
+    logisticsSupportEmail: "",
+  });
   const [savingFees, setSavingFees] = useState(false);
   const [feedbackModal, setFeedbackModal] = useState({ open: false, title: "", message: "", tone: "default" });
 
@@ -43,7 +61,25 @@ export default function SellerPayments() {
       const data = await getAdminSellerPayments(token);
       setSellers(data.sellers || []);
       setWithdrawals(data.pendingWithdrawals || []);
-      setFeeSettings(data.feeSettings || { productChargePercent: 0, withdrawalChargePercent: 0 });
+      setFeeSettings(data.feeSettings || {
+        productChargePercent: 0,
+        withdrawalChargePercent: 0,
+        deliveryMinDays: "",
+        deliveryMaxDays: "",
+        returnWindowDays: "",
+        shippingPolicyTitle: "Shipping Policy",
+        shippingPolicyContent: "",
+        returnPolicyTitle: "Return Policy",
+        returnPolicyContent: "",
+        pickupStationPolicyContent: "",
+        homeDeliveryPolicyContent: "",
+        logisticsRateUnit: "kilometer",
+        logisticsRateValue: 1000,
+        logisticsBaseFee: 0,
+        logisticsMinimumFee: 0,
+        logisticsSupportPhone: "",
+        logisticsSupportEmail: "",
+      });
     } catch (error) {
       console.error("Failed to load seller payment data:", error);
       setSellers([]);
@@ -78,7 +114,25 @@ export default function SellerPayments() {
       const refreshed = await getAdminSellerPayments(token);
       setSellers(refreshed.sellers || []);
       setWithdrawals(refreshed.pendingWithdrawals || []);
-      setFeeSettings(refreshed.feeSettings || { productChargePercent: 0, withdrawalChargePercent: 0 });
+      setFeeSettings(refreshed.feeSettings || {
+        productChargePercent: 0,
+        withdrawalChargePercent: 0,
+        deliveryMinDays: "",
+        deliveryMaxDays: "",
+        returnWindowDays: "",
+        shippingPolicyTitle: "Shipping Policy",
+        shippingPolicyContent: "",
+        returnPolicyTitle: "Return Policy",
+        returnPolicyContent: "",
+        pickupStationPolicyContent: "",
+        homeDeliveryPolicyContent: "",
+        logisticsRateUnit: "kilometer",
+        logisticsRateValue: 1000,
+        logisticsBaseFee: 0,
+        logisticsMinimumFee: 0,
+        logisticsSupportPhone: "",
+        logisticsSupportEmail: "",
+      });
     } catch (error) {
       console.error(error);
       openFeedbackModal("Withdrawal Update Failed", error.message || `Failed to ${status.toLowerCase()} withdrawal`, "danger");
@@ -95,12 +149,48 @@ export default function SellerPayments() {
       setSavingFees(true);
       setError("");
       const updated = await updateAdminPlatformFees(feeSettings, token);
-      setFeeSettings(updated.feeSettings || { productChargePercent: 0, withdrawalChargePercent: 0 });
+      setFeeSettings(updated.feeSettings || {
+        productChargePercent: 0,
+        withdrawalChargePercent: 0,
+        deliveryMinDays: "",
+        deliveryMaxDays: "",
+        returnWindowDays: "",
+        shippingPolicyTitle: "Shipping Policy",
+        shippingPolicyContent: "",
+        returnPolicyTitle: "Return Policy",
+        returnPolicyContent: "",
+        pickupStationPolicyContent: "",
+        homeDeliveryPolicyContent: "",
+        logisticsRateUnit: "kilometer",
+        logisticsRateValue: 1000,
+        logisticsBaseFee: 0,
+        logisticsMinimumFee: 0,
+        logisticsSupportPhone: "",
+        logisticsSupportEmail: "",
+      });
       const refreshed = await getAdminSellerPayments(token);
       setSellers(refreshed.sellers || []);
       setWithdrawals(refreshed.pendingWithdrawals || []);
-      setFeeSettings(refreshed.feeSettings || updated.feeSettings || { productChargePercent: 0, withdrawalChargePercent: 0 });
-      openFeedbackModal("Fees Updated", "Platform fee settings updated successfully.");
+      setFeeSettings(refreshed.feeSettings || updated.feeSettings || {
+        productChargePercent: 0,
+        withdrawalChargePercent: 0,
+        deliveryMinDays: "",
+        deliveryMaxDays: "",
+        returnWindowDays: "",
+        shippingPolicyTitle: "Shipping Policy",
+        shippingPolicyContent: "",
+        returnPolicyTitle: "Return Policy",
+        returnPolicyContent: "",
+        pickupStationPolicyContent: "",
+        homeDeliveryPolicyContent: "",
+        logisticsRateUnit: "kilometer",
+        logisticsRateValue: 1000,
+        logisticsBaseFee: 0,
+        logisticsMinimumFee: 0,
+        logisticsSupportPhone: "",
+        logisticsSupportEmail: "",
+      });
+      openFeedbackModal("Settings Updated", "Platform charges and storefront policy settings updated successfully.");
     } catch (error) {
       console.error(error);
       openFeedbackModal("Fee Update Failed", error.message || "Failed to update platform fees", "danger");
@@ -134,10 +224,10 @@ export default function SellerPayments() {
         <div className="mb-4">
           <h2 className="text-xl font-semibold text-slate-900">Platform Fee Settings</h2>
           <p className="mt-1 text-sm text-gray-500">
-            Set the percentage deducted from completed product earnings and the percentage charged on withdrawal requests. Use 0 for free charges.
+            Set seller charges and the storefront shipping and returns content shown on product and checkout pages.
           </p>
         </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:max-w-3xl">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:max-w-4xl xl:grid-cols-3">
           <label className="block text-sm text-gray-700">
             <span className="mb-2 block font-medium">Product earnings charge (%)</span>
             <input
@@ -162,6 +252,160 @@ export default function SellerPayments() {
               className="w-full rounded-lg border px-3 py-2"
             />
           </label>
+          <label className="block text-sm text-gray-700">
+            <span className="mb-2 block font-medium">Delivery start (days)</span>
+            <input
+              type="number"
+              min="1"
+              max="30"
+              step="1"
+              value={feeSettings.deliveryMinDays}
+              onChange={(e) => setFeeSettings((current) => ({ ...current, deliveryMinDays: e.target.value }))}
+              className="w-full rounded-lg border px-3 py-2"
+            />
+          </label>
+          <label className="block text-sm text-gray-700">
+            <span className="mb-2 block font-medium">Delivery end (days)</span>
+            <input
+              type="number"
+              min="1"
+              max="30"
+              step="1"
+              value={feeSettings.deliveryMaxDays}
+              onChange={(e) => setFeeSettings((current) => ({ ...current, deliveryMaxDays: e.target.value }))}
+              className="w-full rounded-lg border px-3 py-2"
+            />
+          </label>
+          <label className="block text-sm text-gray-700">
+            <span className="mb-2 block font-medium">Return window (days)</span>
+            <input
+              type="number"
+              min="0"
+              max="60"
+              step="1"
+              value={feeSettings.returnWindowDays}
+              onChange={(e) => setFeeSettings((current) => ({ ...current, returnWindowDays: e.target.value }))}
+              className="w-full rounded-lg border px-3 py-2"
+            />
+          </label>
+          <label className="block text-sm text-gray-700">
+            <span className="mb-2 block font-medium">Logistics rate unit</span>
+            <select
+              value={feeSettings.logisticsRateUnit}
+              onChange={(e) => setFeeSettings((current) => ({ ...current, logisticsRateUnit: e.target.value }))}
+              className="w-full rounded-lg border px-3 py-2"
+            >
+              <option value="kilometer">Per kilometer</option>
+              <option value="meter">Per meter</option>
+            </select>
+          </label>
+          <label className="block text-sm text-gray-700">
+            <span className="mb-2 block font-medium">Logistics rate value (NGN)</span>
+            <input
+              type="number"
+              min="0"
+              step="1"
+              value={feeSettings.logisticsRateValue}
+              onChange={(e) => setFeeSettings((current) => ({ ...current, logisticsRateValue: e.target.value }))}
+              className="w-full rounded-lg border px-3 py-2"
+            />
+          </label>
+          <label className="block text-sm text-gray-700">
+            <span className="mb-2 block font-medium">Logistics base fee (NGN)</span>
+            <input
+              type="number"
+              min="0"
+              step="1"
+              value={feeSettings.logisticsBaseFee}
+              onChange={(e) => setFeeSettings((current) => ({ ...current, logisticsBaseFee: e.target.value }))}
+              className="w-full rounded-lg border px-3 py-2"
+            />
+          </label>
+          <label className="block text-sm text-gray-700">
+            <span className="mb-2 block font-medium">Minimum logistics fee (NGN)</span>
+            <input
+              type="number"
+              min="0"
+              step="1"
+              value={feeSettings.logisticsMinimumFee}
+              onChange={(e) => setFeeSettings((current) => ({ ...current, logisticsMinimumFee: e.target.value }))}
+              className="w-full rounded-lg border px-3 py-2"
+            />
+          </label>
+        </div>
+        <div className="mt-5 grid grid-cols-1 gap-4 xl:max-w-5xl xl:grid-cols-2">
+          <label className="block text-sm text-gray-700">
+            <span className="mb-2 block font-medium">Shipping Policy Title</span>
+            <input
+              type="text"
+              value={feeSettings.shippingPolicyTitle}
+              onChange={(e) => setFeeSettings((current) => ({ ...current, shippingPolicyTitle: e.target.value }))}
+              className="w-full rounded-lg border px-3 py-2"
+            />
+          </label>
+          <label className="block text-sm text-gray-700">
+            <span className="mb-2 block font-medium">Return Policy Title</span>
+            <input
+              type="text"
+              value={feeSettings.returnPolicyTitle}
+              onChange={(e) => setFeeSettings((current) => ({ ...current, returnPolicyTitle: e.target.value }))}
+              className="w-full rounded-lg border px-3 py-2"
+            />
+          </label>
+          <label className="block text-sm text-gray-700 xl:col-span-2">
+            <span className="mb-2 block font-medium">Shipping Policy Content</span>
+            <textarea
+              rows="4"
+              value={feeSettings.shippingPolicyContent}
+              onChange={(e) => setFeeSettings((current) => ({ ...current, shippingPolicyContent: e.target.value }))}
+              className="w-full rounded-lg border px-3 py-2"
+            />
+          </label>
+          <label className="block text-sm text-gray-700 xl:col-span-2">
+            <span className="mb-2 block font-medium">Return Policy Content</span>
+            <textarea
+              rows="4"
+              value={feeSettings.returnPolicyContent}
+              onChange={(e) => setFeeSettings((current) => ({ ...current, returnPolicyContent: e.target.value }))}
+              className="w-full rounded-lg border px-3 py-2"
+            />
+          </label>
+          <label className="block text-sm text-gray-700">
+            <span className="mb-2 block font-medium">Pickup Station Details Text</span>
+            <textarea
+              rows="4"
+              value={feeSettings.pickupStationPolicyContent}
+              onChange={(e) => setFeeSettings((current) => ({ ...current, pickupStationPolicyContent: e.target.value }))}
+              className="w-full rounded-lg border px-3 py-2"
+            />
+          </label>
+          <label className="block text-sm text-gray-700">
+            <span className="mb-2 block font-medium">Home Delivery Details Text</span>
+            <textarea
+              rows="4"
+              value={feeSettings.homeDeliveryPolicyContent}
+              onChange={(e) => setFeeSettings((current) => ({ ...current, homeDeliveryPolicyContent: e.target.value }))}
+              className="w-full rounded-lg border px-3 py-2"
+            />
+          </label>
+          <label className="block text-sm text-gray-700">
+            <span className="mb-2 block font-medium">Logistics support phone</span>
+            <input
+              type="text"
+              value={feeSettings.logisticsSupportPhone}
+              onChange={(e) => setFeeSettings((current) => ({ ...current, logisticsSupportPhone: e.target.value }))}
+              className="w-full rounded-lg border px-3 py-2"
+            />
+          </label>
+          <label className="block text-sm text-gray-700">
+            <span className="mb-2 block font-medium">Logistics support email</span>
+            <input
+              type="email"
+              value={feeSettings.logisticsSupportEmail}
+              onChange={(e) => setFeeSettings((current) => ({ ...current, logisticsSupportEmail: e.target.value }))}
+              className="w-full rounded-lg border px-3 py-2"
+            />
+          </label>
         </div>
         <div className="mt-4 flex items-center gap-3">
           <button
@@ -173,7 +417,7 @@ export default function SellerPayments() {
             {savingFees ? "Saving..." : "Save Fee Settings"}
           </button>
           <p className="text-sm text-gray-500">
-            {Number(feeSettings.productChargePercent) > 0 ? `${feeSettings.productChargePercent}% product charge` : "Free product charge"} and {Number(feeSettings.withdrawalChargePercent) > 0 ? `${feeSettings.withdrawalChargePercent}% withdrawal charge` : "free withdrawal charge"}.
+            {Number(feeSettings.productChargePercent) > 0 ? `${feeSettings.productChargePercent}% product charge` : "Free product charge"} and {Number(feeSettings.withdrawalChargePercent) > 0 ? `${feeSettings.withdrawalChargePercent}% withdrawal charge` : "free withdrawal charge"}. Product delivery fees are now controlled per product by sellers.
           </p>
         </div>
       </section>
