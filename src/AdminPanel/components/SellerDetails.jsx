@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import AdminLayout from "../Layout/AdminLayout";
 import { getSellerApprovalLabel } from "../../utils/sellerApproval";
 import { getAdminSellerPayments } from "../../api/sellerFinance";
+import { ProductGridSkeleton, SellerProfileSkeleton } from "../../components/LoadingSkeletons";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
 
@@ -142,7 +143,10 @@ export default function SellerDetails() {
   if (loading) {
     return (
       <AdminLayout>
-        <p className="p-6 text-gray-500">Loading seller details...</p>
+        <div className="space-y-6 p-6">
+          <SellerProfileSkeleton />
+          <ProductGridSkeleton count={4} imageClassName="h-32" cardClassName="rounded-xl bg-gray-50" />
+        </div>
       </AdminLayout>
     );
   }

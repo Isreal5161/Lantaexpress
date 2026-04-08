@@ -1,6 +1,7 @@
 // src/AdminPanel/components/SellerRequests.jsx
 import React, { useState, useEffect } from "react";
 import AdminLayout from "../Layout/AdminLayout";
+import { TablePanelSkeleton } from "../../components/LoadingSkeletons";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
 
@@ -81,7 +82,7 @@ export default function SellerRequests() {
       )}
 
       {loading ? (
-        <p className="text-gray-500 text-center mt-10 text-lg">Loading seller requests...</p>
+        <TablePanelSkeleton columns={8} rows={5} mobileCards={4} />
       ) : requests.length === 0 ? (
         <p className="text-gray-500 text-center mt-10 text-lg">
           No new seller requests at this moment

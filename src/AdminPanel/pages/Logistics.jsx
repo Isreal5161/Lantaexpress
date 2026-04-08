@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../Layout/AdminLayout";
 import { getAdminLogisticsRequests, updateAdminLogisticsStatus } from "../../api/logistics";
+import { TablePanelSkeleton } from "../../components/LoadingSkeletons";
 
 const shipmentStages = [
   "Approved",
@@ -66,7 +67,7 @@ export default function Logistics() {
           Logistics Management
         </h1>
 
-        {loading ? <div className="rounded bg-gray-100 p-4">Loading logistics shipments...</div> : null}
+        {loading ? <TablePanelSkeleton columns={7} rows={5} mobileCards={4} /> : null}
 
         {/* ---------------- MOBILE CARDS ---------------- */}
         <div className="lg:hidden space-y-4">

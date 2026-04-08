@@ -398,6 +398,178 @@ export const ProductPageSkeleton = () => (
   </div>
 );
 
+export const AdminMediaManagerSkeleton = ({ sectionCount = 3, cardCount = 2 }) => (
+  <div className="space-y-6">
+    {Array.from({ length: sectionCount }).map((_, sectionIndex) => (
+      <section
+        key={`admin-media-skeleton-${sectionIndex}`}
+        className="rounded-2xl border bg-white p-5 shadow-sm"
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-3">
+            <SkeletonBlock className="h-6 w-40 rounded-full" />
+            <SkeletonBlock className="h-4 w-64 max-w-full rounded-full" />
+          </div>
+          <SkeletonBlock className="h-7 w-20 rounded-full" />
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4">
+          <div className="space-y-3">
+            <SkeletonBlock className="h-4 w-28 rounded-full" />
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <SkeletonBlock className="h-11 rounded-xl" />
+              <SkeletonBlock className="h-11 rounded-xl" />
+              <SkeletonBlock className="h-11 rounded-xl" />
+              <SkeletonBlock className="h-11 rounded-xl" />
+              <SkeletonBlock className="h-11 rounded-xl md:col-span-2" />
+            </div>
+            <div className="flex flex-wrap gap-2 pt-1">
+              <SkeletonBlock className="h-10 w-28 rounded-xl" />
+              <SkeletonBlock className="h-10 w-24 rounded-xl" />
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-4 xl:grid-cols-2">
+          {Array.from({ length: cardCount }).map((_, cardIndex) => (
+            <article
+              key={`admin-media-card-${sectionIndex}-${cardIndex}`}
+              className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50"
+            >
+              <SkeletonBlock className="h-48 w-full rounded-none" />
+              <div className="space-y-3 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-2">
+                    <SkeletonBlock className="h-5 w-40 rounded-full" />
+                    <SkeletonBlock className="h-3 w-32 rounded-full" />
+                  </div>
+                  <div className="space-y-2">
+                    <SkeletonBlock className="h-6 w-16 rounded-full" />
+                    <SkeletonBlock className="h-6 w-12 rounded-full" />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <SkeletonBlock className="h-3 w-20 rounded-full" />
+                  <SkeletonBlock className="h-3 w-16 rounded-full" />
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <SkeletonBlock className="h-10 w-20 rounded-xl" />
+                  <SkeletonBlock className="h-10 w-16 rounded-xl" />
+                  <SkeletonBlock className="h-10 w-20 rounded-xl" />
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    ))}
+  </div>
+);
+
+export const AppBootSkeleton = ({ pathname = "/" }) => {
+  const normalizedPath = String(pathname || "/").toLowerCase();
+
+  if (normalizedPath === "/") {
+    return <IndexPageSkeleton />;
+  }
+
+  if (
+    normalizedPath.startsWith("/shop") ||
+    normalizedPath.startsWith("/hot-sales") ||
+    normalizedPath.startsWith("/flash-sales")
+  ) {
+    return <ShopPageSkeleton />;
+  }
+
+  if (normalizedPath.startsWith("/product/")) {
+    return <ProductPageSkeleton />;
+  }
+
+  if (normalizedPath.startsWith("/adminpanel/promotions") || normalizedPath.startsWith("/adminpanel/hero-slides")) {
+    return (
+      <div className="px-4 py-6 sm:px-6 lg:px-8">
+        <AdminMediaManagerSkeleton sectionCount={3} cardCount={2} />
+      </div>
+    );
+  }
+
+  if (normalizedPath.startsWith("/adminpanel/users/tracking") || normalizedPath.startsWith("/adminpanel/sellers/orders")) {
+    return (
+      <div className="px-4 py-6 sm:px-6 lg:px-8">
+        <OrderWorkspaceSkeleton />
+      </div>
+    );
+  }
+
+  if (
+    normalizedPath.startsWith("/adminpanel/users") ||
+    normalizedPath.startsWith("/adminpanel/sellers") ||
+    normalizedPath.startsWith("/adminpanel/logistics")
+  ) {
+    return (
+      <div className="px-4 py-6 sm:px-6 lg:px-8">
+        <TablePanelSkeleton columns={6} rows={5} mobileCards={4} />
+      </div>
+    );
+  }
+
+  if (normalizedPath.startsWith("/adminpanel/products") || normalizedPath.startsWith("/seller-dashboard/products")) {
+    return (
+      <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+        <SkeletonBlock className="h-8 w-56 rounded-full" />
+        <ProductGridSkeleton count={6} imageClassName="h-48" />
+      </div>
+    );
+  }
+
+  if (
+    normalizedPath.startsWith("/adminpanel/dashboard") ||
+    normalizedPath === "/seller-dashboard" ||
+    normalizedPath.startsWith("/seller-dashboard/income") ||
+    normalizedPath.startsWith("/seller-dashboard/withdraw")
+  ) {
+    return (
+      <div className="px-4 py-6 sm:px-6 lg:px-8">
+        <DashboardOverviewSkeleton />
+      </div>
+    );
+  }
+
+  if (normalizedPath.startsWith("/seller-dashboard/orders")) {
+    return (
+      <div className="px-4 py-6 sm:px-6 lg:px-8">
+        <OrderWorkspaceSkeleton />
+      </div>
+    );
+  }
+
+  if (normalizedPath.startsWith("/seller-dashboard/profile") || normalizedPath.startsWith("/account")) {
+    return (
+      <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+        <SellerProfileSkeleton />
+        <ProductGridSkeleton count={4} imageClassName="h-32" cardClassName="rounded-xl bg-gray-50" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="space-y-3">
+        <SkeletonBlock className="h-8 w-56 rounded-full" />
+        <SkeletonBlock className="h-4 w-80 max-w-full rounded-full" />
+      </div>
+      <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+        <div className="space-y-4">
+          <SkeletonBlock className="h-5 w-40 rounded-full" />
+          <SkeletonBlock className="h-4 w-full rounded-full" />
+          <SkeletonBlock className="h-4 w-5/6 rounded-full" />
+          <SkeletonBlock className="h-40 w-full rounded-[2rem]" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const PageLoadErrorState = ({ error, onRefresh, actionLabel = "Try again" }) => {
   const isOffline = typeof navigator !== "undefined" && navigator.onLine === false;
   const isNetworkError = isOffline || Boolean(error?.isNetworkError);

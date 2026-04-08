@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import AdminLayout from "../Layout/AdminLayout";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import { getAdminLogisticsRequests, updateAdminLogisticsStatus } from "../../api/logistics";
+import { TablePanelSkeleton } from "../../components/LoadingSkeletons";
 
 export default function LogisticsRequest() {
   const [requests, setRequests] = useState([]);
@@ -64,7 +65,7 @@ export default function LogisticsRequest() {
     <AdminLayout>
       <h1 className="mb-6 text-2xl font-bold text-slate-800">Logistics Requests</h1>
 
-      {loading ? <div className="rounded bg-gray-100 p-4">Loading logistics requests...</div> : null}
+      {loading ? <TablePanelSkeleton columns={5} rows={4} mobileCards={4} /> : null}
       {!loading && requests.length === 0 ? <div className="rounded bg-gray-100 p-4">No new logistics requests at the moment.</div> : null}
 
       <div className="space-y-4">

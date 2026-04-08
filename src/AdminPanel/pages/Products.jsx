@@ -3,6 +3,7 @@ import AdminLayout from "../Layout/AdminLayout";
 import { createCategory, deleteCategory, getCategories } from "../../service/CategoryService";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import Modal from "../../components/Modal";
+import { ProductGridSkeleton, SkeletonBlock } from "../../components/LoadingSkeletons";
 
 export default function AdminProductsPage() {
   const [allProducts, setAllProducts] = useState([]);
@@ -16,6 +17,7 @@ export default function AdminProductsPage() {
   const [newCategoryTitle, setNewCategoryTitle] = useState("");
   const [creatingCategory, setCreatingCategory] = useState(false);
   const [deletingCategoryId, setDeletingCategoryId] = useState("");
+  const [loading, setLoading] = useState(true);
   const [confirmModal, setConfirmModal] = useState({ open: false, title: "", message: "", onConfirm: null, tone: "default", confirmLabel: "OK" });
   const [feedbackModal, setFeedbackModal] = useState({ open: false, title: "", message: "", tone: "default" });
 
@@ -122,10 +124,22 @@ export default function AdminProductsPage() {
   };
 
   useEffect(() => {
-    loadProducts();
-    loadCategories();
+    let isMounted = true;
+
+    const initializePage = async () => {
+      setLoading(true);
+      await Promise.all([loadProducts(), loadCategories()]);
+      if (isMounted) {
+        setLoading(false);
+      }
+    };
+
+    initializePage();
     const interval = setInterval(loadProducts, 7000);
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   const handleCreateCategory = async (e) => {
@@ -217,6 +231,45 @@ export default function AdminProductsPage() {
     filteredCategory === "All"
       ? allProducts
       : allProducts.filter(prod => prod.category === filteredCategory);
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <SkeletonBlock className="h-8 w-64 rounded-full" />
+            <SkeletonBlock className="h-4 w-80 max-w-full rounded-full" />
+          </div>
+
+          <div className="rounded-xl border bg-white p-4 shadow-sm">
+            <div className="space-y-3">
+              <SkeletonBlock className="h-6 w-48 rounded-full" />
+              <SkeletonBlock className="h-4 w-80 max-w-full rounded-full" />
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <SkeletonBlock className="h-10 flex-1 rounded-xl" />
+                <SkeletonBlock className="h-10 w-36 rounded-xl" />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <SkeletonBlock key={`category-skeleton-${index}`} className="h-9 w-28 rounded-full" />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <SkeletonBlock className="h-6 w-52 rounded-full" />
+            <ProductGridSkeleton count={3} imageClassName="h-48" cardClassName="border-yellow-200 bg-yellow-50" />
+          </div>
+
+          <div className="space-y-3">
+            <SkeletonBlock className="h-6 w-36 rounded-full" />
+            <ProductGridSkeleton count={6} imageClassName="h-48" />
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>

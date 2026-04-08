@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import AdminLayout from "../Layout/AdminLayout";
 import { getAdminOrders, updateAdminOrderStatus } from "../../api/orders";
 import ConfirmationModal from "../../components/ConfirmationModal";
+import { OrderWorkspaceSkeleton } from "../../components/LoadingSkeletons";
 
 const orderStages = [
   "Pending",
@@ -18,6 +19,7 @@ export default function UserTracking() {
 
   const [activeOrders, setActiveOrders] = useState([]);
   const [historyOrders, setHistoryOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
   const previousOrderCount = useRef(0);
   const [feedbackModal, setFeedbackModal] = useState({ open: false, title: "", message: "", tone: "default" });
 
@@ -50,34 +52,44 @@ export default function UserTracking() {
     return 0;
   };
 
-  const loadOrders = async () => {
+  const loadOrders = async (showLoader = false) => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    const savedOrders = await getAdminOrders(token);
-
-    const sorted = savedOrders.sort(
-      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-    );
-
-    const active = sorted.filter((o) => !o.received);
-    const history = sorted.filter((o) => o.received);
-
-    setActiveOrders(active);
-    setHistoryOrders(history);
-
-    if (
-      previousOrderCount.current &&
-      savedOrders.length > previousOrderCount.current
-    ) {
-      openFeedbackModal("New Order Received", "A new order has been received.");
+    if (showLoader) {
+      setLoading(true);
     }
 
-    previousOrderCount.current = savedOrders.length;
+    try {
+      const savedOrders = await getAdminOrders(token);
+
+      const sorted = savedOrders.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+
+      const active = sorted.filter((o) => !o.received);
+      const history = sorted.filter((o) => o.received);
+
+      setActiveOrders(active);
+      setHistoryOrders(history);
+
+      if (
+        previousOrderCount.current &&
+        savedOrders.length > previousOrderCount.current
+      ) {
+        openFeedbackModal("New Order Received", "A new order has been received.");
+      }
+
+      previousOrderCount.current = savedOrders.length;
+    } finally {
+      if (showLoader) {
+        setLoading(false);
+      }
+    }
   };
 
   useEffect(() => {
-    loadOrders().catch((error) => console.error(error));
+    loadOrders(true).catch((error) => console.error(error));
 
     const interval = setInterval(() => {
       loadOrders().catch((error) => console.error(error));
@@ -117,6 +129,17 @@ export default function UserTracking() {
 
     return "bg-yellow-100 text-yellow-700";
   };
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="space-y-6">
+          <h1 className="text-2xl font-bold mb-6">Order Tracking Management</h1>
+          <OrderWorkspaceSkeleton />
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
 

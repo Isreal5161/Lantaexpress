@@ -14,12 +14,16 @@ import StatCard from "../components/StatCard";
 import { getAdminOrders } from "../../api/orders";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import Modal from "../../components/Modal";
+import { OrderWorkspaceSkeleton } from "../../components/LoadingSkeletons";
+
+const FALLBACK_ORDER_IMAGE = "/placeholder.png";
 
 export default function SellerOrdersAdmin() {
   const navigate = useNavigate();
   const [brands, setBrands] = useState([]);
   const [search, setSearch] = useState("");
   const [productPopup, setProductPopup] = useState(null);
+  const [loading, setLoading] = useState(true);
   const previousOrderCount = useRef(0);
   const [feedbackModal, setFeedbackModal] = useState({ open: false, title: "", message: "", tone: "default" });
 
@@ -32,37 +36,47 @@ export default function SellerOrdersAdmin() {
     return new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN" }).format(value);
   };
 
-  const loadBrandOrders = async () => {
+  const loadBrandOrders = async (showLoader = false) => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    const allOrders = await getAdminOrders(token);
-
-    const brandMap = allOrders.reduce((acc, order) => {
-      if (!acc[order.brand]) acc[order.brand] = [];
-      acc[order.brand].push(order);
-      return acc;
-    }, {});
-
-    const brandStats = Object.entries(brandMap).map(([brand, orders], idx) => {
-      const totalOrders = orders.length;
-      const pending = orders.filter(o => o.status === "Pending").length;
-      const shipped = orders.filter(o => ["Shipped","In Transit","Out for Delivery"].includes(o.status)).length;
-      const delivered = orders.filter(o => ["Delivered","Completed"].includes(o.status)).length;
-
-      return { id: `BR${idx + 1}`, brand, totalOrders, pending, shipped, delivered, orders };
-    });
-
-    setBrands(brandStats);
-
-    if (previousOrderCount.current && allOrders.length > previousOrderCount.current) {
-      openFeedbackModal("New Order Received", "A new order has been received.");
+    if (showLoader) {
+      setLoading(true);
     }
-    previousOrderCount.current = allOrders.length;
+
+    try {
+      const allOrders = await getAdminOrders(token);
+
+      const brandMap = allOrders.reduce((acc, order) => {
+        if (!acc[order.brand]) acc[order.brand] = [];
+        acc[order.brand].push(order);
+        return acc;
+      }, {});
+
+      const brandStats = Object.entries(brandMap).map(([brand, orders], idx) => {
+        const totalOrders = orders.length;
+        const pending = orders.filter(o => o.status === "Pending").length;
+        const shipped = orders.filter(o => ["Shipped","In Transit","Out for Delivery"].includes(o.status)).length;
+        const delivered = orders.filter(o => ["Delivered","Completed"].includes(o.status)).length;
+
+        return { id: `BR${idx + 1}`, brand, totalOrders, pending, shipped, delivered, orders };
+      });
+
+      setBrands(brandStats);
+
+      if (previousOrderCount.current && allOrders.length > previousOrderCount.current) {
+        openFeedbackModal("New Order Received", "A new order has been received.");
+      }
+      previousOrderCount.current = allOrders.length;
+    } finally {
+      if (showLoader) {
+        setLoading(false);
+      }
+    }
   };
 
   useEffect(() => {
-    loadBrandOrders().catch((error) => console.error(error));
+    loadBrandOrders(true).catch((error) => console.error(error));
     const interval = setInterval(() => {
       loadBrandOrders().catch((error) => console.error(error));
     }, 5000);
@@ -70,12 +84,29 @@ export default function SellerOrdersAdmin() {
   }, []);
 
   const filteredBrands = brands.filter(
-    b => b.brand.toLowerCase().includes(search.toLowerCase()) || b.id.toLowerCase().includes(search.toLowerCase())
+    b => String(b.brand || "").toLowerCase().includes(search.toLowerCase()) || b.id.toLowerCase().includes(search.toLowerCase())
   );
+
+  const productPopupImage = productPopup?.image || FALLBACK_ORDER_IMAGE;
+  const productPopupName = productPopup?.productName || productPopup?.product || "Product";
 
   const handleUpdateStatus = (orderId) => {
     navigate("/AdminPanel/users/tracking");
   };
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">Seller Order Monitoring</h1>
+            <p className="text-sm text-slate-500">Monitor and manage orders for each brand on the marketplace.</p>
+          </div>
+          <OrderWorkspaceSkeleton />
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -166,6 +197,7 @@ export default function SellerOrdersAdmin() {
 
         {/* Product Popup */}
         <Modal isOpen={Boolean(productPopup)} onClose={() => setProductPopup(null)} panelClassName="max-w-md">
+          {productPopup ? (
             <div className="bg-white rounded-[24px] p-6 w-full relative">
               <button
                 className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 font-bold"
@@ -174,15 +206,19 @@ export default function SellerOrdersAdmin() {
                 ✕
               </button>
               <img
-                src={productPopup.image}
-                alt={productPopup.productName || productPopup.product}
+                src={productPopupImage}
+                alt={productPopupName}
                 className="w-full h-48 object-cover rounded mb-4"
+                onError={(event) => {
+                  event.currentTarget.src = FALLBACK_ORDER_IMAGE;
+                }}
               />
-              <h3 className="font-semibold text-lg">{productPopup.productName || productPopup.product}</h3>
+              <h3 className="font-semibold text-lg">{productPopupName}</h3>
               <p className="text-gray-500 mt-1">Brand: {productPopup.brand}</p>
               <p className="text-gray-500 mt-1">Price: {formatPrice(productPopup.amount || productPopup.price)}</p>
               <p className="text-gray-500 mt-1">Quantity: {productPopup.quantity}</p>
             </div>
+          ) : null}
         </Modal>
         <ConfirmationModal
           isOpen={feedbackModal.open}

@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { getAdminOrders, updateAdminOrderStatus } from "../../api/orders";
 import ConfirmationModal from "../../components/ConfirmationModal";
+import { OrderWorkspaceSkeleton } from "../../components/LoadingSkeletons";
 
 const orderStages = [
   "Pending",
@@ -17,6 +18,7 @@ const orderStages = [
 export default function AdminSellerOrders() {
   const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
   const previousOrderCount = useRef(0);
   const [feedbackModal, setFeedbackModal] = useState({ open: false, title: "", message: "", tone: "default" });
 
@@ -24,22 +26,31 @@ export default function AdminSellerOrders() {
     setFeedbackModal({ open: true, title, message, tone });
   };
 
-  const loadOrders = async () => {
+  const loadOrders = async (showLoader = false) => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    const allOrders = await getAdminOrders(token);
-    setOrders(allOrders);
-
-    // Notify if new order arrived
-    if (previousOrderCount.current && allOrders.length > previousOrderCount.current) {
-      openFeedbackModal("New Order Received", "A new order has been received.");
+    if (showLoader) {
+      setLoading(true);
     }
-    previousOrderCount.current = allOrders.length;
+
+    try {
+      const allOrders = await getAdminOrders(token);
+      setOrders(allOrders);
+
+      if (previousOrderCount.current && allOrders.length > previousOrderCount.current) {
+        openFeedbackModal("New Order Received", "A new order has been received.");
+      }
+      previousOrderCount.current = allOrders.length;
+    } finally {
+      if (showLoader) {
+        setLoading(false);
+      }
+    }
   };
 
   useEffect(() => {
-    loadOrders().catch((error) => console.error(error));
+    loadOrders(true).catch((error) => console.error(error));
 
     const interval = setInterval(() => {
       loadOrders().catch((error) => console.error(error));
@@ -71,6 +82,15 @@ export default function AdminSellerOrders() {
       o.id.toLowerCase().includes(search.toLowerCase()) ||
       o.userName?.toLowerCase().includes(search.toLowerCase())
   );
+
+  if (loading) {
+    return (
+      <div className="px-4 py-6">
+        <h1 className="text-2xl font-bold mb-6">Admin Seller Orders Dashboard</h1>
+        <OrderWorkspaceSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div className="px-4 py-6">

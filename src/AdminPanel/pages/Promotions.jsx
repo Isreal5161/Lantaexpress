@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import AdminLayout from "../Layout/AdminLayout";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import { getDefaultPromotionFlyers } from "../../service/PromotionService";
+import { AdminMediaManagerSkeleton } from "../../components/LoadingSkeletons";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "https://lantaxpressbackend.onrender.com/api";
 
@@ -299,7 +300,7 @@ export default function PromotionsPage() {
         </div>
 
         {loading ? (
-          <div className="rounded-2xl border bg-white p-5 text-sm text-slate-500 shadow-sm">Loading flyers...</div>
+          <AdminMediaManagerSkeleton sectionCount={3} cardCount={2} />
         ) : (
           groupedFlyers.map((group) => {
             const createForm = createForms[group.value];

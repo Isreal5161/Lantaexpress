@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import ScrollToTop from "./components/ScrollToTop";
 import "./styles/globals.css";
 import { SplashScreen } from "./SplashScreen";
+import { AppBootSkeleton } from "./components/LoadingSkeletons";
 
 // Public Pages
 import { IndexPage } from "./pages/IndexPage";
@@ -80,8 +81,19 @@ const AdminRoute = ({ children }) => {
   return children;
 };
 
+const SPLASH_SESSION_KEY = "lantaxpress:splash-seen";
+
+const shouldShowSplashOnLoad = () => {
+  if (typeof window === "undefined") {
+    return true;
+  }
+
+  return window.sessionStorage.getItem(SPLASH_SESSION_KEY) !== "true";
+};
+
 const App = () => {
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(shouldShowSplashOnLoad);
+  const [showInitialRouteSkeleton, setShowInitialRouteSkeleton] = useState(() => !shouldShowSplashOnLoad());
 
   const getIsLoggedIn = () => {
     const token = localStorage.getItem("authToken");
@@ -91,12 +103,31 @@ const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(getIsLoggedIn());
 
   useEffect(() => {
+    if (!showSplash) {
+      return undefined;
+    }
+
     const timer = setTimeout(() => {
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem(SPLASH_SESSION_KEY, "true");
+      }
       setShowSplash(false);
     }, 3200);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [showSplash]);
+
+  useEffect(() => {
+    if (showSplash || !showInitialRouteSkeleton) {
+      return undefined;
+    }
+
+    const timer = setTimeout(() => {
+      setShowInitialRouteSkeleton(false);
+    }, 180);
+
+    return () => clearTimeout(timer);
+  }, [showInitialRouteSkeleton, showSplash]);
 
   const handleLoginStateChange = (loggedIn, userData) => {
     setIsLoggedIn(loggedIn);
@@ -120,6 +151,8 @@ const App = () => {
     <SellerAuthProvider>
       {showSplash ? (
         <SplashScreen />
+      ) : showInitialRouteSkeleton ? (
+        <AppBootSkeleton pathname={typeof window !== "undefined" ? window.location.pathname : "/"} />
       ) : (
         <Router
           future={{
