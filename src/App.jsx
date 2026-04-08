@@ -81,7 +81,7 @@ const AdminRoute = ({ children }) => {
 };
 
 const App = () => {
-  const [showSplash, setShowSplash] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
 
   const getIsLoggedIn = () => {
     const token = localStorage.getItem("authToken");
@@ -91,15 +91,11 @@ const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(getIsLoggedIn());
 
   useEffect(() => {
-    const hasVisited = localStorage.getItem("hasVisited");
-    if (!hasVisited) {
-      setShowSplash(true);
-      const timer = setTimeout(() => {
-        setShowSplash(false);
-        localStorage.setItem("hasVisited", "true");
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2500);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const handleLoginStateChange = (loggedIn, userData) => {
