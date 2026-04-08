@@ -60,27 +60,27 @@
 @keyframes splash-glow {
   0%,
   100% {
-    transform: scale(0.96);
-    opacity: 0.42;
+    transform: scale(0.94);
+    opacity: 0.46;
   }
   50% {
-    transform: scale(1.03);
-    opacity: 0.7;
+    transform: scale(1.05);
+    opacity: 0.82;
   }
 }
 
-@keyframes splash-dot-bounce {
+@keyframes splash-loader-breathe {
   0% {
-    transform: translateY(0) scale(0.85);
-    opacity: 0.45;
+    transform: scale(0.94);
+    opacity: 0.78;
   }
   50% {
-    transform: translateY(-0.28rem) scale(1.05);
+    transform: scale(1.04);
     opacity: 1;
   }
   100% {
-    transform: translateY(0) scale(0.85);
-    opacity: 0.45;
+    transform: scale(0.94);
+    opacity: 0.78;
   }
 }
 
@@ -94,8 +94,9 @@
   overflow: hidden;
   isolation: isolate;
   background:
-    radial-gradient(circle at 50% 42%, rgba(62, 255, 194, 0.26), rgba(62, 255, 194, 0) 28%),
-    linear-gradient(180deg, #0e8d55 0%, #12a154 48%, #0a7c47 100%);
+    radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.16), transparent 26%),
+    radial-gradient(circle at 78% 28%, rgba(84, 255, 196, 0.2), transparent 24%),
+    linear-gradient(145deg, #0f8a61 0%, #1dc997 45%, #0a7b56 100%);
 }
 
 .splash-screen__mesh,
@@ -107,93 +108,140 @@
 
 .splash-screen__mesh {
   background:
-    radial-gradient(circle at center, rgba(255, 255, 255, 0.065) 0, rgba(255, 255, 255, 0.065) 0.18rem, transparent 0.2rem) 0 0 / 1.4rem 1.4rem,
-    radial-gradient(circle at center, rgba(0, 67, 39, 0.16) 0, rgba(0, 67, 39, 0.16) 0.22rem, transparent 0.24rem) 0.7rem 0.7rem / 1.4rem 1.4rem;
-  opacity: 0.3;
-  mask-image: radial-gradient(circle at center, black 26%, transparent 88%);
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.05) 0, rgba(255, 255, 255, 0.05) 0.18rem, transparent 0.2rem) 0 0 / 1.45rem 1.45rem,
+    radial-gradient(circle at center, rgba(0, 67, 39, 0.12) 0, rgba(0, 67, 39, 0.12) 0.22rem, transparent 0.24rem) 0.72rem 0.72rem / 1.45rem 1.45rem;
+  opacity: 0.24;
+  mask-image: radial-gradient(circle at center, black 20%, transparent 88%);
 }
 
 .splash-screen__glow {
   background:
-    radial-gradient(circle at center, rgba(74, 255, 189, 0.2), rgba(74, 255, 189, 0) 34%);
-  filter: blur(32px);
+    radial-gradient(circle at center, rgba(139, 255, 220, 0.32), rgba(139, 255, 220, 0) 34%);
+  filter: blur(42px);
   animation: splash-glow 4s ease-in-out infinite;
 }
 
-.splash-screen__panel {
+.splash-screen__card {
   position: relative;
-  width: min(88vw, 23rem);
+  width: min(90vw, 24rem);
+  padding: clamp(1.25rem, 3vw, 1.8rem);
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  border-radius: 2rem;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.09));
+  backdrop-filter: blur(22px) saturate(140%);
   display: grid;
   justify-items: center;
-  gap: 1rem;
+  gap: 1.05rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 28px 75px rgba(4, 56, 40, 0.28),
+    0 12px 24px rgba(4, 56, 40, 0.16);
+}
+
+.splash-screen__card-highlight {
+  position: absolute;
+  inset: auto auto 68% 10%;
+  width: 46%;
+  height: 24%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.05));
+  filter: blur(16px);
+  pointer-events: none;
 }
 
 .splash-screen__logo {
   position: relative;
   z-index: 1;
-  width: min(16rem, 68vw);
+  width: min(15rem, 66vw);
   height: auto;
   object-fit: contain;
-  filter: drop-shadow(0 18px 30px rgba(2, 50, 24, 0.24));
+  filter: drop-shadow(0 16px 28px rgba(4, 56, 40, 0.2));
 }
 
-.splash-screen__lottie-shell {
+.splash-screen__loader-shell {
   position: relative;
-  width: min(9rem, 34vw);
-  height: min(3.6rem, 14vw);
+  width: 5.5rem;
+  height: 5.5rem;
   display: grid;
   place-items: center;
-  margin-top: -0.2rem;
-}
-
-.splash-screen__lottie {
-  width: 100%;
-  height: 100%;
-  transform: translateZ(0);
+  margin-top: -0.1rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.03) 68%, transparent 72%);
+  box-shadow: 0 18px 40px rgba(4, 56, 40, 0.22);
+  animation: splash-loader-breathe 2.3s ease-in-out infinite;
 }
 
 .splash-screen__loader-fallback {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
 }
 
-.splash-screen__loader-dot {
-  width: 0.7rem;
-  height: 0.7rem;
+.splash-screen__loader-ring {
+  position: absolute;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 0 18px rgba(255, 255, 255, 0.32);
-  animation: splash-dot-bounce 1s ease-in-out infinite;
+  border-style: solid;
 }
 
-.splash-screen__loader-dot:nth-child(2) {
-  animation-delay: 0.15s;
+.splash-screen__loader-ring--outer {
+  inset: 0.42rem;
+  border-width: 0.34rem;
+  border-color: rgba(255, 255, 255, 0.14);
+  border-top-color: rgba(255, 255, 255, 0.98);
+  border-right-color: rgba(199, 255, 237, 0.96);
+  box-shadow: 0 0 22px rgba(255, 255, 255, 0.14);
 }
 
-.splash-screen__loader-dot:nth-child(3) {
-  animation-delay: 0.3s;
+.splash-screen__loader-ring--inner {
+  inset: 1.05rem;
+  border-width: 0.2rem;
+  border-color: rgba(255, 255, 255, 0.08);
+  border-bottom-color: rgba(255, 255, 255, 0.96);
+  border-left-color: rgba(176, 255, 228, 0.9);
+}
+
+.splash-screen__loader-core {
+  position: relative;
+  z-index: 1;
+  width: 0.95rem;
+  height: 0.95rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 1), rgba(212, 255, 240, 0.9));
+  box-shadow:
+    0 0 18px rgba(255, 255, 255, 0.75),
+    0 0 32px rgba(196, 255, 235, 0.4);
+}
+
+.splash-screen__loader-halo {
+  position: absolute;
+  inset: 1.2rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(202, 255, 238, 0.45), rgba(202, 255, 238, 0) 72%);
+  filter: blur(12px);
 }
 
 @media (max-width: 640px) {
-  .splash-screen__panel {
-    width: min(92vw, 18rem);
+  .splash-screen__card {
+    width: min(90vw, 20rem);
+    padding: 1.15rem;
   }
 
   .splash-screen__logo {
-    width: min(14.5rem, 74vw);
+    width: min(13.8rem, 72vw);
   }
 
-  .splash-screen__lottie-shell {
-    width: min(8rem, 36vw);
-    height: min(3rem, 14vw);
+  .splash-screen__loader-shell {
+    width: 4.85rem;
+    height: 4.85rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .splash-screen__glow,
-  .splash-screen__loader-dot,
+  .splash-screen__loader-shell,
   .animate-spin-slow,
   .animate-pulse-slow,
   .animate-fade-pulse,
