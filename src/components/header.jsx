@@ -133,6 +133,23 @@ export const Header = ({ hideSearchControl = false }) => {
 {/* Icons */}
 <div className="flex items-center gap-2 sm:gap-3">
 
+  <Link
+    className={`${actionButtonClassName} hidden md:inline-flex`}
+    href="/account"
+    aria-label="Open account"
+    title="Account"
+  >
+    <Icon className="h-5 w-5" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="8.25" r="3" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M6.5 18c1.6-2.1 3.45-3 5.5-3s3.9.9 5.5 3"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </Icon>
+  </Link>
+
   {!hideSearchControl && (
     <HeaderSearchControl buttonClassName={actionButtonClassName} mobileTopClassName={showAnnouncement ? "top-24" : "top-16"} />
   )}

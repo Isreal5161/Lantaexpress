@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { FaSignOutAlt, FaArrowLeft } from "react-icons/fa";
 import AccountHeader from "../components/AccountHeader";
-import AccountSidebar from "../components/AccountSidebar";
 import { Footer } from "../components/footer";
 
 // API base URL (use REACT_APP_API_BASE to override)
@@ -116,26 +115,8 @@ const AccountPage = ({ onSignOut }) => {
         </div>
 
         <div className="flex-1 pb-18">
-          <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8 md:flex-row">
-            <aside className="hidden md:block md:w-72">
-              <div className="overflow-hidden rounded-3xl border border-white/70 bg-white/85 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur-sm">
-                <div className="mb-6 flex items-center gap-4">
-                  <div className="skeleton-shimmer h-16 w-16 rounded-2xl bg-slate-200" />
-                  <div className="flex-1 space-y-3">
-                    <div className="skeleton-shimmer h-4 w-28 rounded-full bg-slate-200" />
-                    <div className="skeleton-shimmer h-3 w-20 rounded-full bg-slate-200" />
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  {[1, 2, 3, 4].map((item) => (
-                    <div key={item} className="skeleton-shimmer h-11 rounded-2xl bg-slate-200" />
-                  ))}
-                </div>
-              </div>
-            </aside>
-
-            <main className="flex-1">
+          <div className="mx-auto flex max-w-6xl justify-center px-4 py-6 sm:px-6 lg:px-8">
+            <main className="w-full max-w-5xl">
               <div className="overflow-hidden rounded-[32px] border border-white/70 bg-white/85 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.1)] backdrop-blur-sm sm:p-8">
                 <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="space-y-3">
@@ -199,15 +180,8 @@ const AccountPage = ({ onSignOut }) => {
       <AccountHeader />
 
       <div className="flex-1 pb-24 md:pb-18">
-        <div className="flex-1 flex flex-col md:flex-row">
-          {/* Sidebar */}
-          <div className="hidden md:block md:w-1/4">
-            <AccountSidebar user={user} />
-          </div>
-
-          {/* Main content */}
-          <div className="flex-1 p-4 md:p-8 flex justify-center">
-            <div className="w-full max-w-3xl">
+        <div className="mx-auto flex w-full max-w-6xl justify-center px-4 py-4 md:px-6 md:py-8">
+          <div className="w-full max-w-4xl">
               {showBackButton && (
                 <button
                   onClick={() => navigate("/account")}
@@ -234,7 +208,6 @@ const AccountPage = ({ onSignOut }) => {
                   Sign Out
                 </button>
               )}
-            </div>
           </div>
         </div>
 
