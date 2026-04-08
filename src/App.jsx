@@ -93,7 +93,7 @@ const App = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowSplash(false);
-    }, 2500);
+    }, 3200);
 
     return () => clearTimeout(timer);
   }, []);
@@ -118,11 +118,9 @@ const App = () => {
 
   return (
     <SellerAuthProvider>
-      {showSplash && (
+      {showSplash ? (
         <SplashScreen />
-      )}
-
-      <div style={{ visibility: showSplash ? "hidden" : "visible" }}>
+      ) : (
         <Router
           future={{
             v7_startTransition: true,
@@ -259,7 +257,7 @@ const App = () => {
 
           </Routes>
         </Router>
-      </div>
+      )}
     </SellerAuthProvider>
   );
 };
