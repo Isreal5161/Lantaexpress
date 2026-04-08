@@ -104,10 +104,10 @@ export const CartPage = ({ userCurrency = "NGN" }) => {
   }, [recentWishlistCartActionId]);
 
   return (
-    <div className="font-body bg-[#f6f6f1] text-slate-600 antialiased">
+    <div className="min-h-screen flex flex-col bg-[#f6f6f1] font-body text-slate-600 antialiased">
       <Header />
 
-      <div className="pb-32 md:pb-20">
+      <div className="flex-1 pb-32 md:pb-20">
         <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
           <div className="rounded-[32px] border border-[#e6e3d9] bg-[linear-gradient(135deg,#fffdf8_0%,#f2f0e8_100%)] p-6 shadow-sm sm:p-8">
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Shopping Bag</p>

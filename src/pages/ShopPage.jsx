@@ -164,7 +164,7 @@ export const ShopPage = () => {
 
 
   return (
-    <div className="font-body text-slate-600 antialiased bg-white">
+    <div className="min-h-screen flex flex-col bg-white font-body text-slate-600 antialiased">
       <Header />
 
       {loading ? (

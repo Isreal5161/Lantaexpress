@@ -72,16 +72,43 @@ export default function LogisticsRequest() {
         {requests.map((request) => (
           <div key={request.recordId} className="rounded-lg border bg-white p-4 shadow">
             {request.image ? <img src={request.image} alt={request.productName} className="mb-3 h-40 w-full rounded object-cover" /> : null}
-            <h2 className="font-semibold">{request.userName}</h2>
-            <p className="text-sm text-gray-600">Phone: {request.phone}</p>
-            <p className="text-sm"><strong>Service:</strong> {request.serviceType}</p>
-            <p className="text-sm"><strong>Pickup:</strong> {request.pickup}</p>
-            <p className="text-sm"><strong>Delivery:</strong> {request.delivery}</p>
-            <p className="text-sm"><strong>Distance:</strong> {request.distanceText || "Estimated route"}</p>
-            <p className="text-sm"><strong>Amount:</strong> ₦ {Number(request.amount || 0).toLocaleString()}</p>
-            <p className="text-sm text-gray-500">{request.description}</p>
-            <p className="text-xs text-gray-400">Request Date: {new Date(request.createdAt).toLocaleString()}</p>
-            <p className="text-xs text-gray-400">Tracking ID: <span className="font-semibold">{request.trackingId}</span></p>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="font-semibold text-slate-900">{request.userName}</h2>
+                <p className="text-sm text-gray-600">Phone: {request.phone}</p>
+                <p className="text-sm text-gray-600">Email: {request.userEmail || "Not supplied"}</p>
+              </div>
+              <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-slate-600">
+                {request.status}
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl bg-slate-50 p-3 text-sm">
+                <p><strong>Service:</strong> {request.serviceType}</p>
+                <p className="mt-1"><strong>Urgency:</strong> {request.urgency}</p>
+                <p className="mt-1"><strong>Distance:</strong> {request.distanceText || "Estimated route"}</p>
+                <p className="mt-1"><strong>Duration:</strong> {request.durationText || "Updating"}</p>
+                <p className="mt-1"><strong>Amount:</strong> ₦ {Number(request.amount || 0).toLocaleString()}</p>
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-3 text-sm text-slate-700">
+                <p><strong>Tracking ID:</strong> {request.trackingId}</p>
+                <p className="mt-1"><strong>Request No:</strong> {request.requestNumber}</p>
+                <p className="mt-1"><strong>Date:</strong> {new Date(request.createdAt).toLocaleString()}</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 p-3 text-sm sm:col-span-2">
+                <p className="font-semibold text-slate-900">Pickup</p>
+                <p className="mt-1 text-slate-700">{request.pickup}</p>
+                <p className="mt-1 text-xs text-slate-500">{request.pickupLocation?.lga || ""}{request.pickupLocation?.state ? `, ${request.pickupLocation.state}` : ""}</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 p-3 text-sm sm:col-span-2">
+                <p className="font-semibold text-slate-900">Delivery</p>
+                <p className="mt-1 text-slate-700">{request.delivery}</p>
+                <p className="mt-1 text-xs text-slate-500">{request.deliveryLocation?.lga || ""}{request.deliveryLocation?.state ? `, ${request.deliveryLocation.state}` : ""}</p>
+              </div>
+            </div>
+
+            <p className="mt-3 text-sm text-gray-500">{request.description}</p>
 
             <div className="mt-3 flex flex-col gap-2">
               <button

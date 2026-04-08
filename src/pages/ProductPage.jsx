@@ -482,10 +482,10 @@ export const ProductPage = () => {
   };
 
   return (
-    <div className="font-body text-slate-600 antialiased bg-white">
+    <div className="min-h-screen flex flex-col bg-white font-body text-slate-600 antialiased">
       <Header />
 
-      <main className="pb-16 md:pb-0">
+      <main className="flex-1 pb-16 md:pb-0">
         {loadingPage ? (
           <ProductPageSkeleton />
         ) : pageError || !product ? (

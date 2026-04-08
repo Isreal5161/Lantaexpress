@@ -3,10 +3,8 @@ import {
   FaArrowRight,
   FaCheckCircle,
   FaClock,
-  FaCompass,
   FaMapMarkerAlt,
   FaMotorcycle,
-  FaRoute,
   FaShieldAlt,
   FaTruck,
   FaWarehouse,
@@ -57,30 +55,12 @@ const deliveryFlow = [
 const coveragePills = ["Lagos", "Ibadan", "Abuja", "Port Harcourt", "Benin", "Abeokuta"];
 const heroVideoSrc = "/Logistics.mov";
 const successVideoSrc = "/Deliveredsuccessful.mov";
-const bookingHighlights = [
-  {
-    title: "Separate booking page",
-    text: "A focused page for pickup and delivery details keeps the logistics landing page easier to understand.",
-    icon: FaCompass,
-  },
-  {
-    title: "Live route estimate",
-    text: "Users can review distance, expected duration, and price before continuing to checkout.",
-    icon: FaRoute,
-  },
-  {
-    title: "Checkout with tracking",
-    text: "Once payment is complete, the flow returns a logistics tracking ID for status updates.",
-    icon: FaCheckCircle,
-  },
-];
-
 export const LogisticsPage = () => {
   return (
-    <div className="min-h-screen bg-[#f4f7f2] font-body text-slate-700">
+    <div className="min-h-screen flex flex-col bg-[#f4f7f2] font-body text-slate-700">
       <Header />
 
-      <main className="overflow-hidden pb-24 md:pb-0">
+      <main className="flex-1 overflow-hidden pb-24 md:pb-0">
         <section className="relative isolate overflow-hidden bg-[#03150c] text-white">
           <img
             src="/lantaexpressimage1.jpg"
@@ -286,48 +266,6 @@ export const LogisticsPage = () => {
                   <span className="text-sm text-slate-500">Dispatch tone</span>
                   <span className="font-semibold text-green-700">Professional</span>
                 </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="booking" className="mx-auto max-w-7xl px-6 py-12 lg:px-8 lg:py-16">
-          <div className="rounded-[34px] bg-gradient-to-br from-slate-900 via-[#082315] to-green-800 px-6 py-8 text-white shadow-[0_25px_90px_rgba(7,89,46,0.2)] sm:px-8 lg:px-10">
-            <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-green-300">Booking experience</p>
-                <h2 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">The booking form now lives on its own page.</h2>
-                <p className="mt-4 max-w-xl text-sm leading-7 text-slate-200">
-                  Users can first understand how LantaXpress logistics works, then open a focused booking flow without a long form competing for attention on this page.
-                </p>
-                <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-                  <Link
-                    href="/logistics/book"
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-6 py-4 text-sm font-bold text-slate-900 transition duration-300 hover:-translate-y-1 hover:bg-green-50"
-                  >
-                    Open booking page
-                    <FaArrowRight />
-                  </Link>
-                  <Link
-                    href="/track"
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-6 py-4 text-sm font-semibold text-white transition duration-300 hover:-translate-y-1 hover:bg-white/15"
-                  >
-                    Track shipment
-                    <FaMapMarkerAlt />
-                  </Link>
-                </div>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-3">
-                {bookingHighlights.map(({ title, text, icon: Icon }) => (
-                  <div key={title} className="rounded-[28px] border border-white/10 bg-white/10 p-5 backdrop-blur-md">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-lg text-slate-900">
-                      <Icon />
-                    </div>
-                    <h3 className="mt-5 text-lg font-bold text-white">{title}</h3>
-                    <p className="mt-3 text-sm leading-7 text-slate-200">{text}</p>
-                  </div>
-                ))}
               </div>
             </div>
           </div>

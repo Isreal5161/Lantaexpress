@@ -334,7 +334,7 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
   }, [categoryTargetRef]);
 
   return (
-    <div className="font-body text-slate-600 antialiased bg-white">
+    <div className="min-h-screen flex flex-col bg-white font-body text-slate-600 antialiased">
       <Header hideSearchControl />
 
       {loadingProducts ? (
@@ -504,32 +504,32 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
         <section id="shop_by_category" className="py-12 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
-              className="mb-4 overflow-hidden bg-[linear-gradient(120deg,#052e16_0%,#15803d_48%,#f97316_100%)] shadow-[0_18px_40px_rgba(22,101,52,0.18)]"
+              className="mb-2 overflow-hidden bg-gradient-to-r from-green-700 via-green-600 to-emerald-500 shadow-[0_12px_28px_rgba(22,101,52,0.16)]"
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, amount: 0.35 }}
               variants={marketingBoardVariants}
             >
-              <div className="flex flex-col gap-2.5 px-4 py-3 sm:px-5 sm:py-3.5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex items-center justify-between gap-3 px-4 py-3.5 sm:px-5 sm:py-4">
                 <div>
-                  <div className="inline-flex items-center gap-2 border border-white/20 bg-white/10 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-[0.2em] text-white/90 backdrop-blur-sm">
-                    <FaLayerGroup className="text-orange-200" />
+                  <div className="inline-flex items-center gap-2 border border-white/15 bg-white/10 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-[0.2em] text-white/85 backdrop-blur-sm">
+                    <FaLayerGroup className="text-green-100" />
                     Explore curated aisles
                   </div>
-                  <h2 className="mt-2 text-sm font-heading font-semibold uppercase tracking-[0.08em] text-white sm:text-[15px]">
+                  <h2 className="mt-2 text-sm font-heading font-semibold uppercase tracking-[0.08em] text-white sm:text-base">
                     Shop by Category
                   </h2>
-                  <p className="mt-1 text-[10px] font-medium leading-5 text-green-50/90 sm:text-[11px]">
+                  <p className="mt-1 text-[11px] font-medium text-green-50/90 sm:text-xs">
                     Quick-entry boards for shoppers who want the fastest route into the right product lane.
                   </p>
                 </div>
 
-                <div className="flex flex-wrap gap-1.5">
-                  <span className="inline-flex items-center gap-1.5 border border-orange-300/50 bg-orange-400/15 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-orange-50 backdrop-blur-sm">
-                    <FaBolt className="animate-pulse text-orange-200" />
+                <div className="hidden flex-wrap gap-1.5 sm:flex">
+                  <span className="inline-flex items-center gap-1.5 border border-white/15 bg-white/10 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-white/90 backdrop-blur-sm">
+                    <FaBolt className="text-green-100" />
                     Fast discovery
                   </span>
-                  <span className="inline-flex items-center gap-1.5 border border-white/20 bg-white/10 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-white/90 backdrop-blur-sm">
+                  <span className="inline-flex items-center gap-1.5 border border-white/15 bg-white/10 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-white/90 backdrop-blur-sm">
                     Swipe categories
                   </span>
                 </div>
@@ -580,39 +580,39 @@ export const IndexPage = ({ className, children, variant, contentKey, ...props }
         <section id="Hot-deal" className="py-6 bg-white-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
-              className="mb-4 overflow-hidden bg-[linear-gradient(120deg,#7c2d12_0%,#ea580c_44%,#facc15_100%)] shadow-[0_18px_42px_rgba(249,115,22,0.22)]"
+              className="mb-2 overflow-hidden bg-gradient-to-r from-green-700 via-green-600 to-emerald-500 shadow-[0_12px_28px_rgba(22,101,52,0.16)]"
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, amount: 0.35 }}
               variants={marketingBoardVariants}
             >
-              <div className="relative flex flex-col gap-2.5 px-4 py-3 sm:px-5 sm:py-3.5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="relative flex items-center justify-between gap-3 px-4 py-3.5 sm:px-5 sm:py-4">
                 <motion.div
                   aria-hidden="true"
-                  className="pointer-events-none absolute right-0 top-0 h-16 w-16 rounded-full bg-white/20 blur-2xl"
+                  className="pointer-events-none absolute right-2 top-1/2 h-20 w-20 -translate-y-1/2 rounded-full bg-white/12 blur-3xl"
                   animate={{ scale: [0.9, 1.08, 0.9], opacity: [0.35, 0.6, 0.35] }}
                   transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
                 />
                 <div className="relative z-10">
-                  <div className="inline-flex items-center gap-1.5 border border-white/20 bg-black/10 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-[0.2em] text-white/95 backdrop-blur-sm">
-                    <FaFireAlt className="animate-pulse text-yellow-100" />
+                  <div className="inline-flex items-center gap-1.5 border border-white/15 bg-white/10 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-[0.2em] text-white/90 backdrop-blur-sm">
+                    <FaFireAlt className="text-green-100" />
                     Flash promotion board
                   </div>
-                  <h2 className="mt-2 text-sm font-heading font-semibold uppercase tracking-[0.08em] text-white sm:text-[15px]">
+                  <h2 className="mt-2 text-sm font-heading font-semibold uppercase tracking-[0.08em] text-white sm:text-base">
                     Hot Deals
                   </h2>
-                  <p className="mt-1 text-[10px] font-medium leading-5 text-orange-50/90 sm:text-[11px]">
+                  <p className="mt-1 text-[11px] font-medium text-green-50/90 sm:text-xs">
                     High-heat offers, sharper markdowns, and faster-moving picks surfaced for immediate conversion.
                   </p>
                 </div>
 
-                <div className="relative z-10 flex flex-wrap gap-1.5">
-                  <span className="inline-flex items-center gap-1.5 border border-yellow-200/60 bg-yellow-300/20 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-white backdrop-blur-sm">
-                    <FaGift className="text-yellow-100" />
+                <div className="relative z-10 hidden flex-wrap gap-1.5 sm:flex">
+                  <span className="inline-flex items-center gap-1.5 border border-white/15 bg-white/10 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-white/90 backdrop-blur-sm">
+                    <FaGift className="text-green-100" />
                     Deal drop
                   </span>
                   <motion.span
-                    className="inline-flex items-center gap-1.5 border border-white/20 bg-white/10 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-white backdrop-blur-sm"
+                    className="inline-flex items-center gap-1.5 border border-white/15 bg-white/10 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-white/90 backdrop-blur-sm"
                     animate={{ y: [0, -2, 0] }}
                     transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
                   >

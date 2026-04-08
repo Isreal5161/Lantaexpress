@@ -149,6 +149,8 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
             price: Number(logisticsCheckout.quote?.amount) || 0,
             selectedShippingMethod: "home_delivery",
             isLogistics: true,
+            pickupLocation: logisticsCheckout.pickupLocation || null,
+            deliveryLocation: logisticsCheckout.deliveryLocation || null,
             pickupAddress: logisticsCheckout.pickupAddress || "",
             deliveryAddress: logisticsCheckout.deliveryAddress || "",
             urgency: logisticsCheckout.urgency || "Standard",
@@ -364,6 +366,8 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
             },
             serviceType: logisticsCheckout.serviceType,
             urgency: logisticsCheckout.urgency,
+            pickupLocation: logisticsCheckout.pickupLocation,
+            deliveryLocation: logisticsCheckout.deliveryLocation,
             pickupAddress: logisticsCheckout.pickupAddress,
             deliveryAddress: logisticsCheckout.deliveryAddress,
             packageDescription: logisticsCheckout.packageDescription,
@@ -402,9 +406,9 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
   // Show empty cart only if success modal not open
   if (checkoutItems.length === 0 && !showSuccess) {
     return (
-      <div className="font-body text-slate-600 bg-white min-h-screen">
+      <div className="min-h-screen flex flex-col bg-white font-body text-slate-600">
         <Header />
-        <div className="max-w-3xl mx-auto py-24 text-center">
+        <div className="flex-1 max-w-3xl mx-auto py-24 text-center">
           <Text className="text-lg text-slate-500">
             Your cart is empty.
           </Text>
@@ -415,7 +419,7 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
   }
 
   return (
-    <div className="font-body bg-[#f5f5f5] text-slate-600">
+    <div className="min-h-screen flex flex-col bg-[#f5f5f5] font-body text-slate-600">
       <Header />
 
       <div className="border-b border-slate-200 bg-white">
@@ -430,7 +434,7 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
         </div>
       </div>
 
-      <div className="pb-18">
+      <div className="flex-1 pb-18">
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 py-8 sm:px-6 lg:grid-cols-12 lg:px-8">
 
           {/* Shipping Address */}
@@ -467,10 +471,12 @@ export const CheckoutPage = ({ userCurrency = "NGN" }) => {
               <div className="rounded-2xl border border-slate-200 px-4 py-4 sm:col-span-2">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Pickup address</p>
                 <p className="mt-2 text-sm text-slate-800">{logisticsCheckout.pickupAddress}</p>
+                <p className="mt-1 text-xs text-slate-500">{logisticsCheckout.pickupLocation?.lga || ""} {logisticsCheckout.pickupLocation?.state ? `, ${logisticsCheckout.pickupLocation.state}` : ""}</p>
               </div>
               <div className="rounded-2xl border border-slate-200 px-4 py-4 sm:col-span-2">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Delivery address</p>
                 <p className="mt-2 text-sm text-slate-800">{logisticsCheckout.deliveryAddress}</p>
+                <p className="mt-1 text-xs text-slate-500">{logisticsCheckout.deliveryLocation?.lga || ""} {logisticsCheckout.deliveryLocation?.state ? `, ${logisticsCheckout.deliveryLocation.state}` : ""}</p>
               </div>
               <div className="rounded-2xl border border-slate-200 px-4 py-4 sm:col-span-2">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">Package notes</p>

@@ -64,10 +64,10 @@ const ShippingReturnsPolicyPage = () => {
   const hasReturnWindow = Number.isFinite(Number(storefrontSettings.returnWindowDays));
 
   return (
-    <div className="min-h-screen bg-[#f6f7f2] text-slate-700">
+    <div className="min-h-screen flex flex-col bg-[#f6f7f2] text-slate-700">
       <Header />
 
-      <main className="pb-16">
+      <main className="flex-1 pb-16">
         <section className="border-b border-[#dfe6d3] bg-[linear-gradient(135deg,#103b22_0%,#1b5e20_55%,#6e8f32_100%)] text-white">
           <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
             <button

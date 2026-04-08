@@ -98,7 +98,7 @@ export const Footer = () => {
   return (
     <>
       {/* Desktop Footer */}
-      <footer className="hidden md:block bg-slate-900 text-slate-300 py-12">
+      <footer className="mt-auto hidden md:block bg-slate-900 py-12 text-slate-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div className="col-span-1 md:col-span-1">

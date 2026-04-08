@@ -38,6 +38,30 @@ const stageIcons = {
   Completed: FaFlagCheckered,
 };
 
+const logisticsStages = [
+  "Awaiting Dispatch",
+  "Approved",
+  "Pickup Scheduled",
+  "Picked Up",
+  "In Transit",
+  "Arrived at Nearest Hub",
+  "Out for Delivery",
+  "Delivered",
+  "Completed",
+];
+
+const logisticsStageIcons = {
+  "Awaiting Dispatch": FaClipboardList,
+  Approved: FaCheckCircle,
+  "Pickup Scheduled": FaCogs,
+  "Picked Up": FaBoxOpen,
+  "In Transit": FaTruck,
+  "Arrived at Nearest Hub": FaMapMarkedAlt,
+  "Out for Delivery": FaTruck,
+  Delivered: FaHome,
+  Completed: FaFlagCheckered,
+};
+
 export const TrackorderPage = () => {
   const location = useLocation();
   const [order, setOrder] = useState(null);
@@ -68,6 +92,8 @@ export const TrackorderPage = () => {
   const normalizedCurrentUserEmail = (currentUser?.email || "").trim().toLowerCase();
   const normalizedOrderEmail = (order?.contact || order?.userEmail || "").trim().toLowerCase();
   const isLogisticsOrder = order?.type === "logistics";
+  const activeStages = isLogisticsOrder ? logisticsStages : orderStages;
+  const activeStageIcons = isLogisticsOrder ? logisticsStageIcons : stageIcons;
   const canConfirmOrder = Boolean(
     order &&
     !isLogisticsOrder &&
@@ -177,8 +203,8 @@ export const TrackorderPage = () => {
 
   const isCompleted = (stage) => {
     if (!order) return false;
-    const orderIndex = orderStages.indexOf(order.status);
-    const stageIndex = orderStages.indexOf(stage);
+    const orderIndex = activeStages.indexOf(order.status);
+    const stageIndex = activeStages.indexOf(stage);
     return stageIndex <= orderIndex;
   };
 
@@ -217,7 +243,7 @@ export const TrackorderPage = () => {
   };
 
   const progressPercent = order
-    ? ((orderStages.indexOf(order.status) + 1) / orderStages.length) * 100
+    ? ((Math.max(activeStages.indexOf(order.status), 0) + 1) / activeStages.length) * 100
     : 0;
 
   return (
@@ -286,9 +312,9 @@ export const TrackorderPage = () => {
 
             {/* Timeline */}
             <div className="space-y-3 sm:space-y-5">
-              {orderStages.map((stage) => {
+              {activeStages.map((stage) => {
                 const completed = isCompleted(stage);
-                const StageIcon = stageIcons[stage] || FaClipboardList;
+                const StageIcon = activeStageIcons[stage] || FaClipboardList;
 
                 return (
                 <div key={stage} className="flex items-start gap-3 rounded-lg border border-gray-100 px-3 py-3">

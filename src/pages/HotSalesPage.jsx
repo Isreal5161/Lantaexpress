@@ -35,10 +35,10 @@ export const HotSalesPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#fff7ed_0%,#fff4eb_26%,#ffffff_58%,#f8fafc_100%)]">
+    <div className="min-h-screen flex flex-col bg-[linear-gradient(180deg,#fff7ed_0%,#fff4eb_26%,#ffffff_58%,#f8fafc_100%)]">
       <Header />
 
-      <main className="pb-24 md:pb-0">
+      <main className="flex-1 pb-24 md:pb-0">
         <div className="mx-auto max-w-7xl px-4 pt-5 sm:px-6 lg:px-8">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.24em] text-orange-700 ring-1 ring-orange-200">
